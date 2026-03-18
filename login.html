@@ -368,8 +368,16 @@
   <script>
     document.querySelector('form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const username = document.getElementById('username').value;
+      const username = document.getElementById('username').value.trim();
+      
+      let approvedAdmins = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
+      const adminMatch = approvedAdmins.find(admin => {
+         return typeof admin === 'string' ? admin === username.toLowerCase() : admin.ign.toLowerCase() === username.toLowerCase();
+      });
+
       localStorage.setItem('lyra_user', username);
+      localStorage.setItem('lyra_user_tier', adminMatch && adminMatch.tier ? adminMatch.tier : 'Admin');
+      
       window.location.href = 'admin-dashboard.html';
     });
   </script>

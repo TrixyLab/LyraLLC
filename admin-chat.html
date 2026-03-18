@@ -207,6 +207,10 @@
           <!-- Seed messages will populate here -->
         </div>
 
+        <div id="typingIndicator" style="display:none; color:var(--red); font-size:0.85rem; padding: 0 2rem 1rem; font-family:'Barlow Condensed', sans-serif; letter-spacing:0.1em; font-weight:600;">
+          Someone is typing...
+        </div>
+
         <div class="chat-input-wrapper">
           <div class="chat-input-box">
             <input type="text" id="chatInput" class="chat-input" placeholder="Message #general..." autocomplete="off">
@@ -292,11 +296,43 @@
     }
 
     sendBtn.addEventListener('click', sendMessage);
+    
+    let typingTimeout;
+    chatInput.addEventListener('input', () => {
+      localStorage.setItem('lyra_chat_typing', JSON.stringify({ user: currentUser, time: Date.now() }));
+    });
+
     chatInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         sendMessage();
       }
     });
+
+    // Real-time synchronization
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'lyra_chat_general') {
+        loadMessages();
+      }
+      if (e.key === 'lyra_chat_typing') {
+        checkTypingStatus();
+      }
+    });
+
+    function checkTypingStatus() {
+      const typingData = JSON.parse(localStorage.getItem('lyra_chat_typing'));
+      const indicator = document.getElementById('typingIndicator');
+      if (typingData && typingData.user !== currentUser && (Date.now() - typingData.time < 3000)) {
+        indicator.textContent = typingData.user + " is typing...";
+        indicator.style.display = 'block';
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => { indicator.style.display = 'none'; }, 3000);
+      } else {
+        indicator.style.display = 'none';
+      }
+    }
+
+    // Also poll typing status just to clear it reliably if storage event missed
+    setInterval(checkTypingStatus, 2000);
 
     loadMessages();
 
@@ -305,6 +341,24 @@
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+  </script>
+  <script>
+    // Role-based access control
+    (function() {
+      const tier = localStorage.getItem('lyra_user_tier') || 'Admin';
+      if (tier !== 'Management') {
+        const links = document.querySelectorAll('.nav-menu li a');
+        links.forEach(link => {
+          if (link.textContent.includes('Admin Access') || link.textContent.includes('Settings') || link.textContent.includes('Store Orders')) {
+            link.parentElement.style.display = 'none';
+          }
+        });
+        
+        if (window.location.href.includes('admin-access.html')) {
+          window.location.href = 'admin-dashboard.html';
+        }
+      }
+    })();
   </script>
 </body>
 </html>

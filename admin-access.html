@@ -173,7 +173,7 @@
     const storedApps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
 
     storedApps.reverse().forEach((app) => {
-      if (app.roleValue !== 'adminAccess') return;
+      if (app.roleValue !== 'adminAccess' && app.roleValue !== 'admin') return;
 
       const card = document.createElement('div');
       card.className = 'app-card';
@@ -205,7 +205,7 @@
       card.className = 'app-card';
       card.innerHTML = `
         <div class="app-info">
-          <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">ACTIVE ADMIN</span>
+          <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">${admin.tier ? admin.tier.toUpperCase() : 'ADMIN'}</span>
           <h2 class="app-name">${admin.name} "${admin.ign}"</h2>
           <div class="app-meta">
             <span>✉️ ${admin.email}</span>
@@ -238,6 +238,7 @@
           
           const approvedApp = apps.find(a => a.timestamp.toString() === ts);
           if (approvedApp) {
+             approvedApp.tier = approvedApp.roleValue === 'adminAccess' ? 'Management' : 'Admin';
              let approvedList = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
              approvedList.push(approvedApp);
              localStorage.setItem('lyra_approved_admins', JSON.stringify(approvedList));
@@ -298,6 +299,24 @@
         window.location.reload();
       }
     });
+  </script>
+  <script>
+    // Role-based access control
+    (function() {
+      const tier = localStorage.getItem('lyra_user_tier') || 'Admin';
+      if (tier !== 'Management') {
+        const links = document.querySelectorAll('.nav-menu li a');
+        links.forEach(link => {
+          if (link.textContent.includes('Admin Access') || link.textContent.includes('Settings') || link.textContent.includes('Store Orders')) {
+            link.parentElement.style.display = 'none';
+          }
+        });
+        
+        if (window.location.href.includes('admin-access.html')) {
+          window.location.href = 'admin-dashboard.html';
+        }
+      }
+    })();
   </script>
 </body>
 </html>
