@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA LLC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-100: #F0F0F0;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.92);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .nav-logo span {
+      color: var(--red);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--white);
+    }
+
+    .nav-cta {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 0.55rem 1.4rem;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--red-dark);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-login {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-login:hover {
+      color: var(--white);
+    }
+
+    .nav-login svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 6rem;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to right, rgba(0, 0, 0, 0.95) 30%, rgba(0, 0, 0, 0.5) 70%, rgba(0, 0, 0, 0.2) 100%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+      z-index: 1;
+    }
+
+    .hero-grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232, 0, 45, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 0, 45, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    /* Simulated hero imagery with CSS */
+    .hero-art {
+      position: absolute;
+      right: -60px;
+      top: 0;
+      bottom: 0;
+      width: 65%;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse at 60% 40%, rgba(232, 0, 45, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+    }
+
+    /* Abstract player silhouette */
+    .hero-art::before {
+      content: '';
+      position: absolute;
+      right: 15%;
+      bottom: 0;
+      width: 420px;
+      height: 90%;
+      background: linear-gradient(to top, rgba(232, 0, 45, 0.08) 0%, transparent 80%);
+      clip-path: polygon(30% 100%, 50% 0%, 70% 100%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 3rem;
+      max-width: 760px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4.5rem, 11vw, 10rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--gray-200);
+      max-width: 420px;
+      margin-bottom: 2.5rem;
+      font-weight: 400;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 0.85rem 2.2rem;
+      text-decoration: none;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      transition: background 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+
+    .btn-primary:hover {
+      background: var(--red-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.85rem 2.2rem;
+      text-decoration: none;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--white);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* TICKER */
+    .ticker {
+      background: var(--red);
+      padding: 0.6rem 0;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .ticker-track {
+      display: flex;
+      gap: 0;
+      animation: ticker-scroll 30s linear infinite;
+      white-space: nowrap;
+    }
+
+    .ticker-item {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      padding: 0 3rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .ticker-item::after {
+      content: '✦';
+      font-size: 0.5rem;
+    }
+
+    @keyframes ticker-scroll {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* SECTION base */
+    section {
+      padding: 6rem 3rem;
+    }
+
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      line-height: 0.95;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    /* GAMES / DIVISIONS */
+    .games-section {
+      background: var(--gray-900);
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-top: 3.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .game-card {
+      background: var(--gray-900);
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: background 0.25s;
+      text-align: center;
+    }
+
+    .game-card:hover {
+      background: var(--gray-800);
+    }
+
+    .game-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--red);
+      transform: scaleX(0);
+      transition: transform 0.25s;
+    }
+
+    .game-card:hover::after {
+      transform: scaleX(1);
+    }
+
+    .game-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+      filter: grayscale(0.3);
+    }
+
+    .game-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+
+    .game-record {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--gray-600);
+      text-transform: uppercase;
+    }
+
+    .game-record span {
+      color: var(--red);
+    }
+
+    /* ROSTER */
+    .roster-section {
+      background: var(--black);
+    }
+
+    .roster-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .view-all {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: gap 0.2s;
+    }
+
+    .view-all:hover {
+      gap: 0.8rem;
+    }
+
+    .view-all::after {
+      content: '→';
+    }
+
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .player-card {
+      background: var(--black);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 3/4;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .player-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--gray-800);
+      transition: transform 0.4s ease;
+    }
+
+    .player-card:hover .player-bg {
+      transform: scale(1.04);
+    }
+
+    /* Colored gradient per player */
+    .player-card:nth-child(1) .player-bg {
+      background: linear-gradient(160deg, #1a0010 0%, #3d0020 50%, #8a0040 100%);
+    }
+
+    .player-card:nth-child(2) .player-bg {
+      background: linear-gradient(160deg, #0a0a1a 0%, #1a1a3d 50%, #252580 100%);
+    }
+
+    .player-card:nth-child(3) .player-bg {
+      background: linear-gradient(160deg, #0d0d0d 0%, #1f1f1f 50%, #2e0010 100%);
+    }
+
+    .player-card:nth-child(4) .player-bg {
+      background: linear-gradient(160deg, #001a0a 0%, #0a2e1a 50%, #0a4020 100%);
+    }
+
+    .player-card:nth-child(5) .player-bg {
+      background: linear-gradient(160deg, #1a0d00 0%, #3d1a00 50%, #7a3000 100%);
+    }
+
+    .player-number {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.2rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      color: rgba(255, 255, 255, 0.06);
+      line-height: 1;
+    }
+
+    .player-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%);
+    }
+
+    .player-info {
+      position: relative;
+      z-index: 2;
+      padding: 1.5rem 1.2rem;
+    }
+
+    .player-role {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 0.35rem;
+    }
+
+    .player-alias {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.9rem;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .player-name {
+      font-size: 0.75rem;
+      color: var(--gray-200);
+      letter-spacing: 0.05em;
+    }
+
+    .player-flag {
+      font-size: 0.9rem;
+      margin-right: 0.3rem;
+    }
+
+    /* NEWS */
+    .news-section {
+      background: var(--gray-900);
+    }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        padding: 0 1.5rem;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      section {
+        padding: 4rem 1.5rem;
+      }
+
+      .hero-content {
+        padding: 0 1.5rem;
+      }
+    }
+
+    .news-featured {
+      background: var(--gray-900);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .news-featured-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #1a0000 0%, #2d0010 50%, #600020 100%);
+      transition: transform 0.4s;
+    }
+
+    .news-featured:hover .news-featured-bg {
+      transform: scale(1.03);
+    }
+
+    .news-featured::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 60%);
+      z-index: 1;
+    }
+
+    .news-featured-content {
+      position: relative;
+      z-index: 2;
+      padding: 2rem;
+    }
+
+    .news-tag {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 0.3rem 0.7rem;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+
+    .news-featured-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .news-featured-date {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--gray-600);
+      text-transform: uppercase;
+    }
+
+    .news-list {
+      background: var(--gray-900);
+    }
+
+    .news-item {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1.5rem 1.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      min-height: 120px;
+      transition: background 0.2s;
+    }
+
+    .news-item:hover {
+      background: var(--gray-800);
+    }
+
+    .news-item:last-child {
+      border-bottom: none;
+    }
+
+    .news-item-tag {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 0.4rem;
+    }
+
+    .news-item-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      line-height: 1.25;
+      margin-bottom: 0.5rem;
+    }
+
+    .news-item-date {
+      font-size: 0.7rem;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+
+    /* MERCH */
+    .merch-section {
+      background: var(--black);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .merch-section::before {
+      content: 'SHOP';
+      position: absolute;
+      right: -1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18vw;
+      color: rgba(255, 255, 255, 0.02);
+      letter-spacing: 0.05em;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    .merch-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .merch-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .merch-text .section-title {
+      margin-bottom: 1rem;
+    }
+
+    .merch-desc {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--gray-200);
+      margin-bottom: 2rem;
+      max-width: 380px;
+    }
+
+    .merch-products {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .product-card {
+      background: var(--gray-900);
+      padding: 2rem 1.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card:hover {
+      background: var(--gray-800);
+    }
+
+    .product-preview {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--gray-800);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+      color: rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card:nth-child(1) .product-preview {
+      background: linear-gradient(135deg, #1a1a1a, #2d0010);
+    }
+
+    .product-card:nth-child(2) .product-preview {
+      background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+    }
+
+    .product-card:nth-child(3) .product-preview {
+      background: linear-gradient(135deg, #2d0010, #1a1a1a);
+    }
+
+    .product-card:nth-child(4) .product-preview {
+      background: linear-gradient(135deg, #1a1a1a, #0d0d1a);
+    }
+
+    .product-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+
+    .product-price {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+      background: var(--red);
+      padding: 3rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 2rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--gray-900);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4rem 3rem 2rem;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .stats-bar {
+        padding: 2rem 1.5rem;
+      }
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-logo span {
+      color: var(--red);
+    }
+
+    .footer-tagline {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+      max-width: 240px;
+    }
+
+    .footer-col-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.6rem;
+    }
+
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links a:hover {
+      color: var(--white);
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .social-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .social-links a:hover {
+      color: var(--white);
+    }
+
+    /* Diagonal accent line */
+    .diag-accent {
+      width: 100%;
+      height: 4px;
+      background: var(--red);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%);
+    }
+
+    /* Animate in */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-eyebrow {
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .hero-title {
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .hero-desc {
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-actions {
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Teams</a></li>
+      <li><a href="roster.html">Roster</a></li>
+      <li><a href="#">Schedule</a></li>
+      <li><a href="about.html">About</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="nav-login">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
+        Login
+      </a>
+      <a href="#" class="nav-cta">Shop Now</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid-overlay"></div>
+    <div class="hero-bg"></div>
+    <div class="hero-art"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">2026 Season</p>
+      <h1 class="hero-title">WE ARE<br><em>LYRA</em></h1>
+      <p class="hero-desc">North America's premier esports organization. Competing at the highest level across VALORANT,
+        League of Legends, and more.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn-primary">Meet the Roster</a>
+        <a href="#" class="btn-ghost">Watch Live</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TICKER -->
+
+
+  <!-- GAMES -->
+  <section class="games-section">
+    <p class="section-label">Our Teams</p>
+    <h2 class="section-title">Competing in<br>Every Game</h2>
+    <div class="games-grid">
+      <div class="game-card">
+        <span class="game-icon">🎯</span>
+        <p class="game-name">VALORANT</p>
+        <p class="game-record">W<span>12</span> · L4 · Americas</p>
+      </div>
+      <div class="game-card">
+        <span class="game-icon">⚔️</span>
+        <p class="game-name">League of Legends</p>
+        <p class="game-record">W<span>8</span> · L6 · LCS</p>
+      </div>
+      <div class="game-card">
+        <span class="game-icon">🔫</span>
+        <p class="game-name">Apex Legends</p>
+        <p class="game-record">W<span>5</span> · L3 · ALGS</p>
+      </div>
+      <div class="game-card">
+        <span class="game-icon">🎮</span>
+        <p class="game-name">Halo</p>
+        <p class="game-record">W<span>9</span> · L2 · HCS</p>
+      </div>
+      <div class="game-card">
+        <span class="game-icon">🏎️</span>
+        <p class="game-name">Rocket League</p>
+        <p class="game-record">W<span>11</span> · L3 · RLCS</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROSTER -->
+  <section class="roster-section">
+    <div class="roster-header">
+      <div>
+        <p class="section-label">VALORANT</p>
+        <h2 class="section-title">The Roster</h2>
+      </div>
+      <a href="#" class="view-all">View Full Roster</a>
+    </div>
+    <div class="roster-grid">
+      <div class="player-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <span class="player-number">1</span>
+        <div class="player-info">
+          <p class="player-role">IGL</p>
+          <p class="player-alias">Beno</p>
+          <p class="player-name"><span class="player-flag">🇺🇸</span>Full Name</p>
+        </div>
+      </div>
+      <div class="player-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <span class="player-number">2</span>
+        <div class="player-info">
+          <p class="player-role">SENTINEL</p>
+          <p class="player-alias">NKZY</p>
+          <p class="player-name"><span class="player-flag">🇺🇸</span>Full Name</p>
+        </div>
+      </div>
+      <div class="player-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <span class="player-number">3</span>
+        <div class="player-info">
+          <p class="player-role">Initiator</p>
+          <p class="player-alias">Hideki</p>
+          <p class="player-name"><span class="player-flag">🇺🇸</span>Full Name</p>
+        </div>
+      </div>
+      <div class="player-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <span class="player-number">4</span>
+        <div class="player-info">
+          <p class="player-role">Duelist</p>
+          <p class="player-alias">Surf</p>
+          <p class="player-name"><span class="player-flag">🇺🇸</span>Full Name</p>
+        </div>
+      </div>
+      <div class="player-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <span class="player-number">5</span>
+        <div class="player-info">
+          <p class="player-role">Duelist</p>
+          <p class="player-alias">lxp</p>
+          <p class="player-name"><span class="player-flag">🇺🇸</span>Full Name</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <p class="stat-value">4+</p>
+      <p class="stat-label">Years Competing</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">10+</p>+</p>
+      <p class="stat-label">Tournaments Won</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">5</p>
+      <p class="stat-label">Active Rosters</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">$32K+</p>
+      <p class="stat-label">Prize Earnings</p>
+    </div>
+  </div>
+
+  <!-- NEWS -->
+  <section class="news-section">
+    <p class="section-label">Latest Updates</p>
+    <h2 class="section-title">News &amp; Content</h2>
+    <div class="news-grid">
+      <div class="news-featured">
+        <div class="news-featured-bg"></div>
+        <div class="news-featured-content">
+          <span class="news-tag">Match Recap</span>
+          <h3 class="news-featured-title">Lyra Introduces New Rocket League Roster</h3>
+          <p class="news-featured-date">March 12, 2025</p>
+        </div>
+      </div>
+      <div class="news-list">
+        <div class="news-item">
+          <p class="news-item-tag">Announcement</p>
+          <p class="news-item-title">LYRA Signs New Head Coach for 2025 Season</p>
+          <p class="news-item-date">March 10, 2025</p>
+        </div>
+        <div class="news-item">
+          <p class="news-item-tag">Video</p>
+          <p class="news-item-title"></p>
+          <p class="news-item-date">March 8, 2025</p>
+        </div>
+        <div class="news-item">
+          <p class="news-item-tag">Merch</p>
+          <p class="news-item-title">Spring Collection Now Available — Limited Stock</p>
+          <p class="news-item-date">March 5, 2025</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MERCH -->
+  <section class="merch-section">
+    <div class="merch-inner">
+      <div class="merch-text">
+        <p class="section-label">Official Store</p>
+        <h2 class="section-title">Rep the<br>Red & Black</h2>
+        <p class="merch-desc">Limited drops. Exclusive collabs. Gear built for fans who go all in. New collections
+          landing every month.</p>
+        <a href="#" class="btn-primary">Shop All Merch</a>
+      </div>
+      <div class="merch-products">
+        <div class="product-card">
+          <div class="product-preview">TEE</div>
+          <p class="product-name">LYRA Classic Tee</p>
+          <p class="product-price">$34.99</p>
+        </div>
+        <div class="product-card">
+          <div class="product-preview">CAP</div>
+          <p class="product-name">Logo Snapback</p>
+          <p class="product-price">$29.99</p>
+        </div>
+        <div class="product-card">
+          <div class="product-preview">HOODIE</div>
+          <p class="product-name">Pullover Hoodie</p>
+          <p class="product-price">$69.99</p>
+        </div>
+        <div class="product-card">
+          <div class="product-preview">JERSEY</div>
+          <p class="product-name">2025 Pro Jersey</p>
+          <p class="product-price">$89.99</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="diag-accent"></div>
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <p class="footer-logo"><span>L</span>YRA</p>
+        <p class="footer-tagline">North America's premier esports organization, competing at the highest level since
+          2020.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Teams</p>
+        <ul class="footer-links">
+          <li><a href="#">VALORANT</a></li>
+          <li><a href="#">League of Legends</a></li>
+          <li><a href="#">Apex Legends</a></li>
+          <li><a href="#">Halo</a></li>
+          <li><a href="#">Rocket League</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Organization</p>
+        <ul class="footer-links">
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Partners</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Connect</p>
+        <ul class="footer-links">
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">YouTube</a></li>
+          <li><a href="#">Twitch</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2021-2026 Lyra. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

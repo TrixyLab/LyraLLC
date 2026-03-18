@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Member Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Background Aesthetics */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.15) 0%, transparent 60%),
+        radial-gradient(circle at bottom left, rgba(232, 0, 45, 0.1) 0%, transparent 50%);
+      z-index: 0;
+    }
+
+    .hero-grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(232, 0, 45, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 0, 45, 0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    /* Login Container */
+    .login-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 440px;
+      padding: 0 1.5rem;
+      animation: fadeUp 0.6s ease-out forwards;
+    }
+
+    .login-box {
+      background: rgba(20, 20, 20, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 3rem 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top edge accent */
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--red);
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .brand-logo img {
+      height: 2.4rem;
+      width: auto;
+    }
+
+    .brand-logo span {
+      color: var(--red);
+    }
+
+    .brand-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      font-weight: 700;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.9rem 1rem;
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--red);
+      background: rgba(0, 0, 0, 0.8);
+      box-shadow: 0 0 15px rgba(232, 0, 45, 0.15);
+    }
+
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input {
+      accent-color: var(--red);
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .checkbox-label {
+      font-size: 0.85rem;
+      color: var(--gray-200);
+    }
+
+    .forgot-link {
+      font-size: 0.85rem;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      color: var(--red);
+    }
+
+    .btn-submit {
+      width: 100%;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 1rem;
+      border: none;
+      cursor: pointer;
+      clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      background: var(--red-dark);
+      transform: translateY(-2px);
+    }
+
+    .login-footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--gray-600);
+    }
+
+    .login-footer a {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .login-footer a:hover {
+      color: var(--red);
+    }
+
+    .back-home {
+      position: absolute;
+      top: 2rem;
+      left: 2rem;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .back-home:hover {
+      color: var(--white);
+      transform: translateX(-4px);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Decoration element */
+    .decor-cross {
+      position: absolute;
+      bottom: 2rem;
+      right: 2rem;
+      width: 40px;
+      height: 40px;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .decor-cross::before,
+    .decor-cross::after {
+      content: '';
+      position: absolute;
+      background: var(--white);
+    }
+
+    .decor-cross::before {
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      transform: translateY(-50%);
+    }
+
+    .decor-cross::after {
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Background Elements -->
+  <div class="hero-grid-overlay"></div>
+  <div class="hero-bg"></div>
+
+  <!-- Back Navigation -->
+  <a href="lyra-website.html" class="back-home">
+    &larr; Return to Home
+  </a>
+
+  <!-- Login Container -->
+  <div class="login-wrapper">
+    <div class="login-box">
+
+      <div class="brand-header">
+        <a href="lyra-website.html" class="brand-logo">
+          <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+          <div><span>L</span>YRA</div>
+        </a>
+        <p class="brand-subtitle">Agent Portal Access</p>
+      </div>
+
+      <form action="#" method="POST">
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+        </div>
+
+        <div class="form-options">
+          <label class="checkbox-wrap">
+            <input type="checkbox" name="remember">
+            <span class="checkbox-label">Remember Me</span>
+          </label>
+          <a href="#" class="forgot-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">Sign In</button>
+      </form>
+
+      <div class="login-footer">
+        Don't have an account? <a href="#">Apply for Access</a>
+      </div>
+
+      <!-- Tech aesthetic decoration -->
+      <div class="decor-cross"></div>
+    </div>
+  </div>
+
+</body>
+
+</html>

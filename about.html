@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - About</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-100: #F0F0F0;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.92);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .nav-logo span {
+      color: var(--red);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--white);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-login {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-login:hover {
+      color: var(--white);
+    }
+
+    .nav-login svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .nav-cta {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 0.55rem 1.4rem;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--red-dark);
+    }
+
+    /* INNER HERO */
+    .inner-hero {
+      position: relative;
+      padding: 12rem 3rem 6rem;
+      background: var(--gray-900);
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .inner-hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at right, rgba(232, 0, 45, 0.08) 0%, transparent 60%);
+      z-index: 1;
+    }
+
+    .hero-grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(232, 0, 45, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 0, 45, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    .inner-hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      animation: fadeUp 0.8s ease-out forwards;
+    }
+
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 8vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .page-desc {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--gray-200);
+      max-width: 500px;
+      font-weight: 400;
+    }
+
+    /* ABOUT CONTENT */
+    .about-content {
+      padding: 6rem 3rem;
+      background: var(--black);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .about-text h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3.5rem;
+      letter-spacing: 0.03em;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+      line-height: 1;
+    }
+
+    .about-text p {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--gray-200);
+      margin-bottom: 1.5rem;
+    }
+
+    .about-visual {
+      position: relative;
+    }
+
+    .about-visual-box {
+      width: 100%;
+      aspect-ratio: 4/5;
+      background: var(--gray-800);
+      position: relative;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: linear-gradient(145deg, #1a0005, #111);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .about-visual-box::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+    }
+
+    .about-visual-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+      filter: grayscale(100%) contrast(1.2);
+    }
+
+    .visual-accent {
+      position: absolute;
+      bottom: -1rem;
+      right: -1rem;
+      width: 100%;
+      height: 100%;
+      border: 1px solid var(--red);
+      z-index: 1;
+    }
+
+    /* VALUES */
+    .values-section {
+      padding: 6rem 3rem;
+      background: var(--gray-900);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .values-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .values-header .section-label {
+      justify-content: center;
+    }
+
+    .values-header .section-label::before,
+    .values-header .section-label::after {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.05);
+      max-width: 1200px;
+      margin: 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .value-card {
+      background: var(--gray-900);
+      padding: 3rem 2.5rem;
+      transition: background 0.3s;
+    }
+
+    .value-card:hover {
+      background: var(--gray-800);
+    }
+
+    .value-icon {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+
+    .value-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .value-desc {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--gray-600);
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--gray-900);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4rem 3rem 2rem;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .footer-logo img {
+      height: 1.8rem;
+      width: auto;
+    }
+
+    .footer-logo div {
+      display: inline-block;
+    }
+
+    .footer-logo span {
+      color: var(--red);
+    }
+
+    .footer-tagline {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+      max-width: 240px;
+    }
+
+    .footer-col-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.6rem;
+    }
+
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links a:hover {
+      color: var(--white);
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .social-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .social-links a:hover {
+      color: var(--white);
+    }
+
+    .diag-accent {
+      width: 100%;
+      height: 4px;
+      background: var(--red);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      nav {
+        padding: 0 1.5rem;
+      }
+
+      .nav-links,
+      .nav-actions {
+        display: none;
+      }
+
+      .inner-hero,
+      .about-content,
+      .values-section {
+        padding: 6rem 1.5rem;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .inner-hero {
+        padding-top: 8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="lyra-website.html">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#">Teams</a></li>
+      <li><a href="roster.html">Roster</a></li>
+      <li><a href="#">Schedule</a></li>
+      <li><a href="about.html" style="color:var(--white);">About</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="nav-login">
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
+        Login
+      </a>
+      <a href="#" class="nav-cta">Shop Now</a>
+    </div>
+  </nav>
+
+  <!-- INNER HERO -->
+  <section class="inner-hero">
+    <div class="hero-grid-overlay"></div>
+    <div class="inner-hero-bg"></div>
+    <div class="inner-hero-content">
+      <p class="section-label">Who We Are</p>
+      <h1 class="page-title">BUILDING A<br><em>LEGACY</em></h1>
+      <p class="page-desc">Lyra is a premier North American esports organization founded on the pursuit of competitive
+        excellence and community engagement.</p>
+    </div>
+  </section>
+
+  <!-- ABOUT TEXT & VISUAL -->
+  <section class="about-content">
+    <div class="about-grid">
+      <div class="about-text">
+        <h2>From Contenders to Champions</h2>
+        <p>Founded in 2021 by Versa, LYRA emerged with a single vision: to build an organization where players are
+          empowered to reach their absolute peak.</p>
+        <p>Over the last few years, we've grown from a single competitive roster into a global powerhouse, competing
+          across VALORANT, League of Legends, Apex Legends, Halo, and Rocket League. We don't just participate; we set
+          the standard.</p>
+        <p>At LYRA, we believe that true victory comes from unparalleled dedication, cutting-edge facilities, and an
+          unyielding connection with our fanbase that fuels us on the biggest stages in the world.</p>
+      </div>
+      <div class="about-visual">
+        <div class="visual-accent"></div>
+        <div class="about-visual-box">
+          <img src="LyraEsportsLogo.png" alt="Lyra Representation" style="width:50%;height:auto;filter:none;opacity:1;">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUES -->
+  <section class="values-section">
+    <div class="values-header">
+      <p class="section-label">Our Core Values</p>
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--white);">What Drives Us</h2>
+    </div>
+    <div class="values-grid">
+      <div class="value-card">
+        <div class="value-icon">⚔️</div>
+        <h3 class="value-title">Excellence</h3>
+        <p class="value-desc">We leave nothing on the table. Every practice, every match, every decision is made with
+          the intention of being the undisputed best.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🤝</div>
+        <h3 class="value-title">Community</h3>
+        <p class="value-desc">Our fans are the heartbeat of LYRA. We strive to create inclusive, passionate communities
+          where every supporter feels like part of the team.</p>
+      </div>
+      <div class="value-card">
+        <div class="value-icon">🚀</div>
+        <h3 class="value-title">Innovation</h3>
+        <p class="value-desc">The esports landscape is always evolving. We pioneer new strategies in gameplay, content
+          creation, and talent development.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="diag-accent"></div>
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="lyra-website.html" class="footer-logo">
+          <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+          <div><span>L</span>YRA</div>
+        </a>
+        <p class="footer-tagline">North America's premier esports organization, competing at the highest level since
+          2020.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Teams</p>
+        <ul class="footer-links">
+          <li><a href="#">VALORANT</a></li>
+          <li><a href="#">League of Legends</a></li>
+          <li><a href="#">Apex Legends</a></li>
+          <li><a href="#">Halo</a></li>
+          <li><a href="#">Rocket League</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Organization</p>
+        <ul class="footer-links">
+          <li><a href="about.html" style="color:var(--white);">About Us</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Partners</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Connect</p>
+        <ul class="footer-links">
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">YouTube</a></li>
+          <li><a href="#">Twitch</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2021-2026 Lyra. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>
