@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --red: #E8002D; --red-dark: #a80020; --white: #FFFFFF; --black: #000000; --gray-100: #F0F0F0; --gray-200: #CCCCCC; --gray-600: #555555; --gray-800: #1A1A1A; --gray-900: #0D0D0D; }
+    html { scroll-behavior: smooth; }
+    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
+p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
+    
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 3rem; height: 68px; background: rgba(0, 0, 0, 0.92); border-bottom: 1px solid rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); }
+    .nav-logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
+    .nav-logo img { height: 2rem; width: auto; }
+    .nav-logo span { color: var(--red); }
+    .nav-links { display: flex; align-items: center; gap: 2.5rem; list-style: none; }
+    .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-200); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--white); }
+    
+    .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-login { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-200); text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+    .nav-login:hover { color: var(--white); }
+    .nav-login svg { width: 16px; height: 16px; fill: currentColor; }
+    
+    .nav-cta, .btn-primary { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); background: var(--red); padding: 0.55rem 1.4rem; text-decoration: none; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: background 0.2s; display: inline-block; border: none; cursor: pointer; }
+    .nav-cta:hover, .btn-primary:hover { background: var(--red-dark); }
+    
+    /* INNER HERO */
+    .inner-hero { position: relative; padding: 12rem 3rem 6rem; background: var(--gray-900); overflow: hidden; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .inner-hero-bg { position: absolute; inset: 0; background: radial-gradient(circle at right, rgba(232, 0, 45, 0.15) 0%, transparent 60%); z-index: 1; }
+    .hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(232, 0, 45, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 0, 45, 0.03) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
+    .inner-hero-content { position: relative; z-index: 2; max-width: 800px; animation: fadeUp 0.8s ease-out forwards; }
+    .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.35em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .section-label::before, .section-label::after { content: ''; display: block; width: 20px; height: 2px; background: var(--red); }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 8vw, 7rem); line-height: 0.9; letter-spacing: 0.02em; color: var(--white); margin-bottom: 1.5rem; }
+    .page-title em { font-style: normal; color: var(--red); }
+    .page-desc { font-size: 1.1rem; line-height: 1.7; color: var(--gray-200); max-width: 500px; font-weight: 400; }
+
+    /* SHOP SECTION */
+    .shop-section { padding: 6rem 3rem; background: var(--black); }
+    .shop-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3rem; }
+    .shop-filters { display: flex; gap: 1rem; }
+    .filter-btn { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--gray-200); font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s; }
+    .filter-btn:hover, .filter-btn.active { border-color: var(--white); color: var(--white); background: rgba(255,255,255,0.05); }
+
+    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2.5rem; }
+    .product-card { background: var(--gray-900); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; position: relative; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s; animation: fadeUp 0.8s ease-out forwards; opacity: 0; }
+    .product-card:hover { transform: translateY(-8px); border-color: rgba(232,0,45,0.5); }
+    .product-card:nth-child(1) { animation-delay: 0.1s; }
+    .product-card:nth-child(2) { animation-delay: 0.2s; }
+    .product-card:nth-child(3) { animation-delay: 0.3s; }
+    .product-card:nth-child(4) { animation-delay: 0.4s; }
+    .product-card:nth-child(5) { animation-delay: 0.5s; }
+    .product-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    .product-image { position: relative; background: var(--gray-800); aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .product-image h3 { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: rgba(255,255,255,0.05); letter-spacing: 0.05em; transform: rotate(-5deg); transition: transform 0.4s, opacity 0.4s; }
+    .product-card:hover .product-image h3 { transform: scale(1.1) rotate(0deg); color: rgba(232,0,45,0.1); }
+    .badge { position: absolute; top: 1.25rem; right: 1.25rem; background: var(--red); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; padding: 0.3rem 0.8rem; text-transform: uppercase; box-shadow: 0 4px 12px rgba(232,0,45,0.3); }
+    
+    .product-info { padding: 2rem; position: relative; }
+    .product-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); margin-bottom: 0.25rem; letter-spacing: 0.05em; line-height: 1.2; }
+    .product-desc { color: var(--gray-600); font-size: 0.95rem; margin-bottom: 1.5rem; }
+    .product-action { display: flex; align-items: center; justify-content: space-between; }
+    .product-price { font-family: 'Barlow Condensed', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--white); }
+
+    /* FOOTER */
+    footer { background: var(--gray-900); border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 4rem 3rem 2rem; }
+    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.1em; color: var(--white); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+    .footer-logo img { height: 1.8rem; width: auto; }
+    .footer-logo div { display: inline-block; }
+    .footer-logo span { color: var(--red); }
+    .footer-tagline { font-size: 0.85rem; color: var(--gray-600); line-height: 1.6; max-width: 240px; }
+    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--white); margin-bottom: 1rem; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 0.6rem; }
+    .footer-links a { font-size: 0.85rem; color: var(--gray-600); text-decoration: none; transition: color 0.2s; letter-spacing: 0.02em; }
+    .footer-links a:hover { color: var(--white); }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.05); flex-wrap: wrap; gap: 1rem; }
+    .footer-copy { font-size: 0.75rem; color: var(--gray-600); letter-spacing: 0.05em; }
+    .social-links { display: flex; gap: 1.2rem; }
+    .social-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
+    .social-links a:hover { color: var(--white); }
+    .diag-accent { width: 100%; height: 4px; background: var(--red); clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      nav { padding: 0 1.5rem; }
+      .nav-links, .nav-actions { display: none; }
+      .inner-hero, .shop-section { padding: 6rem 1.5rem; }
+      .inner-hero { padding-top: 8rem; }
+      .shop-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+    }
+  </style>
+  <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo" onerror="this.style.display='none'">
+      <div><span>L</span>YRA</div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="teams.html">Teams</a></li>
+      <li><a href="roster.html">Roster</a></li>
+      <li><a href="vision.html">Vision</a></li>
+      <li><a href="#">Schedule</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="partners.html">Partners</a></li>
+      <li><a href="apply.html">Apply</a></li>
+      <li><a href="invest.html">Invest in us</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="nav-login">
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        Login
+      </a>
+      <!-- Active state for Shop button since we are on shop.html -->
+      <a href="shop.html" class="nav-cta" style="background:var(--red-dark);">Shop Now</a>
+    </div>
+  </nav>
+
+  <!-- INNER HERO -->
+  <section class="inner-hero">
+    <div class="hero-grid-overlay"></div>
+    <div class="inner-hero-bg"></div>
+    <div class="inner-hero-content">
+      <p class="section-label">Official Apparel Collection</p>
+      <h1 class="page-title">LYRA<br><em>SHOP</em></h1>
+      <p class="page-desc">Represent the brand. High-performance esports wear naturally designed for champions, both in and out of the server.</p>
+    </div>
+  </section>
+
+  <!-- SHOP -->
+  <section class="shop-section">
+    <div class="shop-header">
+      <h2 style="font-family:'Bebas Neue', sans-serif; font-size:2.5rem; display:flex; align-items:center; gap:0.75rem;">ALL PRODUCTS <span style="font-size:1.2rem; color:var(--red); font-family:'Barlow Condensed';">(6)</span></h2>
+      <div class="shop-filters">
+        <button class="filter-btn active">View All</button>
+        <button class="filter-btn">Apparel</button>
+        <button class="filter-btn">Accessories</button>
+      </div>
+    </div>
+
+    <div class="shop-grid">
+      
+      <!-- Product 1 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>PRO JERSEY</h3>
+          <span class="badge">New Arrival</span>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Official 2026 Pro Jersey</h4>
+          <p class="product-desc">Authentic competitive wear</p>
+          <div class="product-action">
+            <span class="product-price">$75.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>HOODIE</h3>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Lyra Core Hoodie</h4>
+          <p class="product-desc">Premium heavyweight fleece</p>
+          <div class="product-action">
+            <span class="product-price">$60.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 3 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>WINDBREAKER</h3>
+          <span class="badge" style="background:#555;">Low Stock</span>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Stealth Windbreaker</h4>
+          <p class="product-desc">Water-resistant shell jacket</p>
+          <div class="product-action">
+            <span class="product-price">$85.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 4 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>JOGGERS</h3>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Essential Active Joggers</h4>
+          <p class="product-desc">Breathable athletic fit</p>
+          <div class="product-action">
+            <span class="product-price">$55.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 5 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>SNAPBACK</h3>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Lyra Logo Snapback</h4>
+          <p class="product-desc">Structured crown headwear</p>
+          <div class="product-action">
+            <span class="product-price">$30.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product 6 -->
+      <div class="product-card">
+        <div class="product-image">
+          <h3>MOUSEPAD</h3>
+        </div>
+        <div class="product-info">
+          <h4 class="product-title">Pro Glide Deskmat XL</h4>
+          <p class="product-desc">High-control tracking surface</p>
+          <div class="product-action">
+            <span class="product-price">$35.00</span>
+            <button class="btn-primary" onclick="alert('Added to Cart!')">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="diag-accent"></div>
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="index.html" class="footer-logo">
+          <img src="LyraEsportsLogo.png" alt="Lyra Logo" onerror="this.style.display='none'">
+          <div><span>L</span>YRA</div>
+        </a>
+        <p class="footer-tagline">North America's premier esports organization, competing at the highest level since 2020.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Teams</p>
+        <ul class="footer-links">
+          <li><a href="teams.html">VALORANT</a></li>
+          <li><a href="teams.html">League of Legends</a></li>
+          <li><a href="teams.html">Apex Legends</a></li>
+          <li><a href="teams.html">Halo</a></li>
+          <li><a href="teams.html">Rocket League</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Organization</p>
+        <ul class="footer-links">
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="partners.html">Partners</a></li>
+          <li><a href="vision.html">Vision</a></li>
+          <li><a href="invest.html">Invest</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Connect</p>
+        <ul class="footer-links">
+          <li><a href="https://x.com/EsportsLyra" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
+          <li><a href="https://www.instagram.com/esportslyra/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@lyraesports" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+          <li><a href="#">Twitch</a></li>
+          <li><a href="#">TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2021-2026 Lyra. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = localStorage.getItem('lyra_user');
+      if (user) {
+        if (!document.getElementById('dropdown-styles')) {
+          const style = document.createElement('style');
+          style.id = 'dropdown-styles';
+          style.innerHTML = `
+            .nav-actions { position: relative; }
+            .user-menu-wrapper { position: relative; display: inline-block; padding: 1rem 0; margin: -1rem 0; }
+            .user-dropdown-menu {
+              position: absolute; top: 100%; right: 0; background: rgba(13, 13, 13, 0.95);
+              backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
+              min-width: 180px; padding: 0.5rem 0; border-top: 3px solid var(--red);
+              opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; z-index: 200;
+            }
+            .user-dropdown-menu a {
+              display: block; padding: 0.8rem 1.2rem; font-family: 'Barlow Condensed', sans-serif;
+              font-size: 0.85rem; font-weight: 600; color: var(--gray-200); letter-spacing: 0.15em;
+              text-transform: uppercase; text-decoration: none; transition: background 0.2s, color 0.2s;
+            }
+            .user-dropdown-menu a:hover { background: rgba(232, 0, 45, 0.1); color: var(--white); }
+            .user-menu-wrapper:hover .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+          `;
+          document.head.appendChild(style);
+        }
+
+        document.querySelectorAll('.nav-login').forEach(link => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'user-menu-wrapper';
+          wrapper.innerHTML = `
+            <div class="nav-login" style="cursor:pointer; display:flex; align-items:center; gap:0.4rem; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.85rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray-200);">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              ${user.toUpperCase()} ▾
+            </div>
+            <div class="user-dropdown-menu">
+              <a href="admin-dashboard.html">Admin Dashboard</a>
+              <a href="#" id="frontendLogoutBtn">Logout</a>
+            </div>
+          `;
+          link.replaceWith(wrapper);
+
+          const logoutBtn = wrapper.querySelector('#frontendLogoutBtn');
+          if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              localStorage.removeItem('lyra_user');
+              window.location.reload();
+            });
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+
+

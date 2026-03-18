@@ -9,6 +9,8 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --red: #E8002D; --white: #FFFFFF; --black: #000000; --gray-200: #CCCCCC; --gray-600: #555555; }
+    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
+p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
     body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
     .hero-bg { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(232, 0, 45, 0.15) 0%, transparent 60%); z-index: 0; }
     .hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(232, 0, 45, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 0, 45, 0.04) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
@@ -26,6 +28,7 @@
     
     @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   </style>
+  <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
 </head>
 <body>
   <div class="hero-grid-overlay"></div>
@@ -41,3 +44,8 @@
   </div>
 </body>
 </html>
+
+
+
+
+
