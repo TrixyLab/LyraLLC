@@ -350,8 +350,7 @@
             <option value="valorant">VALORANT Roster</option>
             <option value="lol">League of Legends</option>
             <option value="content">Content Creator</option>
-            <option value="admin">Website Admin</option>
-            <option value="adminAccess">Management</option>
+            <option value="adminAccess">Website Admin Access</option>
           </select>
         </div>
 
@@ -374,9 +373,9 @@
   </div>
 
   <script>
-    document.querySelector('form').addEventListener('submit', function(e) {
+    document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
-      
+
       const roleSelect = document.getElementById('role');
       const app = {
         name: document.getElementById('fullName').value,
@@ -388,11 +387,11 @@
         reason: document.getElementById('reason').value,
         timestamp: new Date().getTime()
       };
-      
+
       let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
       apps.push(app);
       localStorage.setItem('lyra_applications', JSON.stringify(apps));
-      
+
       window.location.href = 'pending.html';
     });
   </script>

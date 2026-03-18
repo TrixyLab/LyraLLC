@@ -342,23 +342,6 @@
       window.location.href = 'index.html';
     });
   </script>
-  <script>
-    // Role-based access control
-    (function() {
-      const tier = localStorage.getItem('lyra_user_tier') || 'Admin';
-      if (tier !== 'Management') {
-        const links = document.querySelectorAll('.nav-menu li a');
-        links.forEach(link => {
-          if (link.textContent.includes('Admin Access') || link.textContent.includes('Settings') || link.textContent.includes('Store Orders')) {
-            link.parentElement.style.display = 'none';
-          }
-        });
-        
-        if (window.location.href.includes('admin-access.html')) {
-          window.location.href = 'admin-dashboard.html';
-        }
-      }
-    })();
-  </script>
 </body>
 </html>
+
