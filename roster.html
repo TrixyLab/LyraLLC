@@ -325,5 +325,88 @@
     </div>
   </footer>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = localStorage.getItem('lyra_user');
+      if (user) {
+        // Inject styles for dropdown
+        if (!document.getElementById('dropdown-styles')) {
+          const style = document.createElement('style');
+          style.id = 'dropdown-styles';
+          style.innerHTML = `
+            .nav-actions { position: relative; }
+            .user-menu-wrapper { position: relative; display: inline-block; padding: 1rem 0; margin: -1rem 0; }
+            .user-dropdown-menu {
+              position: absolute;
+              top: 100%;
+              right: 0;
+              background: rgba(13, 13, 13, 0.95);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              min-width: 180px;
+              padding: 0.5rem 0;
+              border-top: 3px solid var(--red);
+              opacity: 0;
+              visibility: hidden;
+              transform: translateY(10px);
+              transition: all 0.2s ease;
+              z-index: 200;
+            }
+            .user-dropdown-menu a {
+              display: block;
+              padding: 0.8rem 1.2rem;
+              font-family: 'Barlow Condensed', sans-serif;
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: var(--gray-200);
+              letter-spacing: 0.15em;
+              text-transform: uppercase;
+              text-decoration: none;
+              transition: background 0.2s, color 0.2s;
+            }
+            .user-dropdown-menu a:hover {
+              background: rgba(232, 0, 45, 0.1);
+              color: var(--white);
+            }
+            .user-menu-wrapper:hover .user-dropdown-menu {
+              opacity: 1;
+              visibility: visible;
+              transform: translateY(0);
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        document.querySelectorAll('.nav-login').forEach(link => {
+          // Replace the actual anchor tag with a wrapper box
+          const wrapper = document.createElement('div');
+          wrapper.className = 'user-menu-wrapper';
+          wrapper.innerHTML = `
+            <div class="nav-login" style="cursor:pointer; display:flex; align-items:center; gap:0.4rem; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:0.85rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gray-200);">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:currentColor;">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              ${user.toUpperCase()} ▾
+            </div>
+            <div class="user-dropdown-menu">
+              <a href="admin-dashboard.html">Admin Dashboard</a>
+              <a href="#" id="frontendLogoutBtn">Logout</a>
+            </div>
+          `;
+          link.replaceWith(wrapper);
+
+          // Bind logout
+          const logoutBtn = wrapper.querySelector('#frontendLogoutBtn');
+          if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              localStorage.removeItem('lyra_user');
+              window.location.reload();
+            });
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

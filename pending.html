@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Application Submitted</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --red: #E8002D; --white: #FFFFFF; --black: #000000; --gray-200: #CCCCCC; --gray-600: #555555; }
+    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(232, 0, 45, 0.15) 0%, transparent 60%); z-index: 0; }
+    .hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(232, 0, 45, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 0, 45, 0.04) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
+    
+    .msg-wrapper { position: relative; z-index: 10; width: 100%; max-width: 500px; padding: 0 1.5rem; text-align: center; animation: fadeUp 0.6s ease-out forwards; }
+    .msg-box { background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 4rem 3rem; position: relative; overflow: hidden; }
+    .msg-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--red); }
+    
+    .icon { font-size: 3rem; margin-bottom: 1rem; }
+    h1 { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.05em; color: var(--white); margin-bottom: 1rem; line-height: 1; }
+    p { font-size: 1.05rem; line-height: 1.6; color: var(--gray-200); margin-bottom: 2.5rem; }
+    
+    .btn-home { display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); background: transparent; border: 1px solid rgba(255,255,255,0.3); padding: 0.9rem 2rem; text-decoration: none; clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%); transition: all 0.2s ease; }
+    .btn-home:hover { background: rgba(255,255,255,0.05); border-color: var(--white); transform: translateY(-2px); }
+    
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="hero-grid-overlay"></div>
+  <div class="hero-bg"></div>
+
+  <div class="msg-wrapper">
+    <div class="msg-box">
+      <div class="icon">⏱️</div>
+      <h1>Pending Approval</h1>
+      <p>Thank you for applying to join LYRA. Your access request is currently pending review by our administration team. You will be notified via Discord or Email once a decision is made.</p>
+      <a href="index.html" class="btn-home">Return to Home</a>
+    </div>
+  </div>
+</body>
+</html>

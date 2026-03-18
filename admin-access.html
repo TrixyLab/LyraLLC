@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Admin Access</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #E8002D; --red-dark: #a80020;
+      --green: #00E85D; --green-dark: #00a843;
+      --white: #FFFFFF; --black: #000000;
+      --gray-200: #CCCCCC; --gray-600: #555555;
+      --gray-800: #1A1A1A; --gray-900: #0D0D0D;
+    }
+    body {
+      background: var(--black); color: var(--white);
+      font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex;
+    }
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px; background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex; flex-direction: column; padding: 2rem;
+      position: fixed; height: 100vh; z-index: 100;
+    }
+    .brand-logo {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em;
+      color: var(--white); text-decoration: none; margin-bottom: 3rem;
+    }
+    .brand-logo img { height: 2rem; width: auto; }
+    .brand-logo span { color: var(--red); }
+    .nav-menu { list-style: none; flex: 1; }
+    .nav-menu li { margin-bottom: 0.5rem; }
+    .nav-menu a {
+      display: flex; align-items: center; gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 1rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600);
+      text-decoration: none; padding: 1rem; border-radius: 4px; transition: all 0.2s;
+    }
+    .nav-menu a:hover { color: var(--white); background: rgba(255, 255, 255, 0.03); }
+    .nav-menu a.active {
+      color: var(--white); background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red); padding-left: calc(1rem - 3px);
+    }
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--white);
+      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+      padding: 1rem; transition: color 0.2s;
+    }
+    .logout-btn:hover { color: var(--red); }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1; margin-left: 280px; padding: 3rem 4rem;
+      background: var(--black); position: relative; min-height: 100vh;
+    }
+    .main-bg {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .header {
+      position: relative; z-index: 10; display: flex; justify-content: space-between;
+      align-items: flex-end; margin-bottom: 3rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.03em; line-height: 1; color: var(--white); }
+    .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 0.5rem; }
+
+    /* CARDS */
+    .apps-container { position: relative; z-index: 10; }
+    .app-card {
+      background: var(--gray-900); border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem; margin-bottom: 1rem; display: flex; justify-content: space-between;
+      align-items: center; transition: background 0.2s, border-color 0.2s;
+    }
+    .app-card:hover { border-color: rgba(232, 0, 45, 0.3); background: rgba(26, 26, 26, 0.9); }
+    .app-info { flex: 1; }
+    .app-role {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--red);
+      background: rgba(232, 0, 45, 0.1); padding: 0.25rem 0.75rem;
+      display: inline-block; margin-bottom: 1rem;
+    }
+    .app-name {
+      font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.03em;
+      line-height: 1; color: var(--white); margin-bottom: 0.5rem;
+    }
+    .app-meta {
+      display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--gray-200); margin-bottom: 1rem;
+    }
+    .app-reason {
+      font-size: 0.9rem; line-height: 1.6; color: var(--gray-600); max-width: 80%;
+      border-left: 2px solid rgba(255, 255, 255, 0.1); padding-left: 1rem;
+    }
+    .app-actions { display: flex; flex-direction: column; gap: 0.8rem; min-width: 140px; }
+
+    .btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.85rem;
+      letter-spacing: 0.15em; text-transform: uppercase; padding: 0.8rem; text-align: center;
+      cursor: pointer; text-decoration: none; border: none; transition: all 0.2s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+    .btn-accept { background: var(--white); color: var(--black); }
+    .btn-accept:hover { background: var(--green); color: var(--black); }
+    .btn-decline { background: transparent; color: var(--gray-200); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .btn-decline:hover { border-color: var(--red); color: var(--red); background: rgba(232, 0, 45, 0.05); }
+
+    @media (max-width: 900px) {
+      .app-card { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+      .app-reason { max-width: 100%; border-left: none; padding-left: 0; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+      .app-actions { flex-direction: row; }
+      .btn { flex: 1; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand-logo">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html">Applications</a></li>
+      <li><a href="admin-roster.html">Roster Management</a></li>
+      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-reviews.html">Performance Reviews</a></li>
+      <li><a href="admin-access.html" class="active">Admin Access</a></li>
+      <li><a href="#">News & Content</a></li>
+      <li><a href="#">Store Orders</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+    <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="main-bg"></div>
+
+    <div class="header">
+      <div>
+        <p class="header-subtitle">Access Control</p>
+        <h1 class="header-title">Admin Access Requests</h1>
+      </div>
+    </div>
+
+    <div class="apps-container" id="adminRequestsContainer">
+      <!-- Mock Request 1 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role">Elevate Credentials</span>
+          <h2 class="app-name">David "Dave" Smith</h2>
+          <div class="app-meta">
+            <span>✉️ d.smith@lyra.gg</span>
+            <span>📱 dave_ops</span>
+          </div>
+          <p class="app-reason">"Applying for full Web Admin rights so I can approve and decline main roster applications directly while you're offline."</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Grant Access</button>
+          <button class="btn btn-decline">Deny</button>
+        </div>
+      </div>
+
+      <!-- Mock Request 2 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role">Elevate Credentials</span>
+          <h2 class="app-name">Maria "Mariya" Lopez</h2>
+          <div class="app-meta">
+            <span>✉️ m.lopez@lyra.gg</span>
+            <span>📱 mariya_social</span>
+          </div>
+          <p class="app-reason">"Need CMS access to the News & Content tab to publish the new YouTube VOD announcements."</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Grant Access</button>
+          <button class="btn btn-decline">Deny</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const appsContainer = document.getElementById('adminRequestsContainer');
+    const storedApps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+
+    storedApps.reverse().forEach((app) => {
+      if (app.roleValue !== 'adminAccess') return;
+
+      const card = document.createElement('div');
+      card.className = 'app-card';
+      card.innerHTML = `
+        <div class="app-info">
+          <span class="app-role" style="background:var(--red);color:var(--white);">NEW ADMIN REQUEST</span>
+          <h2 class="app-name">${app.name} "${app.ign}"</h2>
+          <div class="app-meta">
+            <span>✉️ ${app.email}</span>
+            <span>📱 ${app.discord}</span>
+          </div>
+          <p class="app-reason">"${app.reason}"</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept" data-email="${app.email}" data-name="${app.name}" data-timestamp="${app.timestamp}">Grant Access</button>
+          <button class="btn btn-decline" data-timestamp="${app.timestamp}">Deny</button>
+        </div>
+      `;
+      appsContainer.prepend(card);
+    });
+
+    // Event delegation to catch dynamically added buttons
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('btn-accept')) {
+        const card = e.target.closest('.app-card');
+        card.style.opacity = '0.5';
+        card.style.pointerEvents = 'none';
+        e.target.innerText = 'GRANTED';
+        e.target.style.background = 'var(--green)';
+        e.target.style.color = 'var(--black)';
+
+        const email = e.target.getAttribute('data-email');
+        const name = e.target.getAttribute('data-name');
+        const ts = e.target.getAttribute('data-timestamp');
+        
+        if (ts) {
+          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+          apps = apps.filter(a => a.timestamp.toString() !== ts);
+          localStorage.setItem('lyra_applications', JSON.stringify(apps));
+        }
+
+        if (email) {
+          const subject = encodeURIComponent("LYRA Esports - Admin Access Approved");
+          const body = encodeURIComponent(`Hello ${name},\n\nYour application for Website Admin Access at LYRA Esports has been approved! Welcome to the management team.\n\nPlease finalize your account securely by setting up your new admin password here:\n[YOUR-WEBSITE-URL]/create-password.html\n\nBest,\nLYRA Administration`);
+          window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+        }
+      }
+      else if (e.target.classList.contains('btn-decline')) {
+        const card = e.target.closest('.app-card');
+        
+        const ts = e.target.getAttribute('data-timestamp');
+        if (ts) {
+          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+          apps = apps.filter(a => a.timestamp.toString() !== ts);
+          localStorage.setItem('lyra_applications', JSON.stringify(apps));
+        }
+
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.pointerEvents = 'none';
+        setTimeout(() => card.remove(), 300);
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LYRA - Member Login</title>
+  <title>LYRA - Apply for Access</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
@@ -37,7 +37,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
+      overflow-x: hidden;
       position: relative;
     }
 
@@ -59,13 +59,14 @@
       z-index: 0;
     }
 
-    /* Login Container */
+    /* Container */
     .login-wrapper {
       position: relative;
       z-index: 10;
       width: 100%;
-      max-width: 440px;
-      padding: 0 1.5rem;
+      max-width: 580px;
+      /* Slightly wider for the robust form */
+      padding: 3rem 1.5rem;
       animation: fadeUp 0.6s ease-out forwards;
     }
 
@@ -79,7 +80,6 @@
       overflow: hidden;
     }
 
-    /* Top edge accent */
     .login-box::before {
       content: '';
       position: absolute;
@@ -133,6 +133,19 @@
       position: relative;
     }
 
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 500px) {
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+
     .form-label {
       display: block;
       font-family: 'Barlow Condensed', sans-serif;
@@ -162,41 +175,14 @@
       box-shadow: 0 0 15px rgba(232, 0, 45, 0.15);
     }
 
-    .form-options {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .checkbox-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    select.form-input {
+      appearance: none;
       cursor: pointer;
     }
 
-    .checkbox-wrap input {
-      accent-color: var(--red);
-      width: 15px;
-      height: 15px;
-      cursor: pointer;
-    }
-
-    .checkbox-label {
-      font-size: 0.85rem;
-      color: var(--gray-200);
-    }
-
-    .forgot-link {
-      font-size: 0.85rem;
-      color: var(--gray-200);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .forgot-link:hover {
-      color: var(--red);
+    textarea.form-input {
+      resize: vertical;
+      min-height: 100px;
     }
 
     .btn-submit {
@@ -214,6 +200,7 @@
       cursor: pointer;
       clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
       transition: all 0.2s ease;
+      margin-top: 1rem;
     }
 
     .btn-submit:hover {
@@ -274,7 +261,6 @@
       }
     }
 
-    /* Decoration element */
     .decor-cross {
       position: absolute;
       bottom: 2rem;
@@ -321,7 +307,7 @@
     &larr; Return to Home
   </a>
 
-  <!-- Login Container -->
+  <!-- Application Container -->
   <div class="login-wrapper">
     <div class="login-box">
 
@@ -330,33 +316,56 @@
           <img src="LyraEsportsLogo.png" alt="Lyra Logo">
           <div><span>L</span>YRA</div>
         </a>
-        <p class="brand-subtitle">Agent Portal Access</p>
+        <p class="brand-subtitle">Membership Application</p>
       </div>
 
-      <form action="admin-dashboard.html" method="GET">
-        <div class="form-group">
-          <label for="username" class="form-label">Username</label>
-          <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
+      <form action="pending.html" method="GET">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fullName" class="form-label">Full Name</label>
+            <input type="text" id="fullName" class="form-input" placeholder="Jordan Doe" required>
+          </div>
+          <div class="form-group">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ign" class="form-label">In-Game / Alias</label>
+            <input type="text" id="ign" class="form-input" placeholder="e.g. Shadow" required>
+          </div>
+          <div class="form-group">
+            <label for="discord" class="form-label">Discord ID</label>
+            <input type="text" id="discord" class="form-input" placeholder="username#1234" required>
+          </div>
         </div>
 
         <div class="form-group">
-          <label for="password" class="form-label">Password</label>
-          <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+          <label for="role" class="form-label">Primary Interest</label>
+          <select id="role" class="form-input" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="valorant">VALORANT Roster</option>
+            <option value="lol">League of Legends</option>
+            <option value="content">Content Creator</option>
+            <option value="staff">Staff / Management</option>
+            <option value="adminAccess">Website Admin Access</option>
+          </select>
         </div>
 
-        <div class="form-options">
-          <label class="checkbox-wrap">
-            <input type="checkbox" name="remember">
-            <span class="checkbox-label">Remember Me</span>
-          </label>
-          <a href="#" class="forgot-link">Forgot Password?</a>
+        <div class="form-group">
+          <label for="reason" class="form-label">Why LYRA?</label>
+          <textarea id="reason" class="form-input" placeholder="Tell us about yourself and your goals..."
+            required></textarea>
         </div>
 
-        <button type="submit" class="btn-submit">Sign In</button>
+        <button type="submit" class="btn-submit">Submit Application</button>
       </form>
 
       <div class="login-footer">
-        Don't have an account? <a href="apply.html">Apply for Access</a>
+        Already have an account? <a href="login.html">Sign In Here</a>
       </div>
 
       <!-- Tech aesthetic decoration -->
@@ -367,9 +376,24 @@
   <script>
     document.querySelector('form').addEventListener('submit', function(e) {
       e.preventDefault();
-      const username = document.getElementById('username').value;
-      localStorage.setItem('lyra_user', username);
-      window.location.href = 'admin-dashboard.html';
+      
+      const roleSelect = document.getElementById('role');
+      const app = {
+        name: document.getElementById('fullName').value,
+        email: document.getElementById('email').value,
+        ign: document.getElementById('ign').value,
+        discord: document.getElementById('discord').value,
+        role: roleSelect.options[roleSelect.selectedIndex].text,
+        roleValue: roleSelect.value,
+        reason: document.getElementById('reason').value,
+        timestamp: new Date().getTime()
+      };
+      
+      let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+      apps.push(app);
+      localStorage.setItem('lyra_applications', JSON.stringify(apps));
+      
+      window.location.href = 'pending.html';
     });
   </script>
 </body>

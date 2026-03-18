@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --green: #00E85D;
+      --green-dark: #00a843;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      margin-bottom: 3rem;
+    }
+
+    .brand-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .brand-logo span {
+      color: var(--red);
+    }
+
+    .nav-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-menu li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav-menu a:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-menu a.active {
+      color: var(--white);
+      background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red);
+      padding-left: calc(1rem - 3px);
+    }
+
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--red);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 3rem 4rem;
+      background: var(--black);
+      position: relative;
+    }
+
+    .main-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    .header-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .stat-box {
+      background: var(--gray-900);
+      padding: 1rem 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: right;
+    }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* APPLICATIONS LIST */
+    .apps-container {
+      position: relative;
+      z-index: 10;
+    }
+
+    .app-card {
+      background: var(--gray-900);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .app-card:hover {
+      border-color: rgba(232, 0, 45, 0.3);
+      background: rgba(26, 26, 26, 0.9);
+    }
+
+    .app-info {
+      flex: 1;
+    }
+
+    .app-role {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+      background: rgba(232, 0, 45, 0.1);
+      padding: 0.25rem 0.75rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .app-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .app-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-200);
+      margin-bottom: 1rem;
+    }
+
+    .app-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .app-reason {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--gray-600);
+      max-width: 80%;
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+      padding-left: 1rem;
+    }
+
+    .app-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      min-width: 140px;
+    }
+
+    .btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-accept {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .btn-accept:hover {
+      background: var(--green);
+      color: var(--black);
+    }
+
+    .btn-decline,
+    .btn-remove {
+      background: transparent;
+      color: var(--gray-200);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-decline:hover,
+    .btn-remove:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(232, 0, 45, 0.05);
+    }
+
+    @media (max-width: 900px) {
+      .app-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+      }
+
+      .app-reason {
+        max-width: 100%;
+        border-left: none;
+        padding-left: 0;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .app-actions {
+        flex-direction: row;
+      }
+
+      .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand-logo">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html" class="active">Applications</a></li>
+      <li><a href="admin-roster.html">Roster Management</a></li>
+      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-reviews.html">Performance Reviews</a></li>
+      <li><a href="admin-access.html">Admin Access</a></li>
+      <li><a href="#">News & Content</a></li>
+      <li><a href="#">Store Orders</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+
+    <a href="#" id="logoutBtn" class="logout-btn">
+      ← Logout
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="main-bg"></div>
+
+    <div class="header">
+      <div>
+        <p class="header-subtitle">Admin Portal</p>
+        <h1 class="header-title">Pending Applications</h1>
+      </div>
+      <div class="stats-container">
+        <div class="stat-box">
+          <p class="stat-number">3</p>
+          <p class="stat-label">Pending</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">89</p>
+          <p class="stat-label">Reviewed</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="apps-container">
+
+      <!-- App 1 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role">VALORANT Roster</span>
+          <h2 class="app-name">Alex "Vortex" Chen</h2>
+          <div class="app-meta">
+            <span>✉️ vortex@example.com</span>
+            <span>📱 vortex#9921</span>
+          </div>
+          <p class="app-reason">"I peaked Radiant top 50 last act. Looking for a dedicated T2 squad to grind ascension
+            with. I have competitive experience with two previous collegiate teams."</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Accept</button>
+          <button class="btn btn-decline">Decline</button>
+        </div>
+      </div>
+
+      <!-- App 2 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role">Content Creator</span>
+          <h2 class="app-name">Sarah "Sare" Jenkins</h2>
+          <div class="app-meta">
+            <span>✉️ sarah.j@example.com</span>
+            <span>📱 sare#1111</span>
+          </div>
+          <p class="app-reason">"I make high-production VALORANT documentaries and VOD reviews on YouTube, pulling ~40k
+            average views. I love the brand LYRA is building and want to expand the content wing."</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Accept</button>
+          <button class="btn btn-decline">Decline</button>
+        </div>
+      </div>
+
+      <!-- App 3 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role">League of Legends</span>
+          <h2 class="app-name">Marcus "Dagger" Thorne</h2>
+          <div class="app-meta">
+            <span>✉️ m.thorne@example.com</span>
+            <span>📱 dagger_lol#5555</span>
+          </div>
+          <p class="app-reason">"Challenger Jungler looking for a structured environment. I main Lee Sin, Viego, and
+            Sejuani. I have strong shotcalling abilities and a deep champion pool."</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Accept</button>
+          <button class="btn btn-decline">Decline</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ACTIVE MEMBERS SECTION -->
+    <div class="header" style="margin-top: 5rem;">
+      <div>
+        <p class="header-subtitle">User Management</p>
+        <h2 class="header-title">Active Members</h2>
+      </div>
+      <div class="stats-container">
+        <div class="stat-box">
+          <p class="stat-number">142</p>
+          <p class="stat-label">Total</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="apps-container">
+      <!-- Member 1 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role" style="color:var(--gray-200);background:rgba(255,255,255,0.1);">VALORANT Roster</span>
+          <h2 class="app-name">Julian "Beno" Cruz</h2>
+          <div class="app-meta">
+            <span>✉️ j.cruz@lyra.gg</span>
+            <span>📱 beno.vlr</span>
+            <span>🗓️ Joined: Jan 2024</span>
+          </div>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-remove">Remove Access</button>
+        </div>
+      </div>
+
+      <!-- Member 2 -->
+      <div class="app-card">
+        <div class="app-info">
+          <span class="app-role" style="color:var(--gray-200);background:rgba(255,255,255,0.1);">Staff / Admin</span>
+          <h2 class="app-name">Michael Administrator</h2>
+          <div class="app-meta">
+            <span>✉️ admin@lyra.gg</span>
+            <span>📱 admin_mike</span>
+            <span>🗓️ Joined: Aug 2021</span>
+          </div>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-remove">Remove Access</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Load dynamic applications first
+    const appsContainer = document.querySelectorAll('.apps-container')[0];
+    const storedApps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+
+    storedApps.reverse().forEach((app) => {
+      if (app.roleValue === 'adminAccess') return;
+
+      const card = document.createElement('div');
+      card.className = 'app-card';
+      card.innerHTML = `
+        <div class="app-info">
+          <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
+          <h2 class="app-name">${app.name} "${app.ign}"</h2>
+          <div class="app-meta">
+            <span>✉️ ${app.email}</span>
+            <span>📱 ${app.discord}</span>
+            <span>⚔️ ${app.role}</span>
+          </div>
+          <p class="app-reason">"${app.reason}"</p>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-accept">Accept</button>
+          <button class="btn btn-decline" data-timestamp="${app.timestamp}">Decline</button>
+        </div>
+      `;
+      appsContainer.prepend(card);
+    });
+
+    // Event delegation to catch dynamically added buttons
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('btn-accept')) {
+        const card = e.target.closest('.app-card');
+        card.style.opacity = '0.5';
+        card.style.pointerEvents = 'none';
+        e.target.innerText = 'Accepted';
+        e.target.style.background = 'var(--green)';
+        e.target.style.color = 'var(--black)';
+      }
+      else if (e.target.classList.contains('btn-decline')) {
+        const card = e.target.closest('.app-card');
+        
+        const ts = e.target.getAttribute('data-timestamp');
+        if (ts) {
+          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+          apps = apps.filter(a => a.timestamp.toString() !== ts);
+          localStorage.setItem('lyra_applications', JSON.stringify(apps));
+        }
+
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.pointerEvents = 'none';
+        setTimeout(() => card.remove(), 300);
+      }
+      else if (e.target.classList.contains('btn-remove')) {
+        const card = e.target.closest('.app-card');
+        card.style.opacity = '0.3';
+        card.style.pointerEvents = 'none';
+        e.target.innerText = 'Removed';
+        e.target.style.color = 'var(--red)';
+        e.target.style.borderColor = 'var(--red)';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+
+</html>
