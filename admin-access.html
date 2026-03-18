@@ -154,39 +154,16 @@
     </div>
 
     <div class="apps-container" id="adminRequestsContainer">
-      <!-- Mock Request 1 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Elevate Credentials</span>
-          <h2 class="app-name">David "Dave" Smith</h2>
-          <div class="app-meta">
-            <span>✉️ d.smith@lyra.gg</span>
-            <span>📱 dave_ops</span>
-          </div>
-          <p class="app-reason">"Applying for full Web Admin rights so I can approve and decline main roster applications directly while you're offline."</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Grant Access</button>
-          <button class="btn btn-decline">Deny</button>
-        </div>
-      </div>
+    </div>
 
-      <!-- Mock Request 2 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Elevate Credentials</span>
-          <h2 class="app-name">Maria "Mariya" Lopez</h2>
-          <div class="app-meta">
-            <span>✉️ m.lopez@lyra.gg</span>
-            <span>📱 mariya_social</span>
-          </div>
-          <p class="app-reason">"Need CMS access to the News & Content tab to publish the new YouTube VOD announcements."</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Grant Access</button>
-          <button class="btn btn-decline">Deny</button>
-        </div>
+    <!-- ACTIVE ADMINS SECTION -->
+    <div class="header" style="margin-top: 5rem;">
+      <div>
+        <p class="header-subtitle">Access Control</p>
+        <h1 class="header-title">Active Admins</h1>
       </div>
+    </div>
+    <div class="apps-container" id="activeAdminsContainer">
     </div>
 
   </main>
@@ -218,6 +195,30 @@
       appsContainer.prepend(card);
     });
 
+    const activeAdminsContainer = document.getElementById('activeAdminsContainer');
+    const approvedAdmins = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
+
+    approvedAdmins.reverse().forEach((admin) => {
+      if (typeof admin === 'string') return;
+
+      const card = document.createElement('div');
+      card.className = 'app-card';
+      card.innerHTML = `
+        <div class="app-info">
+          <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">ACTIVE ADMIN</span>
+          <h2 class="app-name">${admin.name} "${admin.ign}"</h2>
+          <div class="app-meta">
+            <span>✉️ ${admin.email}</span>
+            <span>📱 ${admin.discord}</span>
+          </div>
+        </div>
+        <div class="app-actions">
+          <button class="btn btn-decline btn-revoke" data-timestamp="${admin.timestamp}">Revoke Access</button>
+        </div>
+      `;
+      activeAdminsContainer.appendChild(card);
+    });
+
     // Event delegation to catch dynamically added buttons
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('btn-accept')) {
@@ -234,6 +235,14 @@
         
         if (ts) {
           let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
+          
+          const approvedApp = apps.find(a => a.timestamp.toString() === ts);
+          if (approvedApp) {
+             let approvedList = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
+             approvedList.push(approvedApp);
+             localStorage.setItem('lyra_approved_admins', JSON.stringify(approvedList));
+          }
+
           apps = apps.filter(a => a.timestamp.toString() !== ts);
           localStorage.setItem('lyra_applications', JSON.stringify(apps));
         }
@@ -260,12 +269,34 @@
         card.style.pointerEvents = 'none';
         setTimeout(() => card.remove(), 300);
       }
+      else if (e.target.classList.contains('btn-revoke')) {
+        const card = e.target.closest('.app-card');
+        
+        const ts = e.target.getAttribute('data-timestamp');
+        if (ts) {
+          let approvedList = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
+          approvedList = approvedList.filter(a => typeof a === 'string' || a.timestamp.toString() !== ts);
+          localStorage.setItem('lyra_approved_admins', JSON.stringify(approvedList));
+        }
+
+        card.style.transition = 'all 0.3s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.pointerEvents = 'none';
+        setTimeout(() => card.remove(), 300);
+      }
     });
 
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
+    });
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'lyra_applications' || e.key === 'lyra_approved_admins') {
+        window.location.reload();
+      }
     });
   </script>
 </body>

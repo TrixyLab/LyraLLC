@@ -392,61 +392,6 @@
     </div>
 
     <div class="apps-container">
-
-      <!-- App 1 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">VALORANT Roster</span>
-          <h2 class="app-name">Alex "Vortex" Chen</h2>
-          <div class="app-meta">
-            <span>✉️ vortex@example.com</span>
-            <span>📱 vortex#9921</span>
-          </div>
-          <p class="app-reason">"I peaked Radiant top 50 last act. Looking for a dedicated T2 squad to grind ascension
-            with. I have competitive experience with two previous collegiate teams."</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Accept</button>
-          <button class="btn btn-decline">Decline</button>
-        </div>
-      </div>
-
-      <!-- App 2 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Content Creator</span>
-          <h2 class="app-name">Sarah "Sare" Jenkins</h2>
-          <div class="app-meta">
-            <span>✉️ sarah.j@example.com</span>
-            <span>📱 sare#1111</span>
-          </div>
-          <p class="app-reason">"I make high-production VALORANT documentaries and VOD reviews on YouTube, pulling ~40k
-            average views. I love the brand LYRA is building and want to expand the content wing."</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Accept</button>
-          <button class="btn btn-decline">Decline</button>
-        </div>
-      </div>
-
-      <!-- App 3 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">League of Legends</span>
-          <h2 class="app-name">Marcus "Dagger" Thorne</h2>
-          <div class="app-meta">
-            <span>✉️ m.thorne@example.com</span>
-            <span>📱 dagger_lol#5555</span>
-          </div>
-          <p class="app-reason">"Challenger Jungler looking for a structured environment. I main Lee Sin, Viego, and
-            Sejuani. I have strong shotcalling abilities and a deep champion pool."</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Accept</button>
-          <button class="btn btn-decline">Decline</button>
-        </div>
-      </div>
-
     </div>
 
     <!-- ACTIVE MEMBERS SECTION -->
@@ -539,7 +484,7 @@
       }
       else if (e.target.classList.contains('btn-decline')) {
         const card = e.target.closest('.app-card');
-        
+
         const ts = e.target.getAttribute('data-timestamp');
         if (ts) {
           let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
@@ -567,6 +512,12 @@
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
+    });
+
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'lyra_applications' || e.key === 'lyra_approved_admins') {
+        window.location.reload();
+      }
     });
   </script>
 </body>
