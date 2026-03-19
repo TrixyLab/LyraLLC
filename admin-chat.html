@@ -416,7 +416,7 @@
 
         <div
           style="display: flex; justify-content: space-between; align-items: center; padding-right: 1.5rem; margin-top: 1rem;">
-          <p class="channel-header" style="margin: 0; padding: 0;">Custom Channels</p>
+          <p class="channel-header" style="margin: 0; padding-left: 0.8rem;">Custom Channels</p>
           <button id="addChannelBtn"
             style="background:none; border:none; color:var(--red); font-size:1.2rem; cursor:pointer; padding: 0 0.5rem; line-height: 1;"
             title="Create Channel">+</button>
@@ -485,6 +485,14 @@
     const typingIndicator = document.getElementById('typingIndicator');
 
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
+    
+    let userProfiles = {};
+    db.ref('lyra_approved_admins').on('value', snap => {
+      snap.forEach(child => {
+        const val = child.val();
+        if (typeof val !== 'string' && val.ign) userProfiles[val.ign.toLowerCase()] = val;
+      });
+    });
 
     let currentChannel = 'general';
     let messagesRef = null;
@@ -507,9 +515,9 @@
           a.setAttribute('data-channel', key);
 
           a.innerHTML = `
-            <span style="display:flex; justify-content:space-between; align-items:center;">
-              <span># ${ch.name}</span>
-              <button class="delete-channel-btn" data-id="${key}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0 5px;" title="Delete Channel">&times;</button>
+            <span style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <span style="padding-left: 0.8rem;"># ${ch.name}</span>
+              <button class="delete-channel-btn" data-id="${key}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0;" title="Delete Channel">&times;</button>
             </span>
           `;
           customChannelsContainer.appendChild(a);
@@ -579,10 +587,16 @@
         const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
         const avatarLetter = msg.author.charAt(0).toUpperCase();
 
+        let authorProfile = userProfiles ? userProfiles[msg.author.toLowerCase()] : null;
+        let avatarHtml = `<div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>`;
+        if (authorProfile && authorProfile.pfp) {
+          avatarHtml = `<div class="msg-avatar" style="background-image:url('${authorProfile.pfp}'); background-size:cover; background-position:center; padding:0; border:1px solid rgba(255,255,255,0.1);"></div>`;
+        }
+
         const msgDiv = document.createElement('div');
         msgDiv.className = 'message animate-on-scroll is-visible';
         msgDiv.innerHTML = `
-          <div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>
+          ${avatarHtml}
           <div class="msg-content">
             <div class="msg-header">
               <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>

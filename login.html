@@ -399,6 +399,19 @@
     document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();
+      const passwordInput = document.getElementById('password').value;
+
+      // Master Admin Override
+      if (username.toLowerCase() === 'admin' && passwordInput === 'Awesome1404@') {
+        if (confirm('Would you like to enable live toast notifications for new messages and applications while logged in?')) {
+          localStorage.setItem('lyra_notifications', 'enabled');
+        } else {
+          localStorage.setItem('lyra_notifications', 'disabled');
+        }
+        localStorage.setItem('lyra_user', 'Admin');
+        window.location.href = 'admin-dashboard.html';
+        return;
+      }
 
       db.ref('lyra_approved_admins').once('value').then((snapshot) => {
         const approvedAdmins = [];
@@ -413,16 +426,25 @@
         });
 
         if (adminMatch) {
-          localStorage.setItem('lyra_user', username);
-          window.location.href = 'admin-dashboard.html';
+          if (!adminMatch.password) {
+            alert('Account not finalized. Please click "Finalize Account" to set your password.');
+          } else if (adminMatch.password === passwordInput) {
+            if (confirm('Would you like to enable live toast notifications for new messages and applications while logged in?')) {
+              localStorage.setItem('lyra_notifications', 'enabled');
+            } else {
+              localStorage.setItem('lyra_notifications', 'disabled');
+            }
+            localStorage.setItem('lyra_user', username);
+            window.location.href = 'admin-dashboard.html';
+          } else {
+            alert('Incorrect password. Please try again.');
+          }
         } else {
           alert('Username not found in Approved Admins list. Please request access.');
         }
       }).catch(err => {
         console.error(err);
-        alert("Database connection failed. Falling back to local mode.");
-        localStorage.setItem('lyra_user', username);
-        window.location.href = 'admin-dashboard.html';
+        alert("Database connection failed.");
       });
     });
   </script>

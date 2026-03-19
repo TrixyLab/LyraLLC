@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Admin Settings</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --green: #00E85D;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      margin-bottom: 3rem;
+    }
+
+    .brand-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .brand-logo span {
+      color: var(--red);
+    }
+
+    .nav-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-menu li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav-menu a:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-menu a.active {
+      color: var(--white);
+      background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red);
+      padding-left: calc(1rem - 3px);
+    }
+
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--red);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 3rem 4rem;
+      background: var(--black);
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .main-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    .header-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .app-card {
+      background: var(--gray-900);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      display: flex;
+      transition: background 0.2s, border-color 0.2s;
+      position: relative;
+      z-index: 10;
+    }
+  </style>
+  <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
+  <link rel="stylesheet" href="animations.css">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand-logo">
+      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html">Applications</a></li>
+      <li><a href="admin-roster.html">Roster Management</a></li>
+      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-reviews.html">Performance Reviews</a></li>
+      <li><a href="admin-access.html">Admin Access</a></li>
+      <li><a href="#">News & Content</a></li>
+      <li><a href="#">Store Orders</a></li>
+      <li><a href="admin-settings.html" class="active">Settings</a></li>
+    </ul>
+    <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="main-bg"></div>
+    <div class="header">
+      <div>
+        <p class="header-subtitle">Account Control</p>
+        <h1 class="header-title">Settings & Profile</h1>
+      </div>
+    </div>
+
+    <div class="settings-container animate-on-scroll is-visible"
+      style="display: grid; gap: 2rem; grid-template-columns: 1fr 1fr;">
+
+      <!-- Profile Form -->
+      <div class="app-card" style="flex-direction: column; align-items: stretch;">
+        <h2
+          style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--white); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+          Profile Details</h2>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Full
+            Name</label>
+          <input type="text" id="profName"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Email
+            Address</label>
+          <input type="email" id="profEmail"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Upload
+            Profile Picture</label>
+          <input type="file" id="profPfp" accept=".png, .jpg, .jpeg"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+          <input type="hidden" id="profPfpData" value="">
+          <div id="pfpPreview"
+            style="margin-top:1rem; width: 60px; height: 60px; border-radius: 50%; background-position:center; background-size:cover; border: 2px solid var(--red); display:none;">
+          </div>
+        </div>
+
+        <button id="saveProfileBtn"
+          style="margin-top:1rem;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:var(--white);color:var(--black);border:none; transition: all 0.2s;">Save
+          Profile</button>
+      </div>
+
+      <!-- Security Form -->
+      <div class="app-card" style="flex-direction: column; align-items: stretch;">
+        <h2
+          style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--red); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+          Account Security</h2>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Current
+            Password</label>
+          <input type="password" id="currentPass"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">New
+            Password</label>
+          <input type="password" id="newPass"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label
+            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Confirm
+            New Password</label>
+          <input type="password" id="confirmNewPass"
+            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <button id="saveSecurityBtn"
+          style="margin-top:auto;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:transparent;color:var(--gray-200);border:1px solid rgba(255,255,255,0.2); transition: all 0.2s;">Update
+          Password</button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const currentUser = localStorage.getItem('lyra_user');
+    if (!currentUser) window.location.href = 'login.html';
+
+    let userNodeId = null;
+    let currentDbPass = null;
+
+    db.ref('lyra_approved_admins').once('value', (snapshot) => {
+      let found = false;
+      snapshot.forEach(child => {
+        const val = child.val();
+        if (typeof val !== 'string' && val.ign && val.ign.toLowerCase() === currentUser.toLowerCase()) {
+          userNodeId = child.key;
+          currentDbPass = val.password;
+
+          document.getElementById('profName').value = val.name || '';
+          document.getElementById('profEmail').value = val.email || '';
+
+          if (val.pfp) {
+            document.getElementById('profPfpData').value = val.pfp;
+            const preview = document.getElementById('pfpPreview');
+            preview.style.display = 'block';
+            preview.style.backgroundImage = `url('${val.pfp}')`;
+          }
+          found = true;
+        }
+      });
+      if (!found) {
+        alert("Account sync error. Please log in again.");
+        window.location.href = 'login.html';
+      }
+    });
+
+    document.getElementById('profPfp').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let width = img.width;
+            let height = img.height;
+            if (width > 200 || height > 200) {
+              if (width > height) { height *= 200 / width; width = 200; }
+              else { width *= 200 / height; height = 200; }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+            document.getElementById('profPfpData').value = dataUrl;
+            const preview = document.getElementById('pfpPreview');
+            preview.style.display = 'block';
+            preview.style.backgroundImage = `url('${dataUrl}')`;
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('saveProfileBtn').addEventListener('click', () => {
+      if (!userNodeId) return;
+      const btn = document.getElementById('saveProfileBtn');
+      const newName = document.getElementById('profName').value.trim();
+      const newEmail = document.getElementById('profEmail').value.trim();
+      const newPfp = document.getElementById('profPfpData').value;
+
+      btn.innerText = 'SAVING...';
+
+      db.ref('lyra_approved_admins/' + userNodeId).update({
+        name: newName,
+        email: newEmail,
+        pfp: newPfp
+      }).then(() => {
+        btn.innerText = 'SAVED ✓';
+        btn.style.background = 'var(--green)';
+        setTimeout(() => {
+          btn.innerText = 'Save Profile';
+          btn.style.background = 'var(--white)';
+        }, 3000);
+      });
+    });
+
+    document.getElementById('saveSecurityBtn').addEventListener('click', () => {
+      if (!userNodeId) return;
+
+      const currentInput = document.getElementById('currentPass').value;
+      const newPass = document.getElementById('newPass').value;
+      const confirmPass = document.getElementById('confirmNewPass').value;
+
+      if (!currentDbPass) {
+        // Technically possible if they bypassed finalize
+      } else if (currentInput !== currentDbPass) {
+        alert("Current password is incorrect.");
+        return;
+      }
+
+      if (newPass.length < 8) {
+        alert("New password must be at least 8 characters.");
+        return;
+      }
+      if (newPass !== confirmPass) {
+        alert("New passwords do not match.");
+        return;
+      }
+
+      const btn = document.getElementById('saveSecurityBtn');
+      btn.innerText = 'UPDATING...';
+
+      db.ref('lyra_approved_admins/' + userNodeId).update({
+        password: newPass
+      }).then(() => {
+        currentDbPass = newPass;
+        document.getElementById('currentPass').value = '';
+        document.getElementById('newPass').value = '';
+        document.getElementById('confirmNewPass').value = '';
+
+        btn.innerText = 'PASSWORD UPDATED ✓';
+        btn.style.borderColor = 'var(--green)';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => {
+          btn.innerText = 'Update Password';
+          btn.style.borderColor = 'rgba(255,255,255,0.2)';
+          btn.style.color = 'var(--gray-200)';
+        }, 3000);
+      });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+  <script src="animations.js"></script>
+</body>
+
+</html>
