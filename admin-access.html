@@ -340,6 +340,7 @@
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
@@ -380,8 +381,8 @@
       <li><a href="admin-chat.html">Messages</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html" class="active">Admin Access</a></li>
-      <li><a href="#">News & Content</a></li>
-      <li><a href="#">Store Orders</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
@@ -401,14 +402,16 @@
     <div class="apps-container" id="adminRequestsContainer">
     </div>
 
-    <!-- ACTIVE ADMINS SECTION -->
+    <!-- ACTIVE MEMBERS SECTION -->
     <div class="header" style="margin-top: 5rem;">
       <div>
         <p class="header-subtitle">Access Control</p>
-        <h1 class="header-title">Active Admins</h1>
+        <h1 class="header-title">Active Organization Members</h1>
       </div>
     </div>
-    <div class="apps-container" id="activeAdminsContainer">
+
+    <div class="apps-container" id="activeMembersContainer">
+      <!-- Injected via JS -->
     </div>
 
   </main>
@@ -455,33 +458,69 @@
       });
     });
 
-    db.ref('lyra_approved_admins').on('value', (snapshot) => {
-      activeAdminsContainer.innerHTML = '';
-      const admins = [];
-      snapshot.forEach(child => {
-        admins.push({ id: child.key, ...child.val() });
-      });
+    const activeMembersContainer = document.getElementById('activeMembersContainer');
+    let allAdmins = [];
+    let allRoster = [];
 
-      admins.reverse().forEach((admin) => {
-        if (!admin.name) return;
+    function renderActiveMembers() {
+      activeMembersContainer.innerHTML = '';
+      
+      // Combine and sort
+      const members = [
+        ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
+        ...allRoster.map(r => ({ ...r, orgType: 'roster' }))
+      ];
 
+      // Sort by name
+      members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+      members.forEach(m => {
         const card = document.createElement('div');
         card.className = 'app-card';
+        
+        const isAppAdmin = m.orgType === 'admin';
+        const roleBadgeColor = isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)';
+        const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
+        
         card.innerHTML = `
           <div class="app-info">
-            <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">ACTIVE ADMIN</span>
-            <h2 class="app-name">${admin.name} "${admin.ign}"</h2>
+            <span class="app-role" style="background:${roleBadgeColor}; color:var(--white); border:1px solid rgba(255,255,255,0.1);">${roleBadgeText}</span>
+            <h2 class="app-name">${m.name} "${m.ign || ''}"</h2>
             <div class="app-meta">
-              <span>✉️ ${admin.email}</span>
-              <span>📱 ${admin.discord}</span>
+              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customRole || 'Member')}</span>
+              <span>📱 ${m.discord || 'Not Linked'}</span>
             </div>
           </div>
           <div class="app-actions">
-            <button class="btn btn-decline btn-revoke" data-id="${admin.id}">Revoke Access</button>
+            ${isAppAdmin ? 
+              `<button class="btn btn-decline btn-revoke" data-id="${m.id}">Revoke Access</button>` : 
+              `<a href="admin-roster.html" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Manage</a>`
+            }
           </div>
         `;
-        activeAdminsContainer.appendChild(card);
+        activeMembersContainer.appendChild(card);
       });
+    }
+
+    // Admins Sync
+    db.ref('lyra_approved_admins').on('value', snap => {
+      allAdmins = [];
+      snap.forEach(child => {
+        allAdmins.push({ id: child.key, ...child.val() });
+      });
+      renderActiveMembers();
+    });
+
+    // Roster Sync
+    db.ref('lyra_roster').on('value', snap => {
+      allRoster = [];
+      const data = snap.val() || {};
+      Object.keys(data).forEach(game => {
+        Object.keys(data[game]).forEach(pid => {
+          allRoster.push({ id: pid, game: game, ...data[game][pid] });
+        });
+      });
+      renderActiveMembers();
     });
 
     document.addEventListener('click', function (e) {
@@ -526,73 +565,14 @@
         if (id) db.ref('lyra_applications/' + id).remove();
       }
     });
-
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
-
-    // Admin Status Logic & Presence List
-    const statusSelect = document.getElementById('adminStatus');
-    if (statusSelect) {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
-      statusSelect.value = savedStatus;
-
-      statusSelect.addEventListener('change', (e) => {
-        localStorage.setItem('lyra_admin_status', e.target.value);
-        if (typeof db !== 'undefined') {
-          const currentUser = localStorage.getItem('lyra_user');
-          if (currentUser) {
-            db.ref('lyra_presence/' + currentUser).update({
-              status: e.target.value,
-              timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-          }
-        }
-      });
-    }
-
-    const presenceList = document.getElementById('presenceList');
-    if (presenceList && typeof db !== 'undefined') {
-      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
-        const allAdmins = [];
-        adminsSnap.forEach(child => {
-          const adm = child.val();
-          if (typeof adm === 'string') allAdmins.push(adm);
-          else if (adm.ign) allAdmins.push(adm.ign);
-        });
-
-        db.ref('lyra_presence').on('value', snap => {
-          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-          let onlineCount = 0;
-          const presenceMap = snap.val() || {};
-
-          allAdmins.forEach(adminName => {
-            if (!presenceMap[adminName]) {
-              presenceMap[adminName] = { status: 'offline' };
-            }
-          });
-
-          Object.keys(presenceMap).forEach(user => {
-            const data = presenceMap[user];
-            let icon = '🔴';
-            let label = 'Offline';
-            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
-            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
-
-            const option = document.createElement('option');
-            option.value = user;
-            option.innerHTML = `${icon} ${user} (${label})`;
-            presenceList.appendChild(option);
-          });
-
-          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-        });
-      });
-    }
   </script>
   <script src="animations.js"></script>
+  <script src="responsive.js"></script>
 </body>
 
 </html>

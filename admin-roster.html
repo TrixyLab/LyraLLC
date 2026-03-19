@@ -379,6 +379,7 @@
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
@@ -419,8 +420,8 @@
       <li><a href="admin-chat.html">Messages</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="#">News & Content</a></li>
-      <li><a href="#">Store Orders</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
@@ -521,9 +522,11 @@
 
   </main>
 
+  <!-- Firebase Core + Database -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const currentUser = localStorage.getItem('lyra_user');
     if (!currentUser) window.location.href = 'login.html';
@@ -534,10 +537,18 @@
 
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const targetGrid = document.getElementById(targetId);
+        
         tabBtns.forEach(b => b.classList.remove('active'));
-        rosterGrids.forEach(g => g.classList.remove('active'));
+        rosterGrids.forEach(g => {
+          g.classList.remove('active');
+          g.style.opacity = '1';
+          g.style.transform = 'translateY(0)';
+        });
+
         btn.classList.add('active');
-        document.getElementById(btn.dataset.target).classList.add('active');
+        targetGrid.classList.add('active');
       });
     });
 
@@ -657,51 +668,9 @@
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
-
-    // Admin Status Logic & Presence List
-    const statusSelect = document.getElementById('adminStatus');
-    if (statusSelect) {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
-      statusSelect.value = savedStatus;
-
-      statusSelect.addEventListener('change', (e) => {
-        localStorage.setItem('lyra_admin_status', e.target.value);
-        if (typeof db !== 'undefined') {
-          const currentUser = localStorage.getItem('lyra_user');
-          if (currentUser) {
-            db.ref('lyra_presence/' + currentUser).update({
-              status: e.target.value,
-              timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-          }
-        }
-      });
-    }
-
-    const presenceList = document.getElementById('presenceList');
-    if (presenceList && typeof db !== 'undefined') {
-      db.ref('lyra_presence').on('value', snap => {
-        presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-        let onlineCount = 0;
-        snap.forEach(child => {
-          const user = child.key;
-          const data = child.val();
-          let icon = '🔴';
-          if (data.status === 'online') { icon = '🟢'; onlineCount++; }
-          if (data.status === 'away') { icon = '🟡'; onlineCount++; }
-
-          const option = document.createElement('option');
-          option.value = user;
-          option.innerHTML = `${icon} ${user}`;
-          presenceList.appendChild(option);
-        });
-        if (onlineCount > 0) {
-          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-        }
-      });
-    }
   </script>
   <script src="animations.js"></script>
+  <script src="responsive.js"></script>
 </body>
 
 </html>

@@ -330,6 +330,30 @@
       width: 1px;
       transform: translateX(-50%);
     }
+    @media (max-width: 600px) {
+      body {
+        overflow: auto;
+        padding: 4rem 1rem;
+        display: block;
+      }
+      .login-wrapper {
+        margin: 0 auto;
+      }
+      .login-box {
+        padding: 2.5rem 1.5rem;
+      }
+      .back-home {
+        position: fixed;
+        background: var(--gray-900);
+        padding: 0.8rem 1.5rem;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        z-index: 1000;
+      }
+    }
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
@@ -356,6 +380,10 @@
           <div><span>L</span>YRA</div>
         </a>
         <p class="brand-subtitle">Agent Portal Access</p>
+      </div>
+
+      <div id="revokedMessage" style="display:none; background:rgba(232,0,45,0.1); border:1px solid var(--red); color:var(--red); padding:1rem; margin-bottom:1.5rem; font-size:0.9rem; text-align:center; font-family:'Barlow', sans-serif;">
+        <strong>ACCESS REVOKED</strong><br/>Your session was terminated.
       </div>
 
       <form action="admin-dashboard.html" method="GET">
@@ -396,6 +424,11 @@
   <script src="firebase-config.js"></script>
 
   <script>
+    // Check for revoked session
+    if (new URLSearchParams(window.location.search).get('revoked') === 'true') {
+        document.getElementById('revokedMessage').style.display = 'block';
+    }
+
     document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();

@@ -350,6 +350,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
@@ -384,8 +385,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <li><a href="admin-chat.html">Messages</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="#">News & Content</a></li>
-      <li><a href="#">Store Orders</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
 
@@ -421,50 +422,12 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <!-- ACTIVE MEMBERS SECTION -->
     <div class="header" style="margin-top: 5rem;">
       <div>
-        <p class="header-subtitle">User Management</p>
-        <h2 class="header-title">Active Members</h2>
-      </div>
-      <div class="stats-container">
-        <div class="stat-box">
-          <p class="stat-number">142</p>
-          <p class="stat-label">Total</p>
-        </div>
+        <p class="header-subtitle">Management</p>
+        <h1 class="header-title">Active Organization Members</h1>
       </div>
     </div>
+    <div class="apps-container" id="activeMembersContainer"></div>
 
-    <div class="apps-container">
-      <!-- Member 1 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role" style="color:var(--gray-200);background:rgba(255,255,255,0.1);">VALORANT Roster</span>
-          <h2 class="app-name">Julian "Beno" Cruz</h2>
-          <div class="app-meta">
-            <span>✉️ j.cruz@lyra.gg</span>
-            <span>📱 beno.vlr</span>
-            <span>🗓️ Joined: Jan 2024</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-remove">Remove Access</button>
-        </div>
-      </div>
-
-      <!-- Member 2 -->
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role" style="color:var(--gray-200);background:rgba(255,255,255,0.1);">Staff / Admin</span>
-          <h2 class="app-name">Michael Administrator</h2>
-          <div class="app-meta">
-            <span>✉️ admin@lyra.gg</span>
-            <span>📱 admin_mike</span>
-            <span>🗓️ Joined: Aug 2021</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-remove">Remove Access</button>
-        </div>
-      </div>
-    </div>
   </main>
 
   <!-- Firebase Core + Database -->
@@ -473,21 +436,29 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   <script src="firebase-config.js"></script>
 
   <script>
-    const appsContainer = document.querySelectorAll('.apps-container')[0];
+    db.ref('lyra_applications').on('value', snapshot => {
+      const appsContainer = document.getElementById('apps-container');
+      appsContainer.style.opacity = '0';
+      appsContainer.style.transform = 'translateY(10px)';
+      appsContainer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+      
+      setTimeout(() => {
+        appsContainer.innerHTML = '';
+        if (!snapshot.exists()) {
+          appsContainer.innerHTML = '<div class="app-card" style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;"><p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No pending applications in the database.</p></div>';
+          appsContainer.style.opacity = '1';
+          appsContainer.style.transform = 'translateY(0)';
+          return;
+        }
 
-    db.ref('lyra_applications').on('value', (snapshot) => {
-      appsContainer.innerHTML = '';
-      const apps = [];
-      snapshot.forEach(child => {
-        apps.push({ id: child.key, ...child.val() });
-      });
+        const data = snapshot.val();
+        const apps = Object.keys(data).map(id => ({ id, ...data[id] }));
+        apps.reverse().forEach((app) => {
+          if (app.roleValue === 'adminAccess') return;
 
-      apps.reverse().forEach((app) => {
-        if (app.roleValue === 'adminAccess') return;
-
-        const card = document.createElement('div');
-        card.className = 'app-card';
-        card.innerHTML = `
+          const card = document.createElement('div');
+          card.className = 'app-card animate-slide-in';
+          card.innerHTML = `
           <div class="app-info">
             <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
             <h2 class="app-name">${app.name} "${app.ign}"</h2>
@@ -507,8 +478,14 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             <button class="btn btn-decline" data-id="${app.id}">Decline</button>
           </div>
         `;
-        appsContainer.appendChild(card);
-      });
+          appsContainer.appendChild(card);
+        });
+
+        setTimeout(() => {
+          appsContainer.style.opacity = '1';
+          appsContainer.style.transform = 'translateY(0)';
+        }, 50);
+      }, 200);
     });
 
     document.addEventListener('click', function (e) {
@@ -552,73 +529,71 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       }
     });
 
+    // --- ACTIVE MEMBERS SYNC ---
+    const activeMembersContainer = document.getElementById('activeMembersContainer');
+    let allAdmins = [];
+    let allRoster = [];
+
+    function renderActiveMembers() {
+      if (!activeMembersContainer) return;
+      activeMembersContainer.innerHTML = '';
+      
+      const members = [
+        ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
+        ...allRoster.map(r => ({ ...r, orgType: 'roster' }))
+      ];
+      members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+      members.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        const isAppAdmin = m.orgType === 'admin';
+        const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
+        
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:${isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; color:var(--white);">${roleBadgeText}</span>
+            <h2 class="app-name">${m.name} "${m.ign || ''}"</h2>
+            <div class="app-meta">
+              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customRole || 'Member')}</span>
+              <span>📱 ${m.discord || 'Not Linked'}</span>
+            </div>
+          </div>
+          <div class="app-actions">
+            <a href="${isAppAdmin ? 'admin-access.html' : 'admin-roster.html'}" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">View</a>
+          </div>
+        `;
+        activeMembersContainer.appendChild(card);
+      });
+    }
+
+    db.ref('lyra_approved_admins').on('value', snap => {
+      allAdmins = [];
+      snap.forEach(child => { allAdmins.push({ id: child.key, ...child.val() }); });
+      renderActiveMembers();
+    });
+
+    db.ref('lyra_roster').on('value', snap => {
+      allRoster = [];
+      const data = snap.val() || {};
+      Object.keys(data).forEach(game => {
+        Object.keys(data[game]).forEach(pid => {
+          allRoster.push({ id: pid, game: game, ...data[game][pid] });
+        });
+      });
+      renderActiveMembers();
+    });
+
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
-
-    // Admin Status Logic & Presence List
-    const statusSelect = document.getElementById('adminStatus');
-    if (statusSelect) {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
-      statusSelect.value = savedStatus;
-      
-      statusSelect.addEventListener('change', (e) => {
-        localStorage.setItem('lyra_admin_status', e.target.value);
-        if (typeof db !== 'undefined') {
-          const currentUser = localStorage.getItem('lyra_user');
-          if (currentUser) {
-            db.ref('lyra_presence/' + currentUser).update({
-              status: e.target.value,
-              timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-          }
-        }
-      });
-    }
-
-    const presenceList = document.getElementById('presenceList');
-    if (presenceList && typeof db !== 'undefined') {
-      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
-        const allAdmins = [];
-        adminsSnap.forEach(child => {
-          const adm = child.val();
-          if (typeof adm === 'string') allAdmins.push(adm);
-          else if (adm.ign) allAdmins.push(adm.ign);
-        });
-        
-        db.ref('lyra_presence').on('value', snap => {
-          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-          let onlineCount = 0;
-          const presenceMap = snap.val() || {};
-          
-          allAdmins.forEach(adminName => {
-            if (!presenceMap[adminName]) {
-              presenceMap[adminName] = { status: 'offline' };
-            }
-          });
-
-          Object.keys(presenceMap).forEach(user => {
-            const data = presenceMap[user];
-            let icon = '🔴';
-            let label = 'Offline';
-            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
-            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
-            
-            const option = document.createElement('option');
-            option.value = user;
-            option.innerHTML = `${icon} ${user} (${label})`;
-            presenceList.appendChild(option);
-          });
-          
-          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-        });
-      });
-    }
   </script>
   <script src="animations.js"></script>
+  <script src="responsive.js"></script>
 </body>
+
 
 
 

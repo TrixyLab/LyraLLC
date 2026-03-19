@@ -610,19 +610,38 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       margin-top: 3rem;
     }
 
-    @media (max-width: 768px) {
-      .news-grid {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 900px) {
       nav {
         padding: 0 1.5rem;
       }
 
       .nav-links {
         display: none;
+        position: fixed;
+        top: 68px;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.95);
+        flex-direction: column;
+        padding: 2rem;
+        gap: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        z-index: 1000;
       }
 
+      .nav-links.mobile-active {
+        display: flex;
+      }
+
+      .nav-toggle {
+        display: flex !important;
+      }
+
+      .nav-cta, .nav-login {
+        display: none !important;
+      }
+      
       section {
         padding: 4rem 1.5rem;
       }
@@ -630,6 +649,17 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       .hero-content {
         padding: 0 1.5rem;
       }
+    }
+
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 1.8rem;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
     }
 
     .news-featured {
@@ -1068,12 +1098,12 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <div class="nav-actions">
       <a href="login.html" class="nav-login">
         <svg viewBox="0 0 24 24">
-          <path
-            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 9 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08s5.97 1.09 6 3.08c-1.29 1.94-3.5 3.22-6 3.22z"/>
         </svg>
-        Login
+        Sign In
       </a>
-      <a href="shop.html" class="nav-cta">Shop Now</a>
+      <a href="apply.html" class="nav-cta">Apply Now</a>
+      <button class="nav-toggle" id="navToggle">☰</button>
     </div>
   </nav>
 
@@ -1454,6 +1484,16 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         if (e.target === discordPopup) closePopup();
       });
     });
+  </script>
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (navToggle && navLinks) {
+      navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('mobile-active');
+        navToggle.innerHTML = navLinks.classList.contains('mobile-active') ? '✕' : '☰';
+      });
+    }
   </script>
   <script src="animations.js"></script>
 </body>

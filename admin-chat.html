@@ -75,7 +75,10 @@
       overflow-y: auto;
       scrollbar-width: none;
     }
-    .sidebar::-webkit-scrollbar { display: none; }
+
+    .sidebar::-webkit-scrollbar {
+      display: none;
+    }
 
     .brand-logo {
       display: flex;
@@ -376,6 +379,23 @@
       background: var(--red-dark);
     }
 
+    .btn-plus {
+      background: transparent;
+      border: none;
+      color: var(--gray-600);
+      font-size: 1.5rem;
+      padding: 0 1rem;
+      cursor: pointer;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-plus:hover {
+      color: var(--white);
+    }
+
     /* Presence Popup */
     .presence-popup {
       position: fixed;
@@ -383,7 +403,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 1rem 1.5rem;
       border-radius: 4px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       z-index: 1000;
       opacity: 0;
       transform: translateY(10px);
@@ -393,16 +413,67 @@
       flex-direction: column;
       gap: 0.5rem;
     }
+
     .presence-popup.show {
       opacity: 1;
       transform: translateY(0);
       pointer-events: auto;
     }
-    .pp-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.05em; }
-    .pp-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+
+    .pp-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--white);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pp-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    /* MENTION SUGGESTIONS */
+    #mentionSuggestions {
+      position: absolute;
+      bottom: 100%;
+      left: 2rem;
+      width: 200px;
+      max-height: 200px;
+      background: var(--gray-900);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow-y: auto;
+      z-index: 2000;
+      display: none;
+      box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .mention-item {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--gray-200);
+      transition: all 0.2s;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .mention-item:hover,
+    .mention-item.active {
+      background: rgba(232, 0, 45, 0.2);
+      color: var(--white);
+    }
+
+    .mention-item:last-child {
+      border-bottom: none;
+    }
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
@@ -415,8 +486,11 @@
     </a>
 
     <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
-      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
-      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+      <label for="adminStatus"
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
+        Status</label>
+      <select id="adminStatus" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
         <option value="online">🟢 Online</option>
         <option value="away">🟡 Away</option>
         <option value="dnd">🔴 Do Not Disturb</option>
@@ -424,8 +498,11 @@
     </div>
 
     <div class="admin-presence-list" style="margin-bottom: 2rem;">
-      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
-      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+      <label
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
+        Presence</label>
+      <select id="presenceList" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
         <option value="" disabled selected>View Team Online</option>
       </select>
     </div>
@@ -437,9 +514,9 @@
       <li><a href="admin-chat.html" class="active">Messages</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="#">News & Content</a></li>
-      <li><a href="#">Store Orders</a></li>
-      <li><a href="#">Settings</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
   </aside>
@@ -494,8 +571,11 @@
         </div>
 
         <div class="chat-input-wrapper">
+          <div id="mentionSuggestions"></div>
           <div class="chat-input-box">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Message #general..." autocomplete="off">
+            <input type="file" id="imageUpload" style="display:none;" accept="image/*">
+            <button id="uploadBtn" class="btn-plus" title="Upload Image">+</button>
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type your message..." autocomplete="off">
             <button id="sendBtn" class="btn-send">SEND</button>
           </div>
         </div>
@@ -505,32 +585,23 @@
   </main>
 
   <!-- Firebase Core + Database -->
+  <!-- Firebase Core + Database -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCR3Z8Peo8Voda7gtz5fAc2TibQJhB63Eg",
-      authDomain: "lyra-esports.firebaseapp.com",
-      projectId: "lyra-esports",
-      storageBucket: "lyra-esports.firebasestorage.app",
-      messagingSenderId: "927531070934",
-      appId: "1:927531070934:web:6c3b528c681ac8a23be077",
-      measurementId: "G-LQ4Y3C57NK",
-      // Explicitly providing the default database URL to prevent connection drops
-      databaseURL: "https://lyra-esports-default-rtdb.firebaseio.com"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
     const chatContainer = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const typingIndicator = document.getElementById('typingIndicator');
+    const imageUpload = document.getElementById('imageUpload');
+    const uploadBtn = document.getElementById('uploadBtn');
 
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
-    
+    const sessionId = Math.random().toString(36).substring(2, 15); // Unique session ID
+
     let userProfiles = {};
     db.ref('lyra_approved_admins').on('value', snap => {
       snap.forEach(child => {
@@ -543,6 +614,7 @@
     let messagesRef = null;
     let typingRef = null;
     const customChannelsRef = db.ref('chat_channels');
+    const storageRef = firebase.storage().ref();
 
     // --- Channel Management ---
     customChannelsRef.on('value', (snapshot) => {
@@ -568,7 +640,7 @@
           customChannelsContainer.appendChild(a);
         });
       }
-      bindChannelClicks();
+      if (typeof bindChannelClicks === 'function') bindChannelClicks();
     });
 
     document.getElementById('addChannelBtn').addEventListener('click', () => {
@@ -585,32 +657,80 @@
     });
 
     function bindChannelClicks() {
-      // Rebind custom and default
       document.querySelectorAll('.channel-link').forEach(link => {
         const newLink = link.cloneNode(true);
         link.parentNode.replaceChild(newLink, link);
-
         newLink.addEventListener('click', (e) => {
           e.preventDefault();
-
           if (e.target.classList.contains('delete-channel-btn')) {
             const chId = e.target.getAttribute('data-id');
-            if (confirm(`Delete #${chId} and all its messages permanently?`)) {
+            if (confirm(`Delete #${chId}?`)) {
               customChannelsRef.child(chId).remove();
               db.ref('chat_messages/' + chId).remove();
-              db.ref('typing_status/' + chId).remove();
               if (currentChannel === chId) switchChannel('general');
             }
             return;
           }
-
           const chId = newLink.getAttribute('data-channel');
-          if (chId && chId !== currentChannel) {
-            switchChannel(chId);
-          }
+          if (chId && chId !== currentChannel) switchChannel(chId);
         });
       });
     }
+    window.bindChannelClicks = bindChannelClicks;
+
+    function linkify(text) {
+      if (!text) return "";
+      let urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+      let mentionPattern = /@(\w+|everyone)/g;
+      
+      let newText = text.replace(urlPattern, '<a href="$1" target="_blank" style="color:var(--red); text-decoration:underline;">$1</a>');
+      newText = newText.replace(mentionPattern, (match, username) => {
+        const isMe = username.toLowerCase() === currentUser.toLowerCase();
+        const isEveryone = username.toLowerCase() === 'everyone';
+        return `<span style="background:${(isMe || isEveryone) ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; color:${(isMe || isEveryone) ? 'white' : 'var(--red)'}; padding: 1px 4px; border-radius: 4px; font-weight: 600;">@${username}</span>`;
+      });
+      return newText;
+    }
+
+    function renderMessage(msg, key) {
+      if (!msg) return;
+      const isMe = msg.author && msg.author.toLowerCase() === currentUser.toLowerCase();
+      
+      const div = document.createElement('div');
+      div.className = `message ${isMe ? 'me' : ''}`;
+      div.dataset.key = key;
+      div.style.marginBottom = '1.2rem';
+      div.style.display = 'block';
+
+      div.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0;">
+          <div class="msg-avatar" style="width:28px; height:28px; border-radius:4px; background:${isMe ? 'var(--red)' : 'var(--gray-800)'}; display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue', sans-serif; font-size:0.9rem; flex-shrink:0;">
+            ${msg.author ? msg.author.charAt(0).toUpperCase() : '?'}
+          </div>
+          <div style="display:flex; align-items:baseline; gap:0.5rem;">
+            <div class="msg-author" style="font-family:'Barlow Condensed', sans-serif; font-weight:700; color:var(--red); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.05em;">${msg.author}</div>
+            <div style="font-size:0.65rem; color:var(--gray-600); font-weight:400;">${msg.time}</div>
+          </div>
+        </div>
+        <div class="msg-text" style="padding-left:0; font-size:0.95rem; line-height:1.3; color:var(--gray-200); word-break:break-word; margin-top:-2px;">
+          ${msg.imageUrl ? `<img src="${msg.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; display:block;" onclick="window.open('${msg.imageUrl}')">` : ''}
+          ${linkify(msg.text)}
+          ${isMe ? `<span class="delete-msg" data-key="${key}" style="cursor:pointer; opacity:0.2; font-size:0.7rem; margin-left:8px;" title="Delete Message">🗑️</span>` : ''}
+        </div>
+      `;
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Handle Deletion
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-msg')) {
+        const key = e.target.getAttribute('data-key');
+        if (confirm("Delete this message?")) {
+          db.ref('chat_messages/' + currentChannel + '/' + key).remove();
+        }
+      }
+    });
 
     function switchChannel(channelId) {
       if (messagesRef) messagesRef.off();
@@ -627,39 +747,27 @@
       messagesRef = db.ref('chat_messages/' + currentChannel);
       typingRef = db.ref('typing_status/' + currentChannel);
 
-      messagesRef.on('child_added', (snapshot) => {
-        const msg = snapshot.val();
-        const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
-        const avatarLetter = msg.author.charAt(0).toUpperCase();
-
-        let authorProfile = userProfiles ? userProfiles[msg.author.toLowerCase()] : null;
-        let avatarHtml = `<div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>`;
-        if (authorProfile && authorProfile.pfp) {
-          avatarHtml = `<div class="msg-avatar" style="background-image:url('${authorProfile.pfp}'); background-size:cover; background-position:center; padding:0; border:1px solid rgba(255,255,255,0.1);"></div>`;
-        }
-
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message animate-on-scroll is-visible';
-        msgDiv.innerHTML = `
-          ${avatarHtml}
-          <div class="msg-content">
-            <div class="msg-header">
-              <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>
-              <span class="msg-time">${msg.time}</span>
-            </div>
-            <div class="msg-text">${msg.text}</div>
-          </div>
-        `;
-        chatContainer.appendChild(msgDiv);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+      messagesRef.on('child_added', snapshot => renderMessage(snapshot.val(), snapshot.key));
+      messagesRef.on('child_removed', snapshot => {
+        const el = document.querySelector(`.message[data-key="${snapshot.key}"]`);
+        if (el) el.remove();
       });
 
       typingRef.on('value', (snapshot) => {
         const typingData = snapshot.val();
         if (typingData) {
-          const activeTypers = Object.keys(typingData).filter(user => user !== currentUser && Date.now() - typingData[user] < 5000);
-          if (activeTypers.length > 0) {
-            typingIndicator.textContent = activeTypers.join(', ') + " typing...";
+          const now = Date.now();
+          const typingUsers = new Set();
+          
+          Object.keys(typingData).forEach(sid => {
+            const data = typingData[sid];
+            if (sid !== sessionId && data && data.user && (now - data.timestamp < 5000)) {
+              typingUsers.add(data.user);
+            }
+          });
+
+          if (typingUsers.size > 0) {
+            typingIndicator.textContent = Array.from(typingUsers).join(', ') + (typingUsers.size > 1 ? " are typing..." : " is typing...");
             typingIndicator.style.display = 'block';
           } else {
             typingIndicator.style.display = 'none';
@@ -692,7 +800,7 @@
       });
 
       chatInput.value = '';
-      typingRef.child(currentUser).remove();
+      typingRef.child(sessionId).remove();
     }
 
     sendBtn.addEventListener('click', sendMessage);
@@ -703,13 +811,148 @@
       }
     });
 
+    // --- Mention Autocomplete Logic ---
+    const mentionBox = document.getElementById('mentionSuggestions');
+    let adminList = ['everyone'];
+    let selectedSuggestionIndex = -1;
+
+    db.ref('lyra_approved_admins').on('value', snap => {
+      adminList = ['everyone'];
+      snap.forEach(child => {
+        const val = child.val();
+        if (typeof val === 'string') adminList.push(val);
+        else if (val.ign) adminList.push(val.ign);
+      });
+    });
+
+    function showMentions(filter) {
+      const filtered = adminList.filter(a => a.toLowerCase().includes(filter.toLowerCase()));
+      if (filtered.length === 0) {
+        mentionBox.style.display = 'none';
+        return;
+      }
+      mentionBox.innerHTML = filtered.map((name, idx) => 
+        `<div class="mention-item ${idx === 0 ? 'active' : ''}" data-name="${name}">${name}</div>`
+      ).join('');
+      mentionBox.style.display = 'block';
+      selectedSuggestionIndex = 0;
+    }
+
+    chatInput.addEventListener('input', (e) => {
+      const text = chatInput.value;
+      const cursor = chatInput.selectionStart;
+      const lastAt = text.lastIndexOf('@', cursor - 1);
+      
+      if (lastAt !== -1) {
+        const query = text.substring(lastAt + 1, cursor);
+        if (!query.includes(' ')) {
+          showMentions(query);
+          return;
+        }
+      }
+      mentionBox.style.display = 'none';
+    });
+
+    chatInput.addEventListener('keydown', (e) => {
+      if (mentionBox.style.display === 'block') {
+        const items = mentionBox.querySelectorAll('.mention-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedSuggestionIndex = (selectedSuggestionIndex + 1) % items.length;
+          updateSelectedMention(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedSuggestionIndex = (selectedSuggestionIndex - 1 + items.length) % items.length;
+          updateSelectedMention(items);
+        } else if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          if (items[selectedSuggestionIndex]) {
+            applyMention(items[selectedSuggestionIndex].dataset.name);
+          }
+        } else if (e.key === 'Escape') {
+          mentionBox.style.display = 'none';
+        }
+      }
+    });
+
+    function updateSelectedMention(items) {
+      items.forEach((item, idx) => {
+        item.classList.toggle('active', idx === selectedSuggestionIndex);
+        if (idx === selectedSuggestionIndex) item.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    function applyMention(name) {
+      const text = chatInput.value;
+      const cursor = chatInput.selectionStart;
+      const lastAt = text.lastIndexOf('@', cursor - 1);
+      const newText = text.substring(0, lastAt) + '@' + name + ' ' + text.substring(cursor);
+      chatInput.value = newText;
+      mentionBox.style.display = 'none';
+      chatInput.focus();
+      const newCursor = lastAt + name.length + 2;
+      chatInput.setSelectionRange(newCursor, newCursor);
+    }
+
+    mentionBox.addEventListener('click', (e) => {
+      const item = e.target.closest('.mention-item');
+      if (item) applyMention(item.dataset.name);
+    });
+
     let typingTimeout;
     chatInput.addEventListener('input', () => {
-      typingRef.child(currentUser).set(Date.now());
+      typingRef.child(sessionId).set({
+        user: currentUser,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
       clearTimeout(typingTimeout);
       typingTimeout = setTimeout(() => {
-        typingRef.child(currentUser).remove();
+        typingRef.child(sessionId).remove();
       }, 3000);
+    });
+
+    // Cleanup on disconnect
+    db.ref('.info/connected').on('value', (snap) => {
+      if (snap.val() === true) {
+        typingRef.child(sessionId).onDisconnect().remove();
+      }
+    });
+
+    // Image Upload Logic
+    uploadBtn.addEventListener('click', () => imageUpload.click());
+
+    imageUpload.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.match('image.*')) {
+        alert("Please select an image and try again.");
+        return;
+      }
+
+      const fileRef = storageRef.child(`chat_images/${currentChannel}/${Date.now()}_${file.name}`);
+      const btnOrig = uploadBtn.innerHTML;
+      uploadBtn.innerHTML = '...';
+      uploadBtn.disabled = true;
+
+      try {
+        const snapshot = await fileRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+        
+        messagesRef.push({
+          author: currentUser,
+          text: "",
+          imageUrl: url,
+          timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Upload failed: " + err.message);
+      } finally {
+        uploadBtn.innerHTML = '🖼️';
+        uploadBtn.disabled = false;
+        imageUpload.value = '';
+      }
     });
 
     // Initial boot
@@ -724,80 +967,19 @@
       }, 400);
     });
 
-    // Admin Status Logic & Presence List
-    const statusSelect = document.getElementById('adminStatus');
-    if (statusSelect) {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
-      statusSelect.value = savedStatus;
-      
-      statusSelect.addEventListener('change', (e) => {
-        localStorage.setItem('lyra_admin_status', e.target.value);
-        if (typeof db !== 'undefined') {
-          const currentUser = localStorage.getItem('lyra_user');
-          if (currentUser) {
-            db.ref('lyra_presence/' + currentUser).update({
-              status: e.target.value,
-              timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-          }
-        }
-      });
-    }
-
-    const presenceList = document.getElementById('presenceList');
-    if (presenceList && typeof db !== 'undefined') {
-      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
-        const allAdmins = [];
-        adminsSnap.forEach(child => {
-          const adm = child.val();
-          if (typeof adm === 'string') allAdmins.push(adm);
-          else if (adm.ign) allAdmins.push(adm.ign);
-        });
-        
-        db.ref('lyra_presence').on('value', snap => {
-          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-          let onlineCount = 0;
-          const presenceMap = snap.val() || {};
-          
-          allAdmins.forEach(adminName => {
-            if (!presenceMap[adminName]) {
-              presenceMap[adminName] = { status: 'offline' };
-            }
-          });
-
-          Object.keys(presenceMap).forEach(user => {
-            const data = presenceMap[user];
-            let icon = '🔴';
-            let label = 'Offline';
-            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
-            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
-            
-            const option = document.createElement('option');
-            option.value = user;
-            option.innerHTML = `${icon} ${user} (${label})`;
-            presenceList.appendChild(option);
-          });
-          
-          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-        });
-      });
-    }
+    // Presence logic handled by firebase-config.js
 
     // Chat Profile Click Presence
     const popup = document.getElementById('presencePopup');
-    if(popup) {
+    if (popup) {
       document.addEventListener('click', (e) => {
         let authorName = null;
         let target = null;
         if (e.target.closest('.msg-author')) {
           target = e.target.closest('.msg-author');
           authorName = target.innerText;
-        } else if (e.target.closest('.msg-avatar')) {
-          target = e.target.closest('.msg-avatar');
-          const header = target.closest('.message').querySelector('.msg-author');
-          if (header) authorName = header.innerText;
         }
-        
+
         if (authorName) {
           db.ref('lyra_presence/' + authorName).once('value').then(snap => {
             const data = snap.val();
@@ -813,7 +995,7 @@
             document.getElementById('ppName').innerText = authorName;
             const statusEl = document.getElementById('ppStatus');
             statusEl.innerHTML = `${icon} <span style="color:${color}">${text}</span>`;
-            
+
             popup.style.left = e.pageX + 10 + 'px';
             popup.style.top = e.pageY + 10 + 'px';
             popup.classList.add('show');
@@ -830,8 +1012,9 @@
     <div class="pp-name" id="ppName">User Name</div>
     <div class="pp-status" id="ppStatus">🟢 Online</div>
   </div>
-  
+
   <script src="animations.js"></script>
+  <script src="responsive.js"></script>
 </body>
 
 </html>

@@ -158,6 +158,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="responsive.css">
 </head>
 
 <body>
@@ -192,8 +193,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <li><a href="admin-chat.html">Messages</a></li>
       <li><a href="admin-reviews.html" class="active">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="#">News & Content</a></li>
-      <li><a href="#">Store Orders</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
@@ -236,6 +237,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
   </main>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <script>
     // Initial Seed Data //
     const seedReviews = [
@@ -245,18 +251,26 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       { id: Date.now()+4, type: 'staff', role: 'Content Creator', name: 'Sarah "Sare" Jenkins', meta: 'LAST REVIEW: Q4 2025', score: 'C', scoreClass: 'score-C', notes: 'Missed upload quota twice last month. Video editing quality is superb, but organizational habits need improvement. Check in next week.' }
     ];
 
-    function getReviews() {
-      let stored = JSON.parse(localStorage.getItem('lyra_perf_reviews'));
-      if (!stored || stored.length === 0) {
-        stored = seedReviews;
-        localStorage.setItem('lyra_perf_reviews', JSON.stringify(stored));
-      }
-      return stored;
+    let reviews = [];
+    const perfRef = db.ref('lyra_perf_reviews');
+
+    function initReviews() {
+      perfRef.on('value', snap => {
+        const data = snap.val();
+        if (!data || Object.keys(data).length === 0) {
+          // If no data in Firebase, seed it
+          perfRef.set(seedReviews);
+          return;
+        }
+        
+        // Convert Firebase object/array to array
+        reviews = Array.isArray(data) ? data : Object.values(data);
+        renderReviews();
+      });
     }
 
-    function saveReviews(reviews) {
-      localStorage.setItem('lyra_perf_reviews', JSON.stringify(reviews));
-      renderReviews();
+    function saveReviews(updatedReviews) {
+      perfRef.set(updatedReviews);
     }
 
     function renderReviews() {
@@ -268,9 +282,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       staffContainer.innerHTML = '';
       archivedContainer.innerHTML = '';
 
-      const reviews = getReviews();
-
       reviews.forEach(r => {
+        if (!r) return;
         const card = document.createElement('div');
         card.className = 'review-card';
         card.innerHTML = `
@@ -321,8 +334,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       
       const notes = prompt("Review Notes:");
 
-      const reviews = getReviews();
-      reviews.push({
+      const newReview = {
         id: Date.now(),
         type: type.toLowerCase(),
         name: name,
@@ -330,9 +342,12 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         meta: 'LAST REVIEW: JUST NOW',
         score: score,
         scoreClass: 'score-' + score,
-        notes: notes || 'No notes provided.'
-      });
-      saveReviews(reviews);
+        notes: notes || 'No notes provided.',
+        archived: false
+      };
+      
+      const updatedReviews = [...reviews, newReview];
+      saveReviews(updatedReviews);
     });
 
     // Action Logic: Edit, Archive, and Restore
@@ -340,8 +355,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       if (e.target.classList.contains('archive-btn')) {
         if(confirm("Archive this review?")) {
           const id = parseInt(e.target.getAttribute('data-id'));
-          const reviews = getReviews();
-          const reviewIndex = reviews.findIndex(r => r.id === id);
+          const reviewIndex = reviews.findIndex(r => r && r.id === id);
           if (reviewIndex !== -1) {
             reviews[reviewIndex].archived = true;
             saveReviews(reviews);
@@ -351,8 +365,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
       if (e.target.classList.contains('restore-btn')) {
         const id = parseInt(e.target.getAttribute('data-id'));
-        const reviews = getReviews();
-        const reviewIndex = reviews.findIndex(r => r.id === id);
+        const reviewIndex = reviews.findIndex(r => r && r.id === id);
         if (reviewIndex !== -1) {
           reviews[reviewIndex].archived = false;
           saveReviews(reviews);
@@ -361,8 +374,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
       if (e.target.classList.contains('update-btn')) {
         const id = parseInt(e.target.getAttribute('data-id'));
-        const reviews = getReviews();
-        const reviewIndex = reviews.findIndex(r => r.id === id);
+        const reviewIndex = reviews.findIndex(r => r && r.id === id);
         
         if (reviewIndex !== -1) {
           const r = reviews[reviewIndex];
@@ -388,16 +400,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const targetGrid = document.getElementById(targetId);
+        
         tabBtns.forEach(b => b.classList.remove('active'));
-        grids.forEach(g => g.classList.remove('active'));
+        grids.forEach(g => {
+          g.classList.remove('active');
+          g.style.opacity = '1'; // Reset opacity
+          g.style.transform = 'translateY(0)'; // Reset transform
+        });
 
         btn.classList.add('active');
-        document.getElementById(btn.dataset.target).classList.add('active');
+        targetGrid.classList.add('active');
       });
     });
 
     // Init
-    renderReviews();
+    initReviews();
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -405,69 +424,12 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
-
-    // Admin Status Logic & Presence List
-    const statusSelect = document.getElementById('adminStatus');
-    if (statusSelect) {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
-      statusSelect.value = savedStatus;
-      
-      statusSelect.addEventListener('change', (e) => {
-        localStorage.setItem('lyra_admin_status', e.target.value);
-        if (typeof db !== 'undefined') {
-          const currentUser = localStorage.getItem('lyra_user');
-          if (currentUser) {
-            db.ref('lyra_presence/' + currentUser).update({
-              status: e.target.value,
-              timestamp: firebase.database.ServerValue.TIMESTAMP
-            });
-          }
-        }
-      });
-    }
-
-    const presenceList = document.getElementById('presenceList');
-    if (presenceList && typeof db !== 'undefined') {
-      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
-        const allAdmins = [];
-        adminsSnap.forEach(child => {
-          const adm = child.val();
-          if (typeof adm === 'string') allAdmins.push(adm);
-          else if (adm.ign) allAdmins.push(adm.ign);
-        });
-        
-        db.ref('lyra_presence').on('value', snap => {
-          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-          let onlineCount = 0;
-          const presenceMap = snap.val() || {};
-          
-          allAdmins.forEach(adminName => {
-            if (!presenceMap[adminName]) {
-              presenceMap[adminName] = { status: 'offline' };
-            }
-          });
-
-          Object.keys(presenceMap).forEach(user => {
-            const data = presenceMap[user];
-            let icon = '🔴';
-            let label = 'Offline';
-            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
-            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
-            
-            const option = document.createElement('option');
-            option.value = user;
-            option.innerHTML = `${icon} ${user} (${label})`;
-            presenceList.appendChild(option);
-          });
-          
-          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-        });
-      });
-    }
   </script>
   <script src="animations.js"></script>
+  <script src="responsive.js"></script>
 </body>
 </html>
+
 
 
 
