@@ -28,7 +28,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       border-right: 1px solid rgba(255, 255, 255, 0.05);
       display: flex; flex-direction: column; padding: 2rem;
       position: fixed; height: 100vh; z-index: 100;
+      overflow-y: auto; scrollbar-width: none;
     }
+    .sidebar::-webkit-scrollbar { display: none; }
     .brand-logo {
       display: flex; align-items: center; gap: 0.5rem;
       font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em;
@@ -79,7 +81,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     .dashboard-container { position: relative; z-index: 10; }
     
     .stats-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem;
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.5rem; margin-bottom: 3rem;
     }
     .stat-card {
       background: var(--gray-900); border: 1px solid rgba(255, 255, 255, 0.05);
@@ -131,7 +133,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     }
 
     @media (max-width: 1200px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); }
       .analytics-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 768px) {
@@ -140,6 +142,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 
 <body>
@@ -150,6 +156,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <img src="LyraEsportsLogo.png" alt="Lyra Logo">
       <div><span>L</span>YRA</div>
     </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
+      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
+      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
     <ul class="nav-menu">
       <li><a href="admin-overview.html" class="active">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
@@ -181,19 +204,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <div class="stats-grid">
         <div class="stat-card">
           <p class="stat-label">Total Players</p>
-          <p class="stat-number">14</p>
+          <p id="total-players" class="stat-number">14</p>
         </div>
         <div class="stat-card">
           <p class="stat-label">Total Coaches</p>
-          <p class="stat-number">3</p>
+          <p id="total-coaches" class="stat-number">3</p>
         </div>
         <div class="stat-card">
           <p class="stat-label">Total Managers</p>
-          <p class="stat-number">5</p>
+          <p id="total-managers" class="stat-number">5</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Content Creators</p>
+          <p id="total-content" class="stat-number">0</p>
         </div>
         <div class="stat-card">
           <p class="stat-label">Total Staff</p>
-          <p class="stat-number" style="color: var(--red);">22</p>
+          <p id="total-staff" class="stat-number" style="color: var(--red);">22</p>
         </div>
       </div>
 
@@ -271,6 +298,122 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+
+    // Admin Status Logic & Presence List
+    const statusSelect = document.getElementById('adminStatus');
+    if (statusSelect) {
+      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+      statusSelect.value = savedStatus;
+      
+      statusSelect.addEventListener('change', (e) => {
+        localStorage.setItem('lyra_admin_status', e.target.value);
+        if (typeof db !== 'undefined') {
+          const currentUser = localStorage.getItem('lyra_user');
+          if (currentUser) {
+            db.ref('lyra_presence/' + currentUser).update({
+              status: e.target.value,
+              timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+          }
+        }
+      });
+    }
+
+    const presenceList = document.getElementById('presenceList');
+    if (presenceList && typeof db !== 'undefined') {
+      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
+        const allAdmins = [];
+        adminsSnap.forEach(child => {
+          const adm = child.val();
+          if (typeof adm === 'string') allAdmins.push(adm);
+          else if (adm.ign) allAdmins.push(adm.ign);
+        });
+        
+        db.ref('lyra_presence').on('value', snap => {
+          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+          let onlineCount = 0;
+          const presenceMap = snap.val() || {};
+          
+          allAdmins.forEach(adminName => {
+            if (!presenceMap[adminName]) {
+              presenceMap[adminName] = { status: 'offline' };
+            }
+          });
+
+          Object.keys(presenceMap).forEach(user => {
+            const data = presenceMap[user];
+            let icon = '🔴';
+            let label = 'Offline';
+            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
+            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
+            
+            const option = document.createElement('option');
+            option.value = user;
+            option.innerHTML = `${icon} ${user} (${label})`;
+            presenceList.appendChild(option);
+          });
+          
+          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
+        });
+      });
+    }
+
+    // Organization Stats Live Sync
+    if (typeof db !== 'undefined') {
+      const stats = {
+        players: document.getElementById('total-players'),
+        coaches: document.getElementById('total-coaches'),
+        managers: document.getElementById('total-managers'),
+        content: document.getElementById('total-content'),
+        staff: document.getElementById('total-staff')
+      };
+
+      let currentCounts = { p: 0, c: 0, m: 0, ct: 0 };
+
+      function updateUI() {
+        if(stats.players) stats.players.innerText = currentCounts.p;
+        if(stats.coaches) stats.coaches.innerText = currentCounts.c;
+        if(stats.managers) stats.managers.innerText = currentCounts.m;
+        if(stats.content) stats.content.innerText = currentCounts.ct;
+        if(stats.staff) stats.staff.innerText = currentCounts.p + currentCounts.c + currentCounts.m + currentCounts.ct;
+      }
+
+      // Sync Managers (Approved Admins)
+      db.ref('lyra_approved_admins').on('value', snap => {
+        let managersCount = 0;
+        snap.forEach(() => { managersCount++; });
+        currentCounts.m = managersCount;
+        updateUI();
+      });
+
+      // Sync Players, Coaches & Content Creators (Roster)
+      db.ref('lyra_roster').on('value', snap => {
+        let playersCount = 0;
+        let coachesCount = 0;
+        let contentCount = 0;
+        const data = snap.val() || {};
+        
+        Object.keys(data).forEach(game => {
+          Object.keys(data[game]).forEach(pid => {
+            const member = data[game][pid];
+            const role = (member.customRole || member.rawRole || '').toLowerCase();
+            
+            if (game === 'content') {
+              contentCount++;
+            } else if (role.includes('coach')) {
+              coachesCount++;
+            } else {
+              playersCount++;
+            }
+          });
+        });
+
+        currentCounts.p = playersCount;
+        currentCounts.c = coachesCount;
+        currentCounts.ct = contentCount;
+        updateUI();
+      });
+    }
   </script>
   <script src="animations.js"></script>
 </body>

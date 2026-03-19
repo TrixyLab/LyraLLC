@@ -32,8 +32,28 @@
       --gray-900: #0D0D0D;
     }
 
-    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
-p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
     body {
       background: var(--black);
       color: var(--white);
@@ -53,7 +73,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       position: fixed;
       height: 100vh;
       z-index: 100;
+      overflow-y: auto;
+      scrollbar-width: none;
     }
+    .sidebar::-webkit-scrollbar { display: none; }
 
     .brand-logo {
       display: flex;
@@ -366,6 +389,29 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <img src="LyraEsportsLogo.png" alt="Lyra Logo">
       <div><span>L</span>YRA</div>
     </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus"
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
+        Status</label>
+      <select id="adminStatus" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
+        Presence</label>
+      <select id="presenceList" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
     <ul class="nav-menu">
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
@@ -396,218 +442,266 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
     <div class="tabs-container">
       <button class="tab-btn active" data-target="val-roster">VALORANT</button>
+      <button class="tab-btn" data-target="cod-roster">Call of Duty</button>
+      <button class="tab-btn" data-target="rl-roster">Rocket League</button>
       <button class="tab-btn" data-target="lol-roster">League of Legends</button>
       <button class="tab-btn" data-target="apex-roster">Apex Legends</button>
+      <button class="tab-btn" data-target="finals-roster">The Finals</button>
+      <button class="tab-btn" data-target="halo-roster">Halo</button>
+      <button class="tab-btn" data-target="marvel-roster">Marvel Rivals</button>
+      <button class="tab-btn" data-target="content-roster">Content Creator</button>
       <button class="tab-btn" data-target="management-roster">Management</button>
     </div>
 
     <!-- VALORANT ROSTER -->
-    <div id="val-roster" class="roster-grid active">
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">IGL</span>
-          <h2 class="app-name">Julian "Beno" Cruz</h2>
-          <div class="app-meta">
-            <span>🇺🇸 Active</span>
-            <span>📱 beno.vlr</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      </div>
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">SENTINEL</span>
-          <h2 class="app-name">Nick "NKZY" Zayne</h2>
-          <div class="app-meta">
-            <span>🇺🇸 Active</span>
-            <span>📱 nkzy</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      </div>
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Initiator</span>
-          <h2 class="app-name">Kenji "Hideki" Hideki</h2>
-          <div class="app-meta">
-            <span>🇯🇵 Active</span>
-            <span>📱 hideki_vlr</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      </div>
-    </div>
+    <div id="val-roster" class="roster-grid active"></div>
 
     <!-- LOL ROSTER -->
-    <div id="lol-roster" class="roster-grid">
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Top Lane</span>
-          <h2 class="app-name">Mark "Titan" Johnson</h2>
-          <div class="app-meta">
-            <span>🇺🇸 Active</span>
-            <span>📱 titan_lol</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      </div>
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role">Jungle</span>
-          <h2 class="app-name">Min-ho "Shadow" Kim</h2>
-          <div class="app-meta">
-            <span>🇰🇷 Active</span>
-            <span>📱 shadow_jung</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      </div>
-    </div>
+    <div id="lol-roster" class="roster-grid"></div>
 
     <!-- APEX ROSTER -->
-    <div id="apex-roster" class="roster-grid">
+    <div id="apex-roster" class="roster-grid"></div>
+
+    <!-- MANAGEMENT ROSTER -->
+    <div id="management-roster" class="roster-grid"></div>
+
+    <!-- CALL OF DUTY ROSTER -->
+    <div id="cod-roster" class="roster-grid">
       <div class="app-card"
         style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
-        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Apex Legends
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Call of Duty
           right now. Add a player to begin.</p>
       </div>
     </div>
 
-    <!-- MANAGEMENT ROSTER -->
-    <div id="management-roster" class="roster-grid">
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role" style="background:var(--red);color:var(--white);">General Manager</span>
-          <h2 class="app-name">David "Dave" Smith</h2>
-          <div class="app-meta">
-            <span>🇺🇸 Active</span>
-            <span>📱 dave_ops</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
+    <!-- ROCKET LEAGUE ROSTER -->
+    <div id="rl-roster" class="roster-grid">
+      <div class="app-card"
+        style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Rocket League
+          right now. Add a player to begin.</p>
       </div>
-      <div class="app-card">
-        <div class="app-info">
-          <span class="app-role" style="background:var(--red);color:var(--white);">Social Media Lead</span>
-          <h2 class="app-name">Maria "Mariya" Lopez</h2>
-          <div class="app-meta">
-            <span>🇨🇦 Active</span>
-            <span>📱 mariya_social</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
+    </div>
+
+    <!-- THE FINALS ROSTER -->
+    <div id="finals-roster" class="roster-grid">
+      <div class="app-card"
+        style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for The Finals right
+          now. Add a player to begin.</p>
+      </div>
+    </div>
+
+    <!-- HALO ROSTER -->
+    <div id="halo-roster" class="roster-grid">
+      <div class="app-card"
+        style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Halo right now.
+          Add a player to begin.</p>
+      </div>
+    </div>
+
+    <!-- MARVEL RIVALS ROSTER -->
+    <div id="marvel-roster" class="roster-grid">
+      <div class="app-card"
+        style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Marvel Rivals
+          right now. Add a player to begin.</p>
+      </div>
+    </div>
+
+    <!-- CONTENT CREATOR ROSTER -->
+    <div id="content-roster" class="roster-grid">
+      <div class="app-card"
+        style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;">
+        <p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster for Content Creators
+          right now. Add a player to begin.</p>
       </div>
     </div>
 
   </main>
 
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script>
+    const currentUser = localStorage.getItem('lyra_user');
+    if (!currentUser) window.location.href = 'login.html';
+
     // Tab switching logic
     const tabBtns = document.querySelectorAll('.tab-btn');
     const rosterGrids = document.querySelectorAll('.roster-grid');
 
     tabBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        // Remove active class from all tabs and grids
         tabBtns.forEach(b => b.classList.remove('active'));
         rosterGrids.forEach(g => g.classList.remove('active'));
-
-        // Add active class to clicked tab and corresponding grid
         btn.classList.add('active');
         document.getElementById(btn.dataset.target).classList.add('active');
       });
     });
 
-    // Remove logic
-    document.addEventListener('click', function (e) {
-      if (e.target.classList.contains('btn-remove')) {
-        const card = e.target.closest('.app-card');
-        card.style.transition = 'all 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => card.remove(), 300);
+    // 1. Synchronize Management from lyra_approved_admins
+    db.ref('lyra_approved_admins').on('value', snapshot => {
+      const grid = document.getElementById('management-roster');
+      grid.innerHTML = '';
+      let hasItem = false;
+      snapshot.forEach(child => {
+        if (!child.val().name) return;
+        hasItem = true;
+        const val = child.val();
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:var(--red);color:var(--white);">${val.gameRole || val.roleValue || 'Admin'}</span>
+            <h2 class="app-name">${val.name} "${val.ign || ''}"</h2>
+            <div class="app-meta">
+              <span>🇺🇸 Active</span>
+              <span>📱 ${val.discord || 'Unknown'}</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      if (!hasItem) {
+        grid.innerHTML = `<div class="app-card" style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;"><p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active management members right now.</p></div>`;
       }
     });
 
-    // Edit logic (visual only for mockup)
+    // 2. Synchronize Players from lyra_roster
+    db.ref('lyra_roster').on('value', snapshot => {
+      const games = ['val-roster', 'lol-roster', 'cod-roster', 'rl-roster', 'apex-roster', 'finals-roster', 'halo-roster', 'marvel-roster', 'content-roster'];
+      const gameToDbKey = {
+        'val-roster': 'valorant', 'lol-roster': 'lol', 'cod-roster': 'cod', 'rl-roster': 'rocketleague',
+        'apex-roster': 'apex', 'finals-roster': 'thefinals', 'halo-roster': 'halo', 'marvel-roster': 'marvelrivals', 'content-roster': 'content'
+      };
+
+      games.forEach(gridId => {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = '';
+
+        const dbKey = gameToDbKey[gridId];
+        const rosterData = snapshot.val() ? snapshot.val()[dbKey] : null;
+
+        if (rosterData) {
+          Object.keys(rosterData).forEach(playerId => {
+            const p = rosterData[playerId];
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.innerHTML = `
+              <div class="app-info">
+                <span class="app-role">${p.customRole || p.rawRole || 'Player'}</span>
+                <h2 class="app-name">${p.name} "${p.ign || ''}"</h2>
+                <div class="app-meta">
+                  <span>${p.country || '🇺🇸'} Active</span>
+                  <span>📱 ${p.discord || 'Unknown'}</span>
+                </div>
+              </div>
+              <div class="app-actions">
+                <button class="btn btn-secondary btn-edit" data-id="${playerId}" data-dbkey="${dbKey}">Set Role</button>
+                <button class="btn btn-secondary btn-remove" data-id="${playerId}" data-dbkey="${dbKey}">Remove</button>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+        } else {
+          grid.innerHTML = `<div class="app-card" style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;"><p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No active roster players right now. Approve an application to begin.</p></div>`;
+        }
+      });
+    });
+
     document.addEventListener('click', function (e) {
-      if (e.target.classList.contains('btn-edit')) {
-        const nameNode = e.target.closest('.app-card').querySelector('.app-name');
-        const currentName = nameNode.innerText;
-        const newName = prompt("Edit Player Name:", currentName);
-        if (newName && newName.trim() !== "") {
-          nameNode.innerText = newName;
+      if (e.target.classList.contains('btn-remove')) {
+        if (confirm("Permanently delete player from this roster?")) {
+          const btn = e.target;
+          db.ref('lyra_roster/' + btn.dataset.dbkey + '/' + btn.dataset.id).remove();
+        }
+      }
+      else if (e.target.classList.contains('btn-edit')) {
+        const btn = e.target;
+        const newRole = prompt("Edit Player Role (e.g. IGL, Top Lane, Member):", "Member");
+        if (newRole) {
+          db.ref('lyra_roster/' + btn.dataset.dbkey + '/' + btn.dataset.id).update({
+            customRole: newRole
+          });
         }
       }
     });
 
     // Add player visually
     document.querySelector('.btn-primary').addEventListener('click', function (e) {
-      const activeGrid = document.querySelector('.roster-grid.active');
-      const newName = prompt("Enter new player name:");
-      if (!newName) return;
-      const role = prompt("Enter player role (e.g., Coach, Sub):") || "Sub";
-
-      // Remove the "empty" message if it's there
-      if (activeGrid.innerHTML.includes("No active roster")) {
-        activeGrid.innerHTML = '';
+      const activeGrid = document.querySelector('.roster-grid.active').id;
+      if (activeGrid === 'management-roster') {
+        alert("Management members must be accepted natively through the Admin Access portal.");
+        return;
       }
 
-      const card = document.createElement('div');
-      card.className = 'app-card';
-      card.innerHTML = `
-        <div class="app-info">
-          <span class="app-role">${role}</span>
-          <h2 class="app-name">${newName}</h2>
-          <div class="app-meta">
-            <span>🇺🇸 Active</span>
-            <span>📱 new_player</span>
-          </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-secondary btn-edit">Edit</button>
-          <button class="btn btn-secondary btn-remove">Remove</button>
-        </div>
-      `;
-      activeGrid.appendChild(card);
+      const gameToDbKey = {
+        'val-roster': 'valorant', 'lol-roster': 'lol', 'cod-roster': 'cod', 'rl-roster': 'rocketleague',
+        'apex-roster': 'apex', 'finals-roster': 'thefinals', 'halo-roster': 'halo', 'marvel-roster': 'marvelrivals', 'content-roster': 'content'
+      };
+
+      const newName = prompt("Enter new player name (Full Name):");
+      if (!newName) return;
+      const ign = prompt("Enter player IGN (In-Game Name):") || "";
+      const role = prompt("Enter player role (e.g., Coach, IGL, Entry):") || "Member";
+
+      db.ref('lyra_roster/' + gameToDbKey[activeGrid]).push({
+        name: newName, ign: ign, customRole: role, country: '🇺🇸', discord: 'Pending'
+      });
     });
 
-    // Logout
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+
+    // Admin Status Logic & Presence List
+    const statusSelect = document.getElementById('adminStatus');
+    if (statusSelect) {
+      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+      statusSelect.value = savedStatus;
+
+      statusSelect.addEventListener('change', (e) => {
+        localStorage.setItem('lyra_admin_status', e.target.value);
+        if (typeof db !== 'undefined') {
+          const currentUser = localStorage.getItem('lyra_user');
+          if (currentUser) {
+            db.ref('lyra_presence/' + currentUser).update({
+              status: e.target.value,
+              timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+          }
+        }
+      });
+    }
+
+    const presenceList = document.getElementById('presenceList');
+    if (presenceList && typeof db !== 'undefined') {
+      db.ref('lyra_presence').on('value', snap => {
+        presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+        let onlineCount = 0;
+        snap.forEach(child => {
+          const user = child.key;
+          const data = child.val();
+          let icon = '🔴';
+          if (data.status === 'online') { icon = '🟢'; onlineCount++; }
+          if (data.status === 'away') { icon = '🟡'; onlineCount++; }
+
+          const option = document.createElement('option');
+          option.value = user;
+          option.innerHTML = `${icon} ${user}`;
+          presenceList.appendChild(option);
+        });
+        if (onlineCount > 0) {
+          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
+        }
+      });
+    }
   </script>
   <script src="animations.js"></script>
 </body>
 
 </html>
-
-
-
-
-
-

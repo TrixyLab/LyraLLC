@@ -370,6 +370,59 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           </select>
         </div>
 
+        <div id="competitiveFields" style="display: none;">
+          <div class="form-group">
+            <label for="gameRole" class="form-label">Game Role</label>
+            <input type="text" id="gameRole" class="form-input" placeholder="e.g. IGL, Entry, Support">
+          </div>
+          <div class="form-group">
+            <label for="tracker" class="form-label">Tracker</label>
+            <input type="url" id="tracker" class="form-input" placeholder="Link to your Tracker profile">
+          </div>
+          <div class="form-group">
+            <label for="experience" class="form-label">Competitive Experience</label>
+            <textarea id="experience" class="form-input" placeholder="List your previous teams, tournaments, and ranks..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <div id="managementFields" style="display: none;">
+          <div class="form-group">
+            <label for="managementRole" class="form-label">Management Role</label>
+            <select id="managementRole" class="form-input">
+              <option value="" disabled selected>Select a role</option>
+              <option value="Operations Management">Operations Management</option>
+              <option value="Social Management">Social Management</option>
+              <option value="Production Management">Production Management</option>
+              <option value="Training Management">Training Management</option>
+              <option value="Game Management">Game Management</option>
+              <option value="Head Management">Head Management</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="managementExperience" class="form-label">Management Experience</label>
+            <textarea id="managementExperience" class="form-input" placeholder="What teams have you managed? How far did you take them?" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div id="contentFields" style="display: none;">
+          <div class="form-group">
+            <label for="contentPlatform" class="form-label">Primary Platform</label>
+            <select id="contentPlatform" class="form-input">
+              <option value="" disabled selected>Select a platform</option>
+              <option value="Twitch">Twitch</option>
+              <option value="YouTube">YouTube</option>
+              <option value="TikTok">TikTok</option>
+              <option value="Kick">Kick</option>
+              <option value="Twitter / X">Twitter / X</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="contentLink" class="form-label">Link to your Channel / Socials</label>
+            <input type="url" id="contentLink" class="form-input" placeholder="https://twitch.tv/username">
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="reason" class="form-label">Why LYRA?</label>
           <textarea id="reason" class="form-input" placeholder="Tell us about yourself and your goals..."
@@ -394,6 +447,54 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   <script src="firebase-config.js"></script>
 
   <script>
+    document.getElementById('role').addEventListener('change', function(e) {
+      const val = e.target.value;
+      const compFields = document.getElementById('competitiveFields');
+      const mgmtFields = document.getElementById('managementFields');
+      const contentFields = document.getElementById('contentFields');
+
+      if (val === 'adminAccess') {
+        compFields.style.display = 'none';
+        document.getElementById('gameRole').required = false;
+        document.getElementById('tracker').required = false;
+        document.getElementById('experience').required = false;
+
+        mgmtFields.style.display = 'block';
+        document.getElementById('managementRole').required = true;
+        document.getElementById('managementExperience').required = true;
+
+        contentFields.style.display = 'none';
+        document.getElementById('contentPlatform').required = false;
+        document.getElementById('contentLink').required = false;
+      } else if (val === 'content') {
+        compFields.style.display = 'none';
+        document.getElementById('gameRole').required = false;
+        document.getElementById('tracker').required = false;
+        document.getElementById('experience').required = false;
+
+        mgmtFields.style.display = 'none';
+        document.getElementById('managementRole').required = false;
+        document.getElementById('managementExperience').required = false;
+
+        contentFields.style.display = 'block';
+        document.getElementById('contentPlatform').required = true;
+        document.getElementById('contentLink').required = true;
+      } else {
+        compFields.style.display = 'block';
+        document.getElementById('gameRole').required = true;
+        document.getElementById('tracker').required = true;
+        document.getElementById('experience').required = true;
+
+        mgmtFields.style.display = 'none';
+        document.getElementById('managementRole').required = false;
+        document.getElementById('managementExperience').required = false;
+
+        contentFields.style.display = 'none';
+        document.getElementById('contentPlatform').required = false;
+        document.getElementById('contentLink').required = false;
+      }
+    });
+
     document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -405,6 +506,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         discord: document.getElementById('discord').value,
         role: roleSelect.options[roleSelect.selectedIndex].text,
         roleValue: roleSelect.value,
+        gameRole: document.getElementById('gameRole').value || document.getElementById('managementRole').value || document.getElementById('contentPlatform').value || '',
+        socialLink: document.getElementById('contentLink').value || '',
+        tracker: document.getElementById('tracker').value || '',
+        experience: document.getElementById('experience').value || document.getElementById('managementExperience').value || '',
         reason: document.getElementById('reason').value,
         timestamp: firebase.database.ServerValue.TIMESTAMP
       };

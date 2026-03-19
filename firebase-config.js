@@ -37,6 +37,37 @@ const db = firebase.database();
   const activeListeners = new Set();
   const bootTime = Date.now(); // Avoid historical alerts on refresh
 
+  // --- Admin Presence System ---
+  const myPresenceRef = db.ref('lyra_presence/' + currentUser);
+  const connectedRef = db.ref('.info/connected');
+
+  connectedRef.on('value', snap => {
+    if (snap.val() === true) {
+      myPresenceRef.onDisconnect().set({
+        status: 'offline',
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      }).then(() => {
+        const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+        myPresenceRef.set({
+          status: savedStatus,
+          timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+      });
+    }
+  });
+
+  function handlePresenceUpdate(snap) {
+    const adminId = snap.key;
+    if (adminId.toLowerCase() === currentUser.toLowerCase()) return;
+    const data = snap.val();
+    if (data && data.status === 'online' && data.timestamp && data.timestamp > bootTime) {
+      showToast('Admin Connection', adminId, 'Is now online.', '#');
+    }
+  }
+  
+  db.ref('lyra_presence').on('child_added', handlePresenceUpdate);
+  db.ref('lyra_presence').on('child_changed', handlePresenceUpdate);
+
   db.ref('chat_channels').on('value', snap => {
     const channels = snap.val() || {};
     const allChannels = ['general', 'management', 'announcements', ...Object.keys(channels)];
@@ -85,6 +116,13 @@ const db = firebase.database();
   });
 
   function showToast(title, author, text, linkUrl) {
+    // Play Notification Sound
+    try {
+      const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVtvT19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw==");
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log("Audio play blocked until user interaction."));
+    } catch(e) { console.error("Audio failed:", e); }
+
     const toast = document.createElement('div');
     toast.style.background = 'rgba(232, 0, 45, 0.9)';
     toast.style.backdropFilter = 'blur(10px)';

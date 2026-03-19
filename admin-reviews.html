@@ -29,7 +29,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       border-right: 1px solid rgba(255, 255, 255, 0.05);
       display: flex; flex-direction: column; padding: 2rem;
       position: fixed; height: 100vh; z-index: 100;
+      overflow-y: auto; scrollbar-width: none;
     }
+    .sidebar::-webkit-scrollbar { display: none; }
     .brand-logo {
       display: flex; align-items: center; gap: 0.5rem;
       font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em;
@@ -166,6 +168,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <img src="LyraEsportsLogo.png" alt="Lyra Logo">
       <div><span>L</span>YRA</div>
     </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
+      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
+      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
     <ul class="nav-menu">
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
@@ -197,6 +216,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <div class="tabs-container">
       <button class="tab-btn active" data-target="players-reviews">Players</button>
       <button class="tab-btn" data-target="staff-reviews">Management & Staff</button>
+      <button class="tab-btn" data-target="archived-reviews">Archived</button>
     </div>
 
     <!-- PLAYERS REVIEWS -->
@@ -206,6 +226,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
     <!-- STAFF REVIEWS -->
     <div id="staff-reviews" class="reviews-grid">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- ARCHIVED REVIEWS -->
+    <div id="archived-reviews" class="reviews-grid">
       <!-- Injected via JS -->
     </div>
 
@@ -237,9 +262,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     function renderReviews() {
       const playersContainer = document.getElementById('players-reviews');
       const staffContainer = document.getElementById('staff-reviews');
+      const archivedContainer = document.getElementById('archived-reviews');
       
       playersContainer.innerHTML = '';
       staffContainer.innerHTML = '';
+      archivedContainer.innerHTML = '';
 
       const reviews = getReviews();
 
@@ -260,12 +287,18 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           <div class="rc-body">
             "${r.notes}"
           </div>
-          <div class="rc-footer">
+          <div class="rc-footer" style="gap: 1rem;">
+            ${r.archived ? 
+              `<button class="btn btn-secondary restore-btn" data-id="${r.id}">Restore</button>` : 
+              `<button class="btn btn-secondary archive-btn" data-id="${r.id}">Archive</button>`
+            }
             <button class="btn btn-secondary update-btn" data-id="${r.id}">Edit Review</button>
           </div>
         `;
 
-        if (r.type === 'player') {
+        if (r.archived) {
+          archivedContainer.appendChild(card);
+        } else if (r.type === 'player') {
           playersContainer.appendChild(card);
         } else {
           staffContainer.appendChild(card);
@@ -302,8 +335,30 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       saveReviews(reviews);
     });
 
-    // Edit Review Logic
+    // Action Logic: Edit, Archive, and Restore
     document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('archive-btn')) {
+        if(confirm("Archive this review?")) {
+          const id = parseInt(e.target.getAttribute('data-id'));
+          const reviews = getReviews();
+          const reviewIndex = reviews.findIndex(r => r.id === id);
+          if (reviewIndex !== -1) {
+            reviews[reviewIndex].archived = true;
+            saveReviews(reviews);
+          }
+        }
+      }
+
+      if (e.target.classList.contains('restore-btn')) {
+        const id = parseInt(e.target.getAttribute('data-id'));
+        const reviews = getReviews();
+        const reviewIndex = reviews.findIndex(r => r.id === id);
+        if (reviewIndex !== -1) {
+          reviews[reviewIndex].archived = false;
+          saveReviews(reviews);
+        }
+      }
+
       if (e.target.classList.contains('update-btn')) {
         const id = parseInt(e.target.getAttribute('data-id'));
         const reviews = getReviews();
@@ -350,6 +405,65 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+
+    // Admin Status Logic & Presence List
+    const statusSelect = document.getElementById('adminStatus');
+    if (statusSelect) {
+      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+      statusSelect.value = savedStatus;
+      
+      statusSelect.addEventListener('change', (e) => {
+        localStorage.setItem('lyra_admin_status', e.target.value);
+        if (typeof db !== 'undefined') {
+          const currentUser = localStorage.getItem('lyra_user');
+          if (currentUser) {
+            db.ref('lyra_presence/' + currentUser).update({
+              status: e.target.value,
+              timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+          }
+        }
+      });
+    }
+
+    const presenceList = document.getElementById('presenceList');
+    if (presenceList && typeof db !== 'undefined') {
+      db.ref('lyra_approved_admins').once('value').then(adminsSnap => {
+        const allAdmins = [];
+        adminsSnap.forEach(child => {
+          const adm = child.val();
+          if (typeof adm === 'string') allAdmins.push(adm);
+          else if (adm.ign) allAdmins.push(adm.ign);
+        });
+        
+        db.ref('lyra_presence').on('value', snap => {
+          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+          let onlineCount = 0;
+          const presenceMap = snap.val() || {};
+          
+          allAdmins.forEach(adminName => {
+            if (!presenceMap[adminName]) {
+              presenceMap[adminName] = { status: 'offline' };
+            }
+          });
+
+          Object.keys(presenceMap).forEach(user => {
+            const data = presenceMap[user];
+            let icon = '🔴';
+            let label = 'Offline';
+            if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
+            if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
+            
+            const option = document.createElement('option');
+            option.value = user;
+            option.innerHTML = `${icon} ${user} (${label})`;
+            presenceList.appendChild(option);
+          });
+          
+          presenceList.options[0].text = `View Team (${onlineCount} Active)`;
+        });
+      });
+    }
   </script>
   <script src="animations.js"></script>
 </body>

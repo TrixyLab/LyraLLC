@@ -1,0 +1,26 @@
+{
+  "name": "lyra-admin-portal",
+  "version": "1.0.0",
+  "description": "LYRA Esports Admin Dashboard",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-packager . lyra-admin-portal --platform=win32 --arch=x64 --icon=LyraEsportsLogo.ico --overwrite"
+  },
+  "author": "LYRA Esports",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2",
+    "png-to-ico": "^3.0.1"
+  },
+  "build": {
+    "appId": "com.lyra.admin",
+    "win": {
+      "target": "nsis",
+      "icon": "LyraEsportsLogo.png"
+    }
+  }
+}
