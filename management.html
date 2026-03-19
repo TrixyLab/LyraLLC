@@ -4,10 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lyra Partners | Our Sponsors and Collaborators</title>
-  <meta name="description" content="Learn about the brands, sponsors, and partners that help Lyra Esports compete at the highest level globally.">
-  <meta property="og:title" content="Lyra Partners | Our Sponsors and Collaborators">
-  <meta property="og:description" content="Learn about the brands, sponsors, and partners that help Lyra Esports compete at the highest level globally.">
+  <title>Lyra Management | Our Executive Board & Staff</title>
+  <meta name="description" content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
+  <meta property="og:title" content="Lyra Management | Our Executive Board & Staff">
+  <meta property="og:description" content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
   <meta property="og:image" content="LyraEsportsLogo.png">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -40,8 +40,28 @@
       scroll-behavior: smooth;
     }
 
-    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
-p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
     body {
       background: var(--black);
       color: var(--white);
@@ -231,22 +251,30 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       font-weight: 400;
     }
 
-    /* PARTNERS SECTION */
-    .partners-section {
+    /* ROSTER STYLES FROM HOMEPAGE */
+    .roster-section {
       padding: 6rem 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .roster-section:nth-child(even) {
       background: var(--black);
+    }
+
+    .roster-section:nth-child(odd) {
+      background: var(--gray-900);
     }
 
     .roster-header {
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       flex-wrap: wrap;
       gap: 1rem;
     }
 
-    .section-title {
+    .roster-header .section-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 3.5rem;
       line-height: 0.95;
@@ -254,101 +282,78 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       color: var(--white);
     }
 
-    .partner-grid {
+    .roster-grid {
       display: grid;
-      gap: 2rem;
-      margin-bottom: 5rem;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.04);
     }
 
-    .partner-grid.title {
-      grid-template-columns: 1fr;
-    }
-
-    .partner-grid.premium {
-      grid-template-columns: 1fr 1fr;
-    }
-
-    .partner-grid.official {
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
-
-    .partner-card {
-      background: var(--gray-900);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+    .player-card {
+      background: var(--black);
       position: relative;
       overflow: hidden;
       cursor: pointer;
+      aspect-ratio: 3/4;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      aspect-ratio: 16/9;
-      transition: border-color 0.3s, transform 0.3s;
+      justify-content: flex-end;
     }
 
-    .partner-card:hover {
-      border-color: rgba(232, 0, 45, 0.5);
-      transform: translateY(-5px);
-    }
-
-    .partner-bg {
+    .player-bg {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(232, 0, 45, 0.15) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.3s;
+      background: var(--gray-800);
+      transition: transform 0.4s ease;
     }
 
-    .partner-card:hover .partner-bg {
-      opacity: 1;
+    .player-card:hover .player-bg {
+      transform: scale(1.04);
     }
 
-    .partner-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.5rem;
-      letter-spacing: 0.1em;
-      color: var(--white);
-      z-index: 2;
-      transition: transform 0.3s;
+    .exec-card .player-bg {
+      background: linear-gradient(160deg, #100005 0%, #20000a 50%, #45001a 100%) !important;
     }
 
-    .partner-card:hover .partner-logo {
-      transform: scale(1.05);
+    .staff-card .player-bg {
+      background: linear-gradient(160deg, #0a0a0a 0%, #151515 50%, #222 100%) !important;
     }
 
-    .partner-card.title-partner {
-      aspect-ratio: 21/9;
-    }
-
-    .partner-card.title-partner .partner-logo {
-      font-size: 6rem;
-    }
-
-    .partner-card.premium-partner .partner-logo {
-      font-size: 4.5rem;
-    }
-
-    .partner-desc {
+    .player-overlay {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 1.5rem;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      text-align: center;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%);
+    }
+
+    .player-info {
+      position: relative;
+      z-index: 2;
+      padding: 1.5rem 1.2rem;
+    }
+
+    .player-role {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1rem;
-      letter-spacing: 0.1em;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
       text-transform: uppercase;
       color: var(--red);
-      font-weight: 600;
-      z-index: 3;
+      margin-bottom: 0.35rem;
     }
 
-    .partner-card:hover .partner-desc {
-      transform: translateY(0);
+    .player-alias {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.9rem;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 0.2rem;
+    }
+
+    .player-name {
+      font-size: 0.75rem;
+      color: var(--gray-200);
+      letter-spacing: 0.05em;
     }
 
     /* FOOTER */
@@ -497,16 +502,12 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       }
 
       .inner-hero,
-      .partners-section {
+      .roster-section {
         padding: 6rem 1.5rem;
       }
 
       .inner-hero {
         padding-top: 8rem;
-      }
-
-      .partner-grid.premium {
-        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -524,11 +525,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <ul class="nav-links">
       <li><a href="teams.html">Teams</a></li>
       <li><a href="roster.html">Roster</a></li>
-      <li><a href="management.html">Management</a></li>
+      <li><a href="management.html" style="color:var(--white);">Management</a></li>
       <li><a href="vision.html">Vision</a></li>
       <li><a href="#">Schedule</a></li>
       <li><a href="about.html">About</a></li>
-      <li><a href="partners.html" style="color:var(--white);">Partners</a></li>
+      <li><a href="partners.html">Partners</a></li>
       <li><a href="apply.html">Apply</a></li>
       <li><a href="invest.html">Invest in us</a></li>
     </ul>
@@ -549,16 +550,98 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <div class="hero-grid-overlay"></div>
     <div class="inner-hero-bg"></div>
     <div class="inner-hero-content">
-      <p class="section-label">Official Partnerships</p>
-      <h1 class="page-title">OUR<br><em>PARTNERS</em></h1>
-      <p class="page-desc">We are proud to work alongside industry leaders who share our vision for the future of
-        esports, community building, and competitive gaming excellence.</p>
+      <p class="section-label">Leadership & Staff</p>
+      <h1 class="page-title">LYRA<br><em>MANAGEMENT</em></h1>
+      <p class="page-desc">The masterminds behind the scenes. Meet the dedicated executive team and staff powering LYRA
+        Esports globally.</p>
     </div>
   </section>
 
-  <!-- PARTNERS -->
-  <section class="partners-section" style="display: flex; align-items: center; justify-content: center; min-height: 40vh;">
-    <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: var(--gray-600); letter-spacing: 0.1em; text-align: center; animation: fadeUp 0.8s ease-out forwards;">COMING SOON</h2>
+  <!-- EXECUTIVE ROSTER -->
+  <section class="roster-section">
+    <div class="roster-header">
+      <div>
+        <p class="section-label" style="justify-content:flex-start;">C-Suite</p>
+        <h2 class="section-title">Executive Board</h2>
+      </div>
+    </div>
+    <div class="roster-grid">
+      <div class="player-card exec-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">CEO & Founder</p>
+          <p class="player-alias">Versa</p>
+          <p class="player-name">Michael</p>
+        </div>
+      </div>
+      <div class="player-card exec-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">Operations Director</p>
+          <p class="player-alias">Shedim</p>
+          <p class="player-name">TBD</p>
+        </div>
+      </div>
+      <div class="player-card exec-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">Operations Director</p>
+          <p class="player-alias">Kyle</p>
+          <p class="player-name">Kai</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAFF ROSTER -->
+  <section class="roster-section">
+    <div class="roster-header">
+      <div>
+        <p class="section-label" style="justify-content:flex-start;">Operations</p>
+        <h2 class="section-title">Staff & Creators</h2>
+      </div>
+    </div>
+    <div class="roster-grid">
+      <div class="player-card staff-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">IT Director</p>
+          <p class="player-alias">Lyte</p>
+          <p class="player-name">Derric</p>
+        </div>
+      </div>
+      <div class="player-card staff-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">Social Media Mgr</p>
+          <p class="player-alias">Surf</p>
+          <p class="player-name">Emory</p>
+        </div>
+      </div>
+      <div class="player-card staff-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">Training Manager</p>
+          <p class="player-alias">JoJo</p>
+          <p class="player-name">Jos</p>
+        </div>
+      </div>
+      <div class="player-card staff-card">
+        <div class="player-bg"></div>
+        <div class="player-overlay"></div>
+        <div class="player-info">
+          <p class="player-role">Production Manager</p>
+          <p class="player-alias">Nanno</p>
+          <p class="player-name">Alexander</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- FOOTER -->
@@ -576,11 +659,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <div>
         <p class="footer-col-title">Teams</p>
         <ul class="footer-links">
-          <li><a href="#">VALORANT</a></li>
-          <li><a href="#">League of Legends</a></li>
-          <li><a href="#">Apex Legends</a></li>
-          <li><a href="#">Halo</a></li>
-          <li><a href="#">Rocket League</a></li>
+          <li><a href="teams.html">VALORANT</a></li>
+          <li><a href="teams.html">League of Legends</a></li>
+          <li><a href="teams.html">Apex Legends</a></li>
+          <li><a href="teams.html">Halo</a></li>
+          <li><a href="teams.html">Rocket League</a></li>
         </ul>
       </div>
       <div>
@@ -597,7 +680,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         <p class="footer-col-title">Connect</p>
         <ul class="footer-links">
           <li><a href="https://x.com/EsportsLyra" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
-          <li><a href="https://www.instagram.com/esportslyra/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="https://www.instagram.com/esportslyra/" target="_blank" rel="noopener noreferrer">Instagram</a>
+          </li>
           <li><a href="https://www.youtube.com/@lyraesports" target="_blank" rel="noopener noreferrer">YouTube</a></li>
           <li><a href="#">Twitch</a></li>
           <li><a href="#">TikTok</a></li>
@@ -618,7 +702,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     document.addEventListener('DOMContentLoaded', () => {
       const user = localStorage.getItem('lyra_user');
       if (user) {
-        // Inject styles for dropdown
         if (!document.getElementById('dropdown-styles')) {
           const style = document.createElement('style');
           style.id = 'dropdown-styles';
@@ -626,48 +709,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             .nav-actions { position: relative; }
             .user-menu-wrapper { position: relative; display: inline-block; padding: 1rem 0; margin: -1rem 0; }
             .user-dropdown-menu {
-              position: absolute;
-              top: 100%;
-              right: 0;
-              background: rgba(13, 13, 13, 0.95);
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              min-width: 180px;
-              padding: 0.5rem 0;
-              border-top: 3px solid var(--red);
-              opacity: 0;
-              visibility: hidden;
-              transform: translateY(10px);
-              transition: all 0.2s ease;
-              z-index: 200;
+              position: absolute; top: 100%; right: 0; background: rgba(13, 13, 13, 0.95);
+              backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);
+              min-width: 180px; padding: 0.5rem 0; border-top: 3px solid var(--red);
+              opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; z-index: 200;
             }
             .user-dropdown-menu a {
-              display: block;
-              padding: 0.8rem 1.2rem;
-              font-family: 'Barlow Condensed', sans-serif;
-              font-size: 0.85rem;
-              font-weight: 600;
-              color: var(--gray-200);
-              letter-spacing: 0.15em;
-              text-transform: uppercase;
-              text-decoration: none;
-              transition: background 0.2s, color 0.2s;
+              display: block; padding: 0.8rem 1.2rem; font-family: 'Barlow Condensed', sans-serif;
+              font-size: 0.85rem; font-weight: 600; color: var(--gray-200); letter-spacing: 0.15em;
+              text-transform: uppercase; text-decoration: none; transition: background 0.2s, color 0.2s;
             }
-            .user-dropdown-menu a:hover {
-              background: rgba(232, 0, 45, 0.1);
-              color: var(--white);
-            }
-            .user-menu-wrapper:hover .user-dropdown-menu {
-              opacity: 1;
-              visibility: visible;
-              transform: translateY(0);
-            }
+            .user-dropdown-menu a:hover { background: rgba(232, 0, 45, 0.1); color: var(--white); }
+            .user-menu-wrapper:hover .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
           `;
           document.head.appendChild(style);
         }
 
         document.querySelectorAll('.nav-login').forEach(link => {
-          // Replace the actual anchor tag with a wrapper box
           const wrapper = document.createElement('div');
           wrapper.className = 'user-menu-wrapper';
           wrapper.innerHTML = `
@@ -684,7 +742,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           `;
           link.replaceWith(wrapper);
 
-          // Bind logout
           const logoutBtn = wrapper.querySelector('#frontendLogoutBtn');
           if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -700,7 +757,3 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 </body>
 
 </html>
-
-
-
-
