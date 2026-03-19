@@ -374,6 +374,7 @@
     }
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
+  <link rel="stylesheet" href="animations.css">
 </head>
 
 <body>
@@ -454,57 +455,62 @@
     </div>
   </main>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
   <script>
-    // LocalStorage Chat Logic
+    const firebaseConfig = {
+      apiKey: "AIzaSyCR3Z8Peo8Voda7gtz5fAc2TibQJhB63Eg",
+      authDomain: "lyra-esports.firebaseapp.com",
+      projectId: "lyra-esports",
+      storageBucket: "lyra-esports.firebasestorage.app",
+      messagingSenderId: "927531070934",
+      appId: "1:927531070934:web:6c3b528c681ac8a23be077",
+      measurementId: "G-LQ4Y3C57NK",
+      // Explicitly providing the default database URL to prevent connection drops
+      databaseURL: "https://lyra-esports-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const chatContainer = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
 
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
 
-    // Initial seeded messages
-    const seedMessages = [
-      { author: 'Versa', time: '10:02 AM', text: 'Hey team, just confirming the new VALORANT jerseys have been sent out for manufacturing.', avatarClass: 'admin' },
-      { author: 'Sare', time: '10:15 AM', text: 'Awesome, I will schedule a content shoot as soon as they arrive in the warehouse.', avatarClass: '' },
-      { author: 'Vault', time: '10:30 AM', text: 'The players will definitely appreciate that. We have scrims later today if anybody wants to review VODs.', avatarClass: '' }
-    ];
+    const messagesRef = db.ref('chat_general');
+    const typingRef = db.ref('typing_status');
 
-    function loadMessages() {
-      let msgs = JSON.parse(localStorage.getItem('lyra_chat_general'));
-      if (!msgs || msgs.length === 0) {
-        msgs = seedMessages;
-        localStorage.setItem('lyra_chat_general', JSON.stringify(msgs));
-      }
+    chatContainer.innerHTML = '';
 
-      chatContainer.innerHTML = '';
-      msgs.forEach(msg => {
-        const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
-        const avatarLetter = msg.author.charAt(0).toUpperCase();
+    messagesRef.on('child_added', (snapshot) => {
+      const msg = snapshot.val();
+      const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
+      const avatarLetter = msg.author.charAt(0).toUpperCase();
 
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message';
-        msgDiv.innerHTML = `
-          <div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>
-          <div class="msg-content">
-            <div class="msg-header">
-              <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>
-              <span class="msg-time">${msg.time}</span>
-            </div>
-            <div class="msg-text">${msg.text}</div>
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'message animate-on-scroll is-visible';
+      msgDiv.innerHTML = `
+        <div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>
+        <div class="msg-content">
+          <div class="msg-header">
+            <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>
+            <span class="msg-time">${msg.time}</span>
           </div>
-        `;
-        chatContainer.appendChild(msgDiv);
-      });
-
-      // Auto-scroll to bottom
+          <div class="msg-text">${msg.text}</div>
+        </div>
+      `;
+      chatContainer.appendChild(msgDiv);
       chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    });
 
     function sendMessage() {
       const text = chatInput.value.trim();
       if (!text) return;
-
-      const msgs = JSON.parse(localStorage.getItem('lyra_chat_general')) || seedMessages;
 
       const now = new Date();
       let hours = now.getHours();
@@ -515,24 +521,19 @@
       minutes = minutes < 10 ? '0' + minutes : minutes;
       const timeStr = hours + ':' + minutes + ' ' + ampm;
 
-      msgs.push({
+      messagesRef.push({
         author: currentUser,
         time: timeStr,
         text: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
         avatarClass: 'admin'
       });
 
-      localStorage.setItem('lyra_chat_general', JSON.stringify(msgs));
       chatInput.value = '';
-      loadMessages();
+      db.ref('typing_status/' + currentUser).remove();
     }
 
     sendBtn.addEventListener('click', sendMessage);
-
-    let typingTimeout;
-    chatInput.addEventListener('input', () => {
-      localStorage.setItem('lyra_chat_typing', JSON.stringify({ user: currentUser, time: Date.now() }));
-    });
 
     chatInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -540,40 +541,40 @@
       }
     });
 
-    // Real-time synchronization
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'lyra_chat_general') {
-        loadMessages();
-      }
-      if (e.key === 'lyra_chat_typing') {
-        checkTypingStatus();
-      }
+    let typingTimeout;
+    chatInput.addEventListener('input', () => {
+      db.ref('typing_status/' + currentUser).set(Date.now());
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        db.ref('typing_status/' + currentUser).remove();
+      }, 3000);
     });
 
-    function checkTypingStatus() {
-      const typingData = JSON.parse(localStorage.getItem('lyra_chat_typing'));
-      const indicator = document.getElementById('typingIndicator');
-      if (typingData && typingData.user !== currentUser && (Date.now() - typingData.time < 3000)) {
-        indicator.textContent = typingData.user + " is typing...";
-        indicator.style.display = 'block';
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => { indicator.style.display = 'none'; }, 3000);
+    typingRef.on('value', (snapshot) => {
+      const typingData = snapshot.val();
+      if (typingData) {
+        const activeTypers = Object.keys(typingData).filter(user => user !== currentUser && Date.now() - typingData[user] < 5000);
+        if (activeTypers.length > 0) {
+          typingIndicator.textContent = activeTypers.join(', ') + (activeTypers.length > 1 ? ' are typing...' : ' is typing...');
+          typingIndicator.style.display = 'block';
+        } else {
+          typingIndicator.style.display = 'none';
+        }
       } else {
-        indicator.style.display = 'none';
+        typingIndicator.style.display = 'none';
       }
-    }
-
-    // Also poll typing status just to clear it reliably if storage event missed
-    setInterval(checkTypingStatus, 2000);
-
-    loadMessages();
+    });
 
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
-      window.location.href = 'index.html';
+      document.body.classList.add('fade-out');
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 400);
     });
   </script>
+  <script src="animations.js"></script>
 </body>
 
 </html>

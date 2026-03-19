@@ -30,8 +30,28 @@
       --gray-900: #0D0D0D;
     }
 
-    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
-p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
     body {
       background: var(--black);
       color: var(--white);
@@ -312,6 +332,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     }
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
+  <link rel="stylesheet" href="animations.css">
 </head>
 
 <body>
@@ -370,24 +391,20 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </div>
 
   <script>
-    document.querySelector('form').addEventListener('submit', function(e) {
+    document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();
-      
+
       let approvedAdmins = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
       const adminMatch = approvedAdmins.find(admin => {
-         return typeof admin === 'string' ? admin === username.toLowerCase() : admin.ign.toLowerCase() === username.toLowerCase();
+        return typeof admin === 'string' ? admin === username.toLowerCase() : admin.ign.toLowerCase() === username.toLowerCase();
       });
 
       localStorage.setItem('lyra_user', username);
       window.location.href = 'admin-dashboard.html';
     });
   </script>
+  <script src="animations.js"></script>
 </body>
 
 </html>
-
-
-
-
-

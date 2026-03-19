@@ -1,0 +1,15 @@
+User-agent: *
+
+# Disallow search engines from indexing these admin and internal pages
+Disallow: /admin-access.html
+Disallow: /admin-chat.html
+Disallow: /admin-dashboard.html
+Disallow: /admin-overview.html
+Disallow: /admin-reviews.html
+Disallow: /admin-roster.html
+Disallow: /login.html
+Disallow: /create-password.html
+Disallow: /pending.html
+
+# Tell search engines where the sitemap is located
+Sitemap: https://lyraesports.com/sitemap.xml
