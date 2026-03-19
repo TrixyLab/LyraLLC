@@ -173,58 +173,75 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
   </main>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <script>
     const appsContainer = document.getElementById('adminRequestsContainer');
-    const storedApps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
-
-    storedApps.reverse().forEach((app) => {
-      if (app.roleValue !== 'adminAccess') return;
-
-      const card = document.createElement('div');
-      card.className = 'app-card';
-      card.innerHTML = `
-        <div class="app-info">
-          <span class="app-role" style="background:var(--red);color:var(--white);">NEW ADMIN REQUEST</span>
-          <h2 class="app-name">${app.name} "${app.ign}"</h2>
-          <div class="app-meta">
-            <span>✉️ ${app.email}</span>
-            <span>📱 ${app.discord}</span>
-          </div>
-          <p class="app-reason">"${app.reason}"</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept" data-email="${app.email}" data-name="${app.name}" data-timestamp="${app.timestamp}">Grant Access</button>
-          <button class="btn btn-decline" data-timestamp="${app.timestamp}">Deny</button>
-        </div>
-      `;
-      appsContainer.prepend(card);
-    });
-
     const activeAdminsContainer = document.getElementById('activeAdminsContainer');
-    const approvedAdmins = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
 
-    approvedAdmins.reverse().forEach((admin) => {
-      if (typeof admin === 'string') return;
+    db.ref('lyra_applications').on('value', (snapshot) => {
+      appsContainer.innerHTML = '';
+      const apps = [];
+      snapshot.forEach(child => {
+        apps.push({ id: child.key, ...child.val() });
+      });
 
-      const card = document.createElement('div');
-      card.className = 'app-card';
-      card.innerHTML = `
-        <div class="app-info">
-          <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">ACTIVE ADMIN</span>
-          <h2 class="app-name">${admin.name} "${admin.ign}"</h2>
-          <div class="app-meta">
-            <span>✉️ ${admin.email}</span>
-            <span>📱 ${admin.discord}</span>
+      apps.reverse().forEach((app) => {
+        if (app.roleValue !== 'adminAccess') return;
+
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:var(--red);color:var(--white);">NEW ADMIN REQUEST</span>
+            <h2 class="app-name">${app.name} "${app.ign}"</h2>
+            <div class="app-meta">
+              <span>✉️ ${app.email}</span>
+              <span>📱 ${app.discord}</span>
+            </div>
+            <p class="app-reason">"${app.reason}"</p>
           </div>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-decline btn-revoke" data-timestamp="${admin.timestamp}">Revoke Access</button>
-        </div>
-      `;
-      activeAdminsContainer.appendChild(card);
+          <div class="app-actions">
+            <button class="btn btn-accept" data-id="${app.id}" data-email="${app.email}" data-name="${app.name}">Grant Access</button>
+            <button class="btn btn-decline" data-id="${app.id}">Deny</button>
+          </div>
+        `;
+        appsContainer.appendChild(card);
+      });
     });
 
-    // Event delegation to catch dynamically added buttons
+    db.ref('lyra_approved_admins').on('value', (snapshot) => {
+      activeAdminsContainer.innerHTML = '';
+      const admins = [];
+      snapshot.forEach(child => {
+        admins.push({ id: child.key, ...child.val() });
+      });
+
+      admins.reverse().forEach((admin) => {
+        if (!admin.name) return;
+
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:var(--black);color:var(--white);border:1px solid var(--gray-600);">ACTIVE ADMIN</span>
+            <h2 class="app-name">${admin.name} "${admin.ign}"</h2>
+            <div class="app-meta">
+              <span>✉️ ${admin.email}</span>
+              <span>📱 ${admin.discord}</span>
+            </div>
+          </div>
+          <div class="app-actions">
+            <button class="btn btn-decline btn-revoke" data-id="${admin.id}">Revoke Access</button>
+          </div>
+        `;
+        activeAdminsContainer.appendChild(card);
+      });
+    });
+
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('btn-accept')) {
         const card = e.target.closest('.app-card');
@@ -234,61 +251,35 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         e.target.style.background = 'var(--green)';
         e.target.style.color = 'var(--black)';
 
+        const id = e.target.getAttribute('data-id');
         const email = e.target.getAttribute('data-email');
         const name = e.target.getAttribute('data-name');
-        const ts = e.target.getAttribute('data-timestamp');
         
-        if (ts) {
-          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
-          
-          const approvedApp = apps.find(a => a.timestamp.toString() === ts);
-          if (approvedApp) {
-             let approvedList = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
-             approvedList.push(approvedApp);
-             localStorage.setItem('lyra_approved_admins', JSON.stringify(approvedList));
-          }
-
-          apps = apps.filter(a => a.timestamp.toString() !== ts);
-          localStorage.setItem('lyra_applications', JSON.stringify(apps));
+        if (id) {
+          db.ref('lyra_applications/' + id).once('value').then(snap => {
+            const appData = snap.val();
+            if (appData) {
+              db.ref('lyra_approved_admins').push(appData);
+              db.ref('lyra_applications/' + id).remove();
+            }
+          });
         }
 
-        if (email) {
+        if (email && email !== 'undefined') {
           const subject = encodeURIComponent("LYRA Esports - Admin Access Approved");
           const body = encodeURIComponent(`Hello ${name},\n\nYour application for Website Admin Access at LYRA Esports has been approved! Welcome to the management team.\n\nPlease finalize your account securely by setting up your new admin password here:\n[YOUR-WEBSITE-URL]/create-password.html\n\nBest,\nLYRA Administration`);
           window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
         }
       }
       else if (e.target.classList.contains('btn-decline')) {
-        const card = e.target.closest('.app-card');
-        
-        const ts = e.target.getAttribute('data-timestamp');
-        if (ts) {
-          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
-          apps = apps.filter(a => a.timestamp.toString() !== ts);
-          localStorage.setItem('lyra_applications', JSON.stringify(apps));
-        }
-
-        card.style.transition = 'all 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => card.remove(), 300);
+        const id = e.target.getAttribute('data-id');
+        if (id) db.ref('lyra_applications/' + id).remove();
       }
       else if (e.target.classList.contains('btn-revoke')) {
-        const card = e.target.closest('.app-card');
-        
-        const ts = e.target.getAttribute('data-timestamp');
-        if (ts) {
-          let approvedList = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
-          approvedList = approvedList.filter(a => typeof a === 'string' || a.timestamp.toString() !== ts);
-          localStorage.setItem('lyra_approved_admins', JSON.stringify(approvedList));
+        if (confirm("Are you sure you want to revoke this admin's access?")) {
+          const id = e.target.getAttribute('data-id');
+          if (id) db.ref('lyra_approved_admins/' + id).remove();
         }
-
-        card.style.transition = 'all 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => card.remove(), 300);
       }
     });
 
@@ -296,12 +287,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
-    });
-
-    window.addEventListener('storage', function(e) {
-      if (e.key === 'lyra_applications' || e.key === 'lyra_approved_admins') {
-        window.location.reload();
-      }
     });
   </script>
   <script src="animations.js"></script>

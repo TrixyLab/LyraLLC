@@ -448,36 +448,46 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     </div>
   </main>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <script>
-    // Load dynamic applications first
     const appsContainer = document.querySelectorAll('.apps-container')[0];
-    const storedApps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
 
-    storedApps.reverse().forEach((app) => {
-      if (app.roleValue === 'adminAccess') return;
+    db.ref('lyra_applications').on('value', (snapshot) => {
+      appsContainer.innerHTML = '';
+      const apps = [];
+      snapshot.forEach(child => {
+        apps.push({ id: child.key, ...child.val() });
+      });
 
-      const card = document.createElement('div');
-      card.className = 'app-card';
-      card.innerHTML = `
-        <div class="app-info">
-          <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
-          <h2 class="app-name">${app.name} "${app.ign}"</h2>
-          <div class="app-meta">
-            <span>✉️ ${app.email}</span>
-            <span>📱 ${app.discord}</span>
-            <span>⚔️ ${app.role}</span>
+      apps.reverse().forEach((app) => {
+        if (app.roleValue === 'adminAccess') return;
+
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
+            <h2 class="app-name">${app.name} "${app.ign}"</h2>
+            <div class="app-meta">
+              <span>✉️ ${app.email}</span>
+              <span>📱 ${app.discord}</span>
+              <span>⚔️ ${app.role}</span>
+            </div>
+            <p class="app-reason">"${app.reason}"</p>
           </div>
-          <p class="app-reason">"${app.reason}"</p>
-        </div>
-        <div class="app-actions">
-          <button class="btn btn-accept">Accept</button>
-          <button class="btn btn-decline" data-timestamp="${app.timestamp}">Decline</button>
-        </div>
-      `;
-      appsContainer.prepend(card);
+          <div class="app-actions">
+            <button class="btn btn-accept">Accept</button>
+            <button class="btn btn-decline" data-id="${app.id}">Decline</button>
+          </div>
+        `;
+        appsContainer.appendChild(card);
+      });
     });
 
-    // Event delegation to catch dynamically added buttons
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('btn-accept')) {
         const card = e.target.closest('.app-card');
@@ -488,20 +498,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         e.target.style.color = 'var(--black)';
       }
       else if (e.target.classList.contains('btn-decline')) {
-        const card = e.target.closest('.app-card');
-
-        const ts = e.target.getAttribute('data-timestamp');
-        if (ts) {
-          let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
-          apps = apps.filter(a => a.timestamp.toString() !== ts);
-          localStorage.setItem('lyra_applications', JSON.stringify(apps));
-        }
-
-        card.style.transition = 'all 0.3s ease';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.95)';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => card.remove(), 300);
+        const id = e.target.getAttribute('data-id');
+        if (id) db.ref('lyra_applications/' + id).remove();
       }
       else if (e.target.classList.contains('btn-remove')) {
         const card = e.target.closest('.app-card');
@@ -517,12 +515,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       e.preventDefault();
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
-    });
-
-    window.addEventListener('storage', function (e) {
-      if (e.key === 'lyra_applications' || e.key === 'lyra_approved_admins') {
-        window.location.reload();
-      }
     });
   </script>
   <script src="animations.js"></script>

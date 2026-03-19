@@ -382,6 +382,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     </div>
   </div>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <script>
     document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -395,14 +400,15 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         role: roleSelect.options[roleSelect.selectedIndex].text,
         roleValue: roleSelect.value,
         reason: document.getElementById('reason').value,
-        timestamp: new Date().getTime()
+        timestamp: firebase.database.ServerValue.TIMESTAMP
       };
 
-      let apps = JSON.parse(localStorage.getItem('lyra_applications') || '[]');
-      apps.push(app);
-      localStorage.setItem('lyra_applications', JSON.stringify(apps));
-
-      window.location.href = 'pending.html';
+      db.ref('lyra_applications').push(app).then(() => {
+        window.location.href = 'pending.html';
+      }).catch(err => {
+        console.error(err);
+        alert("Failed to submit. Please ensure database connection is active.");
+      });
     });
   </script>
   <script src="animations.js"></script>

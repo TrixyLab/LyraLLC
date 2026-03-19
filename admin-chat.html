@@ -408,18 +408,22 @@
       <!-- CHANNELS LEFT PANE -->
       <div class="chat-channels">
         <p class="channel-header">Corporate</p>
-        <a href="#" class="channel-link active"># general</a>
-        <a href="#" class="channel-link"># announcements</a>
-        <a href="#" class="channel-link"># finance-reports</a>
+        <div id="defaultChannels">
+          <a href="#" class="channel-link active" data-channel="general"># general</a>
+          <a href="#" class="channel-link" data-channel="announcements"># announcements</a>
+          <a href="#" class="channel-link" data-channel="finance-reports"># finance-reports</a>
+        </div>
 
-        <p class="channel-header">Divisions</p>
-        <a href="#" class="channel-link"># roster-moves</a>
-        <a href="#" class="channel-link"># valorant-team</a>
-        <a href="#" class="channel-link"># league-team</a>
-
-        <p class="channel-header">Direct Messages</p>
-        <a href="#" class="channel-link">Vault (Val. Coach)</a>
-        <a href="#" class="channel-link">Sare (Content)</a>
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; padding-right: 1.5rem; margin-top: 1rem;">
+          <p class="channel-header" style="margin: 0; padding: 0;">Custom Channels</p>
+          <button id="addChannelBtn"
+            style="background:none; border:none; color:var(--red); font-size:1.2rem; cursor:pointer; padding: 0 0.5rem; line-height: 1;"
+            title="Create Channel">+</button>
+        </div>
+        <div id="customChannels">
+          <!-- Dynamically populated from Firebase -->
+        </div>
       </div>
 
       <!-- CHAT INTERFACE RIGHT PANE -->
@@ -482,31 +486,130 @@
 
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
 
-    const messagesRef = db.ref('chat_general');
-    const typingRef = db.ref('typing_status');
+    let currentChannel = 'general';
+    let messagesRef = null;
+    let typingRef = null;
+    const customChannelsRef = db.ref('chat_channels');
 
-    chatContainer.innerHTML = '';
+    // --- Channel Management ---
+    customChannelsRef.on('value', (snapshot) => {
+      const customChannelsContainer = document.getElementById('customChannels');
+      customChannelsContainer.innerHTML = '';
 
-    messagesRef.on('child_added', (snapshot) => {
-      const msg = snapshot.val();
-      const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
-      const avatarLetter = msg.author.charAt(0).toUpperCase();
+      const channels = snapshot.val();
+      if (channels) {
+        Object.keys(channels).forEach(key => {
+          const ch = channels[key];
+          const a = document.createElement('a');
+          a.href = '#';
+          a.className = 'channel-link';
+          if (currentChannel === key) a.classList.add('active');
+          a.setAttribute('data-channel', key);
 
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message animate-on-scroll is-visible';
-      msgDiv.innerHTML = `
-        <div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>
-        <div class="msg-content">
-          <div class="msg-header">
-            <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>
-            <span class="msg-time">${msg.time}</span>
-          </div>
-          <div class="msg-text">${msg.text}</div>
-        </div>
-      `;
-      chatContainer.appendChild(msgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+          a.innerHTML = `
+            <span style="display:flex; justify-content:space-between; align-items:center;">
+              <span># ${ch.name}</span>
+              <button class="delete-channel-btn" data-id="${key}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0 5px;" title="Delete Channel">&times;</button>
+            </span>
+          `;
+          customChannelsContainer.appendChild(a);
+        });
+      }
+      bindChannelClicks();
     });
+
+    document.getElementById('addChannelBtn').addEventListener('click', () => {
+      const name = prompt("Enter new channel name (e.g. roster-drafts):");
+      if (name && name.trim().length > 0) {
+        const safeName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        customChannelsRef.child(safeName).set({
+          name: safeName,
+          createdBy: currentUser,
+          timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+        switchChannel(safeName);
+      }
+    });
+
+    function bindChannelClicks() {
+      // Rebind custom and default
+      document.querySelectorAll('.channel-link').forEach(link => {
+        const newLink = link.cloneNode(true);
+        link.parentNode.replaceChild(newLink, link);
+
+        newLink.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          if (e.target.classList.contains('delete-channel-btn')) {
+            const chId = e.target.getAttribute('data-id');
+            if (confirm(`Delete #${chId} and all its messages permanently?`)) {
+              customChannelsRef.child(chId).remove();
+              db.ref('chat_messages/' + chId).remove();
+              db.ref('typing_status/' + chId).remove();
+              if (currentChannel === chId) switchChannel('general');
+            }
+            return;
+          }
+
+          const chId = newLink.getAttribute('data-channel');
+          if (chId && chId !== currentChannel) {
+            switchChannel(chId);
+          }
+        });
+      });
+    }
+
+    function switchChannel(channelId) {
+      if (messagesRef) messagesRef.off();
+      if (typingRef) typingRef.off();
+
+      currentChannel = channelId;
+      document.querySelector('.chat-title').innerText = '# ' + channelId;
+
+      document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
+      const activeLink = document.querySelector(`.channel-link[data-channel="${channelId}"]`);
+      if (activeLink) activeLink.classList.add('active');
+
+      chatContainer.innerHTML = '';
+      messagesRef = db.ref('chat_messages/' + currentChannel);
+      typingRef = db.ref('typing_status/' + currentChannel);
+
+      messagesRef.on('child_added', (snapshot) => {
+        const msg = snapshot.val();
+        const isMe = msg.author.toLowerCase() === currentUser.toLowerCase();
+        const avatarLetter = msg.author.charAt(0).toUpperCase();
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message animate-on-scroll is-visible';
+        msgDiv.innerHTML = `
+          <div class="msg-avatar ${msg.avatarClass || (isMe ? 'admin' : '')}">${avatarLetter}</div>
+          <div class="msg-content">
+            <div class="msg-header">
+              <span class="msg-author" style="color: ${isMe ? 'var(--red)' : 'var(--white)'};">${msg.author}</span>
+              <span class="msg-time">${msg.time}</span>
+            </div>
+            <div class="msg-text">${msg.text}</div>
+          </div>
+        `;
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      });
+
+      typingRef.on('value', (snapshot) => {
+        const typingData = snapshot.val();
+        if (typingData) {
+          const activeTypers = Object.keys(typingData).filter(user => user !== currentUser && Date.now() - typingData[user] < 5000);
+          if (activeTypers.length > 0) {
+            typingIndicator.textContent = activeTypers.join(', ') + " typing...";
+            typingIndicator.style.display = 'block';
+          } else {
+            typingIndicator.style.display = 'none';
+          }
+        } else {
+          typingIndicator.style.display = 'none';
+        }
+      });
+    }
 
     function sendMessage() {
       const text = chatInput.value.trim();
@@ -530,7 +633,7 @@
       });
 
       chatInput.value = '';
-      db.ref('typing_status/' + currentUser).remove();
+      typingRef.child(currentUser).remove();
     }
 
     sendBtn.addEventListener('click', sendMessage);
@@ -543,27 +646,15 @@
 
     let typingTimeout;
     chatInput.addEventListener('input', () => {
-      db.ref('typing_status/' + currentUser).set(Date.now());
+      typingRef.child(currentUser).set(Date.now());
       clearTimeout(typingTimeout);
       typingTimeout = setTimeout(() => {
-        db.ref('typing_status/' + currentUser).remove();
+        typingRef.child(currentUser).remove();
       }, 3000);
     });
 
-    typingRef.on('value', (snapshot) => {
-      const typingData = snapshot.val();
-      if (typingData) {
-        const activeTypers = Object.keys(typingData).filter(user => user !== currentUser && Date.now() - typingData[user] < 5000);
-        if (activeTypers.length > 0) {
-          typingIndicator.textContent = activeTypers.join(', ') + (activeTypers.length > 1 ? ' are typing...' : ' is typing...');
-          typingIndicator.style.display = 'block';
-        } else {
-          typingIndicator.style.display = 'none';
-        }
-      } else {
-        typingIndicator.style.display = 'none';
-      }
-    });
+    // Initial boot
+    switchChannel('general');
 
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();

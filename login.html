@@ -390,18 +390,40 @@
     </div>
   </div>
 
+  <!-- Firebase Core + Database -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <script>
     document.querySelector('form').addEventListener('submit', function (e) {
       e.preventDefault();
       const username = document.getElementById('username').value.trim();
 
-      let approvedAdmins = JSON.parse(localStorage.getItem('lyra_approved_admins') || '[]');
-      const adminMatch = approvedAdmins.find(admin => {
-        return typeof admin === 'string' ? admin === username.toLowerCase() : admin.ign.toLowerCase() === username.toLowerCase();
-      });
+      db.ref('lyra_approved_admins').once('value').then((snapshot) => {
+        const approvedAdmins = [];
+        snapshot.forEach(child => {
+          approvedAdmins.push(child.val());
+        });
+        
+        const adminMatch = approvedAdmins.find(admin => {
+          return typeof admin === 'string' 
+            ? admin === username.toLowerCase() 
+            : admin.ign.toLowerCase() === username.toLowerCase();
+        });
 
-      localStorage.setItem('lyra_user', username);
-      window.location.href = 'admin-dashboard.html';
+        if (adminMatch) {
+          localStorage.setItem('lyra_user', username);
+          window.location.href = 'admin-dashboard.html';
+        } else {
+          alert('Username not found in Approved Admins list. Please request access.');
+        }
+      }).catch(err => {
+        console.error(err);
+        alert("Database connection failed. Falling back to local mode.");
+        localStorage.setItem('lyra_user', username);
+        window.location.href = 'admin-dashboard.html';
+      });
     });
   </script>
   <script src="animations.js"></script>
