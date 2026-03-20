@@ -1,58 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lyra Teams | Our Competitive Gaming Divisions</title>
-  <meta name="description" content="Explore Lyra Esports' competitive gaming divisions including VALORANT, League of Legends, Apex Legends, Halo, and Rocket League.">
+  <meta name="description"
+    content="Explore Lyra Esports' competitive gaming divisions including VALORANT, League of Legends, Apex Legends, Halo, and Rocket League.">
   <meta property="og:title" content="Lyra Teams | Our Competitive Gaming Divisions">
-  <meta property="og:description" content="Explore Lyra Esports' competitive gaming divisions including VALORANT, League of Legends, Apex Legends, Halo, and Rocket League.">
+  <meta property="og:description"
+    content="Explore Lyra Esports' competitive gaming divisions including VALORANT, League of Legends, Apex Legends, Halo, and Rocket League.">
   <meta property="og:image" content="LyraEsportsLogo.png">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --red: #E8002D; --red-dark: #a80020; --white: #FFFFFF; --black: #000000; --gray-100: #F0F0F0; --gray-200: #CCCCCC; --gray-600: #555555; --gray-800: #1A1A1A; --gray-900: #0D0D0D; }
-    html { scroll-behavior: smooth; }
-    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
-p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
-    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; overflow-x: hidden; }
-    
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-100: #F0F0F0;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      overflow-x: hidden;
+    }
+
     /* NAV */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 3rem; height: 68px; background: rgba(0, 0, 0, 0.92); border-bottom: 1px solid rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); }
-    .nav-logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em; color: var(--white); text-decoration: none; }
-    .nav-logo img { height: 2rem; width: auto; }
-    .nav-logo span { color: var(--red); }
-    .nav-links { display: flex; align-items: center; gap: 2.5rem; list-style: none; }
-    .nav-links a { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-200); text-decoration: none; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--white); }
-    
-    .nav-actions { display: flex; align-items: center; gap: 1.5rem; }
-    .nav-login { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gray-200); text-decoration: none; transition: color 0.2s; display: flex; align-items: center; gap: 0.4rem; }
-    .nav-login:hover { color: var(--white); }
-    .nav-login svg { width: 16px; height: 16px; fill: currentColor; }
-    
-    .nav-cta, .btn-primary { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); background: var(--red); padding: 0.55rem 1.4rem; text-decoration: none; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: background 0.2s; display: inline-block; border: none; cursor: pointer; }
-    .nav-cta:hover, .btn-primary:hover { background: var(--red-dark); }
-    .btn-ghost { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.85rem 2.2rem; text-decoration: none; clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%); transition: border-color 0.2s, background 0.2s; display: inline-block; cursor: pointer;}
-    .btn-ghost:hover { border-color: var(--white); background: rgba(255, 255, 255, 0.05); }
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.92);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .nav-logo span {
+      color: var(--red);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--white);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-login {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-200);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-login:hover {
+      color: var(--white);
+    }
+
+    .nav-login svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .nav-cta,
+    .btn-primary {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--red);
+      padding: 0.55rem 1.4rem;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: background 0.2s;
+      display: inline-block;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-cta:hover,
+    .btn-primary:hover {
+      background: var(--red-dark);
+    }
+
+    .btn-ghost {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.85rem 2.2rem;
+      text-decoration: none;
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+      transition: border-color 0.2s, background 0.2s;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--white);
+      background: rgba(255, 255, 255, 0.05);
+    }
 
     /* INNER HERO */
-    .inner-hero { position: relative; padding: 12rem 3rem 6rem; background: var(--gray-900); overflow: hidden; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-    .inner-hero-bg { position: absolute; inset: 0; background: radial-gradient(circle at right, rgba(232, 0, 45, 0.1) 0%, transparent 60%); z-index: 1; }
-    .hero-grid-overlay { position: absolute; inset: 0; background-image: linear-gradient(rgba(232, 0, 45, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 0, 45, 0.03) 1px, transparent 1px); background-size: 60px 60px; z-index: 0; }
-    .inner-hero-content { position: relative; z-index: 2; max-width: 800px; animation: fadeUp 0.8s ease-out forwards; }
-    .section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.35em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
-    .section-label::before, .section-label::after { content: ''; display: block; width: 20px; height: 2px; background: var(--red); }
-    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 8vw, 7rem); line-height: 0.9; letter-spacing: 0.02em; color: var(--white); margin-bottom: 1.5rem; }
-    .page-title em { font-style: normal; color: var(--red); }
-    .page-desc { font-size: 1.1rem; line-height: 1.7; color: var(--gray-200); max-width: 500px; font-weight: 400; }
+    .inner-hero {
+      position: relative;
+      padding: 12rem 3rem 6rem;
+      background: var(--gray-900);
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .inner-hero-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at right, rgba(232, 0, 45, 0.1) 0%, transparent 60%);
+      z-index: 1;
+    }
+
+    .hero-grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(232, 0, 45, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 0, 45, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 0;
+    }
+
+    .inner-hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      animation: fadeUp 0.8s ease-out forwards;
+    }
+
+    .section-label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-label::before,
+    .section-label::after {
+      content: '';
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    .page-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 8vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      margin-bottom: 1.5rem;
+    }
+
+    .page-title em {
+      font-style: normal;
+      color: var(--red);
+    }
+
+    .page-desc {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: var(--gray-200);
+      max-width: 500px;
+      font-weight: 400;
+    }
 
     /* TEAMS SECTION */
-    .teams-section { padding: 6rem 3rem; background: var(--black); }
-    .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+    .teams-section {
+      padding: 6rem 3rem;
+      background: var(--black);
+    }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
+    }
 
     .team-card {
       background: var(--gray-900);
@@ -71,19 +308,26 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     .team-bg {
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(30,0,10,0.8) 0%, rgba(10,0,5,0.8) 100%);
+      background: linear-gradient(135deg, rgba(30, 0, 10, 0.8) 0%, rgba(10, 0, 5, 0.8) 100%);
       opacity: 0.6;
       transition: transform 0.6s ease, opacity 0.4s;
       z-index: 0;
     }
 
-    .team-card:hover { transform: translateY(-5px); border-color: rgba(232, 0, 45, 0.4); }
-    .team-card:hover .team-bg { transform: scale(1.05); opacity: 1; }
+    .team-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(232, 0, 45, 0.4);
+    }
+
+    .team-card:hover .team-bg {
+      transform: scale(1.05);
+      opacity: 1;
+    }
 
     .team-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
       z-index: 1;
     }
 
@@ -92,11 +336,14 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       top: 1.5rem;
       right: 1.5rem;
       font-size: 2.5rem;
-      opacity: 0.2;
+      opacity: 0.7;
       z-index: 1;
       transition: opacity 0.3s;
     }
-    .team-card:hover .team-icon { opacity: 0.6; }
+
+    .team-card:hover .team-icon {
+      opacity: 1;
+    }
 
     .team-content {
       position: relative;
@@ -131,54 +378,209 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     }
 
     /* CUSTOM GAME GRADIENTS */
-    .game-val .team-bg { background: linear-gradient(135deg, #400010 0%, #150005 100%); }
-    .game-lol .team-bg { background: linear-gradient(135deg, #0a1128 0%, #030612 100%); }
-    .game-apex .team-bg { background: linear-gradient(135deg, #380a0a 0%, #150303 100%); }
-    .game-finals .team-bg { background: linear-gradient(135deg, #362a09 0%, #120e03 100%); }
-    .game-marvel .team-bg { background: linear-gradient(135deg, #0f1c3b 0%, #050a17 100%); }
-    .game-halo .team-bg { background: linear-gradient(135deg, #0a2612 0%, #030d06 100%); }
-    .game-rl .team-bg { background: linear-gradient(135deg, #0a1b2e 0%, #040910 100%); }
-    .game-dota .team-bg { background: linear-gradient(135deg, #2b0b0b 0%, #0a0202 100%); }
-    .game-content .team-bg { background: linear-gradient(135deg, #4a154b 0%, #1a051d 100%); }
-    .game-cod .team-bg { background: linear-gradient(135deg, #282a17 0%, #0b0d05 100%); }
+    .game-val .team-bg {
+      background: linear-gradient(135deg, #ca0032 0%, #6b0019 100%);
+    }
+
+    .game-lol .team-bg {
+      background: linear-gradient(135deg, #082ca3 0%, #00156b 100%);
+    }
+
+    .game-apex .team-bg {
+      background: linear-gradient(135deg, #cf0000 0%, #720000 100%);
+    }
+
+    .game-finals .team-bg {
+      background: linear-gradient(135deg, #c89300 0%, #6b4f00 100%);
+    }
+
+    .game-marvel .team-bg {
+      background: linear-gradient(135deg, #0c47d4 0%, #022379 100%);
+    }
+
+    .game-halo .team-bg {
+      background: linear-gradient(135deg, #0a9c34 0%, #035d1e 100%);
+    }
+
+    .game-rl .team-bg {
+      background: linear-gradient(135deg, #0357b5 0%, #052c64 100%);
+    }
+
+    .game-dota .team-bg {
+      background: linear-gradient(135deg, #aa0a0a 0%, #570000 100%);
+    }
+
+    .game-content .team-bg {
+      background: linear-gradient(135deg, #e924ed 0%, #770088 100%);
+    }
+
+    .game-cod .team-bg {
+      background: linear-gradient(135deg, #899339 0%, #435410 100%);
+    }
 
     /* FOOTER */
-    footer { background: var(--gray-900); border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 4rem 3rem 2rem; }
-    .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.1em; color: var(--white); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
-    .footer-logo img { height: 1.8rem; width: auto; }
-    .footer-logo div { display: inline-block; }
-    .footer-logo span { color: var(--red); }
-    .footer-tagline { font-size: 0.85rem; color: var(--gray-600); line-height: 1.6; max-width: 240px; }
-    .footer-col-title { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--white); margin-bottom: 1rem; }
-    .footer-links { list-style: none; }
-    .footer-links li { margin-bottom: 0.6rem; }
-    .footer-links a { font-size: 0.85rem; color: var(--gray-600); text-decoration: none; transition: color 0.2s; letter-spacing: 0.02em; }
-    .footer-links a:hover { color: var(--white); }
-    .footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.05); flex-wrap: wrap; gap: 1rem; }
-    .footer-copy { font-size: 0.75rem; color: var(--gray-600); letter-spacing: 0.05em; }
-    .social-links { display: flex; gap: 1.2rem; }
-    .social-links a { font-family: 'Barlow Condensed', sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gray-600); text-decoration: none; transition: color 0.2s; }
-    .social-links a:hover { color: var(--white); }
-    .diag-accent { width: 100%; height: 4px; background: var(--red); clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%); }
+    footer {
+      background: var(--gray-900);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 4rem 3rem 2rem;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .footer-logo img {
+      height: 1.8rem;
+      width: auto;
+    }
+
+    .footer-logo div {
+      display: inline-block;
+    }
+
+    .footer-logo span {
+      color: var(--red);
+    }
+
+    .footer-tagline {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+      max-width: 240px;
+    }
+
+    .footer-col-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-links li {
+      margin-bottom: 0.6rem;
+    }
+
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links a:hover {
+      color: var(--white);
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      letter-spacing: 0.05em;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .social-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .social-links a:hover {
+      color: var(--white);
+    }
+
+    .diag-accent {
+      width: 100%;
+      height: 4px;
+      background: var(--red);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 2% 100%);
+    }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     @media (max-width: 768px) {
-      .footer-top { grid-template-columns: 1fr 1fr; }
-      nav { padding: 0 1.5rem; }
-      .nav-links, .nav-actions { display: none; }
-      .inner-hero, .teams-section { padding: 6rem 1.5rem; }
-      .inner-hero { padding-top: 8rem; }
-      .teams-grid { grid-template-columns: 1fr; }
+      .footer-top {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      nav {
+        padding: 0 1.5rem;
+      }
+
+      .nav-links,
+      .nav-actions {
+        display: none;
+      }
+
+      .inner-hero,
+      .teams-section {
+        padding: 6rem 1.5rem;
+      }
+
+      .inner-hero {
+        padding-top: 8rem;
+      }
+
+      .teams-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
   <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
   <link rel="stylesheet" href="animations.css">
 </head>
+
 <body>
 
   <!-- NAV -->
@@ -200,7 +602,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     </ul>
     <div class="nav-actions">
       <a href="login.html" class="nav-login">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+        </svg>
         Login
       </a>
       <a href="shop.html" class="nav-cta">Shop Now</a>
@@ -214,21 +619,22 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <div class="inner-hero-content">
       <p class="section-label">Esports Divisions</p>
       <h1 class="page-title">OUR<br><em>TEAMS</em></h1>
-      <p class="page-desc">Competing at the highest level across the world's most prestigious esports titles. We field championship-winning rosters driven by unrivaled ambition.</p>
+      <p class="page-desc">Competing at the highest level across the world's most prestigious esports titles. We field
+        championship-winning rosters driven by unrivaled ambition.</p>
     </div>
   </section>
 
   <!-- TEAMS -->
   <section class="teams-section">
     <div class="teams-grid">
-      
+
       <!-- VALORANT -->
       <a href="roster.html" class="team-card game-val">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🎯</div>
+        <div class="team-icon"><img src="Images/valorantreal.png" alt="Valorant"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">VCT Americas</p>
           <h3 class="team-name">VALORANT</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -238,9 +644,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-lol">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">⚔️</div>
+        <div class="team-icon"><img src="Images/LOLreal.png" alt="League of Legends"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">LCS</p>
           <h3 class="team-name">League of Legends</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -250,9 +656,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-apex">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🔫</div>
+        <div class="team-icon"><img src="Images/Apexreal.png" alt="Apex"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">ALGS</p>
           <h3 class="team-name">Apex Legends</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -262,9 +668,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-finals">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🏙️</div>
+        <div class="team-icon"><img src="Images/Finalsreal.png" alt="The Finals"
+            style="width: 4rem; height: 4rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">Competitive</p>
           <h3 class="team-name">The Finals</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -274,9 +680,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-marvel">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">⚡</div>
+        <div class="team-icon"><img src="Images/Rivalsreal.png" alt="Marvel"
+            style="width: 4rem; height: 4rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">Competitive</p>
           <h3 class="team-name">Marvel Rivals</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -286,9 +692,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-halo">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🎮</div>
+        <div class="team-icon"><img src="Images/Haloreal.png" alt="Halo"
+            style="width: 5rem; height: 5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">HCS</p>
           <h3 class="team-name">Halo</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -298,9 +704,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-rl">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🏎️</div>
+        <div class="team-icon"><img src="Images/RLreal.png" alt="Rocket League"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">RLCS</p>
           <h3 class="team-name">Rocket League</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -310,9 +716,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-dota">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🧙‍♂️</div>
+        <div class="team-icon"><img src="Images/dota2real.svg" alt="Dota 2"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain;"></div>
         <div class="team-content">
-          <p class="team-league">The International</p>
           <h3 class="team-name">Dota 2</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -324,7 +730,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         <div class="team-overlay"></div>
         <div class="team-icon">🎥</div>
         <div class="team-content">
-          <p class="team-league">Creators</p>
           <h3 class="team-name">Content Creation</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -334,9 +739,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <a href="roster.html" class="team-card game-cod">
         <div class="team-bg"></div>
         <div class="team-overlay"></div>
-        <div class="team-icon">🪖</div>
+        <div class="team-icon"><img src="Images/CODreal.png" alt="COD"
+            style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;"></div>
         <div class="team-content">
-          <p class="team-league">CDL</p>
           <h3 class="team-name">Call of Duty</h3>
           <span class="btn-ghost">View Roster</span>
         </div>
@@ -354,7 +759,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           <img src="LyraEsportsLogo.png" alt="Lyra Logo" onerror="this.style.display='none'">
           <div><span>L</span>YRA</div>
         </a>
-        <p class="footer-tagline">North America's premier esports organization, competing at the highest level since 2020.</p>
+        <p class="footer-tagline">North America's premier esports organization, competing at the highest level since
+          2020.</p>
       </div>
       <div>
         <p class="footer-col-title">Teams</p>
@@ -380,7 +786,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         <p class="footer-col-title">Connect</p>
         <ul class="footer-links">
           <li><a href="https://x.com/EsportsLyra" target="_blank" rel="noopener noreferrer">Twitter / X</a></li>
-          <li><a href="https://www.instagram.com/esportslyra/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="https://www.instagram.com/esportslyra/" target="_blank" rel="noopener noreferrer">Instagram</a>
+          </li>
           <li><a href="https://www.youtube.com/@lyraesports" target="_blank" rel="noopener noreferrer">YouTube</a></li>
           <li><a href="#">Twitch</a></li>
           <li><a href="#">TikTok</a></li>
@@ -455,10 +862,5 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </script>
   <script src="animations.js"></script>
 </body>
+
 </html>
-
-
-
-
-
-
