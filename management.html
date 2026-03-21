@@ -5,9 +5,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lyra Management | Our Executive Board & Staff</title>
-  <meta name="description" content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
+  <meta name="description"
+    content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
   <meta property="og:title" content="Lyra Management | Our Executive Board & Staff">
-  <meta property="og:description" content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
+  <meta property="og:description"
+    content="Meet the dedicated executive team, production staff, and creators powering Lyra Esports globally.">
   <meta property="og:image" content="LyraEsportsLogo.png">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -304,6 +306,8 @@
       position: absolute;
       inset: 0;
       background: var(--gray-800);
+      background-size: cover;
+      background-position: center;
       transition: transform 0.4s ease;
     }
 
@@ -312,11 +316,11 @@
     }
 
     .exec-card .player-bg {
-      background: linear-gradient(160deg, #100005 0%, #20000a 50%, #45001a 100%) !important;
+      background: linear-gradient(160deg, #100005 0%, #20000a 50%, #45001a 100%);
     }
 
     .staff-card .player-bg {
-      background: linear-gradient(160deg, #0a0a0a 0%, #151515 50%, #222 100%) !important;
+      background: linear-gradient(160deg, #0a0a0a 0%, #151515 50%, #222 100%);
     }
 
     .player-overlay {
@@ -568,12 +572,13 @@
     </div>
     <div class="roster-grid">
       <div class="player-card exec-card">
-        <div class="player-bg"></div>
+        <div class="player-bg"
+          style="background-image: url('ManagementImages/MichealSmith.png'); background-size: cover; background-position: center 40%;">
+        </div>
         <div class="player-overlay"></div>
         <div class="player-info">
           <p class="player-role">CEO & Founder</p>
-          <p class="player-alias">Versa</p>
-          <p class="player-name">Michael</p>
+          <p class="player-alias">Michael Smith</p>
         </div>
       </div>
       <div class="player-card exec-card">
@@ -606,13 +611,15 @@
       </div>
     </div>
     <div class="roster-grid">
+
       <div class="player-card staff-card">
-        <div class="player-bg"></div>
+        <div class="player-bg"
+          style="background-image: url('ManagementImages/DerricVarghese.JPG'); background-size: cover; background-position: center 40%;">
+        </div>
         <div class="player-overlay"></div>
         <div class="player-info">
           <p class="player-role">IT Director</p>
-          <p class="player-alias">Lyte</p>
-          <p class="player-name">Derric</p>
+          <p class="player-alias">Derric Varghese</p>
         </div>
       </div>
       <div class="player-card staff-card">
