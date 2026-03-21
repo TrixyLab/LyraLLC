@@ -386,7 +386,7 @@
         <strong>ACCESS REVOKED</strong><br/>Your session was terminated.
       </div>
 
-      <form action="admin-dashboard.html" method="GET">
+      <form action="adminFiles/admin-dashboard.html" method="GET">
         <div class="form-group">
           <label for="username" class="form-label">Username</label>
           <input type="text" id="username" class="form-input" placeholder="Enter your username" required>
@@ -442,7 +442,7 @@
           localStorage.setItem('lyra_notifications', 'disabled');
         }
         localStorage.setItem('lyra_user', 'Admin');
-        window.location.href = 'admin-dashboard.html';
+        window.location.href = 'adminFiles/admin-dashboard.html';
         return;
       }
 
@@ -468,7 +468,7 @@
               localStorage.setItem('lyra_notifications', 'disabled');
             }
             localStorage.setItem('lyra_user', username);
-            window.location.href = 'admin-dashboard.html';
+            window.location.href = 'adminFiles/admin-dashboard.html';
           } else {
             alert('Incorrect password. Please try again.');
           }
