@@ -32,8 +32,28 @@
       --gray-900: #0D0D0D;
     }
 
-    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
-p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
     body {
       background: var(--black);
       color: var(--white);
@@ -56,7 +76,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       overflow-y: auto;
       scrollbar-width: none;
     }
-    .sidebar::-webkit-scrollbar { display: none; }
+
+    .sidebar::-webkit-scrollbar {
+      display: none;
+    }
 
     .brand-logo {
       display: flex;
@@ -348,23 +371,26 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       }
     }
   </style>
-  <link rel="icon" type="image/png" href="LyraEsportsLogo.png">
-  <link rel="stylesheet" href="animations.css">
-  <link rel="stylesheet" href="responsive.css">
+  <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
+  <link rel="stylesheet" href="../animations.css">
+  <link rel="stylesheet" href="../responsive.css">
 </head>
 
 <body>
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <a href="index.html" class="brand-logo">
-      <img src="LyraEsportsLogo.png" alt="Lyra Logo">
+    <a href="../index.html" class="brand-logo">
+      <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
       <div><span>L</span>YRA</div>
     </a>
 
     <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
-      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
-      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+      <label for="adminStatus"
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
+        Status</label>
+      <select id="adminStatus" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
         <option value="online">🟢 Online</option>
         <option value="away">🟡 Away</option>
         <option value="dnd">🔴 Do Not Disturb</option>
@@ -372,8 +398,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     </div>
 
     <div class="admin-presence-list" style="margin-bottom: 2rem;">
-      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
-      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+      <label
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
+        Presence</label>
+      <select id="presenceList" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
         <option value="" disabled selected>View Team Online</option>
       </select>
     </div>
@@ -381,7 +410,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     <ul class="nav-menu">
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html" class="active">Applications</a></li>
-      <li><a href="admin-roster.html">Roster Management</a></li>
+      <li><a href="admin-roster.html">Management</a></li>
       <li><a href="admin-chat.html">Messages</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
@@ -433,7 +462,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   <!-- Firebase Core + Database -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <script src="../firebase-config.js"></script>
 
   <script>
     db.ref('lyra_applications').on('value', snapshot => {
@@ -441,7 +470,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       appsContainer.style.opacity = '0';
       appsContainer.style.transform = 'translateY(10px)';
       appsContainer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
-      
+
       setTimeout(() => {
         appsContainer.innerHTML = '';
         if (!snapshot.exists()) {
@@ -537,7 +566,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     function renderActiveMembers() {
       if (!activeMembersContainer) return;
       activeMembersContainer.innerHTML = '';
-      
+
       const members = [
         ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
         ...allRoster.map(r => ({ ...r, orgType: 'roster' }))
@@ -549,7 +578,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         card.className = 'app-card';
         const isAppAdmin = m.orgType === 'admin';
         const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
-        
+
         card.innerHTML = `
           <div class="app-info">
             <span class="app-role" style="background:${isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; color:var(--white);">${roleBadgeText}</span>
@@ -590,13 +619,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       window.location.href = 'index.html';
     });
   </script>
-  <script src="animations.js"></script>
-  <script src="responsive.js"></script>
+  <script src="../animations.js"></script>
+  <script src="../responsive.js"></script>
 </body>
-
-
-
-
-
-
-

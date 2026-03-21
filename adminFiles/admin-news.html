@@ -32,11 +32,11 @@
     .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.03em; margin-bottom: 1rem; }
     .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1.2rem; }
   </style>
-  <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet" href="../responsive.css">
 </head>
 <body>
   <aside class="sidebar">
-    <a href="index.html" class="brand-logo"><img src="LyraEsportsLogo.png" alt="Lyra Logo"><div><span>L</span>YRA</div></a>
+    <a href="../index.html" class="brand-logo"><img src="../LyraEsportsLogo.png" alt="Lyra Logo"><div><span>L</span>YRA</div></a>
     <ul class="nav-menu">
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
@@ -60,12 +60,12 @@
   <!-- Firebase Core + Database -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <script src="../firebase-config.js"></script>
 
   <script>
     document.getElementById('logoutBtn').addEventListener('click', function(e) { e.preventDefault(); localStorage.removeItem('lyra_user'); window.location.href = 'index.html'; });
   </script>
-  <script src="responsive.js"></script>
+  <script src="../responsive.js"></script>
 </body>
 </html>
 
