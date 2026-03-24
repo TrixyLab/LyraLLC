@@ -319,4 +319,90 @@ const db = firebase.database();
     }
   }
 
+  // --- Admin Calling System ---
+  if (currentUser) {
+    const myCallRef = db.ref('lyra_calls/' + currentUser);
+    
+    let ringInterval = null;
+    let callPopup = null;
+    
+    myCallRef.on('value', snap => {
+      const callData = snap.val();
+      
+      // If there's no call or status is not ringing, stop ringing
+      if (!callData || callData.status !== 'ringing') {
+        if (ringInterval) {
+          clearInterval(ringInterval);
+          ringInterval = null;
+        }
+        if (callPopup) {
+          callPopup.remove();
+          callPopup = null;
+        }
+        return;
+      }
+      
+      // Currently ringing!
+      if (!callPopup) {
+        // Create the popup
+        callPopup = document.createElement('div');
+        callPopup.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gray-900, #0D0D0D); border:2px solid var(--red, #E8002D); box-shadow:0 0 30px rgba(232,0,45,0.6); padding:20px 30px; border-radius:8px; z-index:999999; display:flex; flex-direction:column; align-items:center; gap:15px; color:white; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1s infinite;";
+        callPopup.innerHTML = `
+          <div style="font-size:1.5rem; font-weight:700;">Incoming Call</div>
+          <div style="font-size:1.1rem; color:var(--gray-200);">${callData.from} is inviting you to a meeting</div>
+          <div style="display:flex; gap:15px; margin-top:10px;">
+            <button id="acceptCallBtn" style="background:#00E85D; color:black; border:none; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Accept</button>
+            <button id="declineCallBtn" style="background:transparent; color:#E8002D; border:1px solid #E8002D; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Decline</button>
+          </div>
+        `;
+        document.body.appendChild(callPopup);
+        
+        // Ring sound loop
+        const ringer = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVtvT19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw==");
+        ringer.volume = 0.8;
+        ringer.play().catch(()=>{});
+        ringInterval = setInterval(() => ringer.play().catch(()=>{}), 2000);
+        
+        document.getElementById('acceptCallBtn').onclick = () => {
+          myCallRef.update({ status: 'accepted' });
+          if (ringInterval) clearInterval(ringInterval);
+          callPopup.remove();
+          callPopup = null;
+          // Redirect to meetings logic
+          if (window.location.pathname.includes('admin-meetings.html')) {
+            const roomInput = document.getElementById('roomName');
+            const startBtn = document.getElementById('startMeetBtn');
+            if (roomInput && startBtn) {
+              roomInput.value = callData.roomName;
+              startBtn.click();
+            }
+          } else {
+            localStorage.setItem('lyra_pending_room', callData.roomName);
+            window.location.href = 'admin-meetings.html';
+          }
+        };
+        
+        document.getElementById('declineCallBtn').onclick = () => {
+          myCallRef.update({ status: 'declined' });
+          if (ringInterval) clearInterval(ringInterval);
+          if (callPopup) callPopup.remove();
+          callPopup = null;
+        };
+      }
+    });
+
+    // Check for pending accepted call redirect
+    const pendingRoom = localStorage.getItem('lyra_pending_room');
+    if (pendingRoom && window.location.pathname.includes('admin-meetings.html')) {
+      setTimeout(() => {
+        const roomInput = document.getElementById('roomName');
+        const startBtn = document.getElementById('startMeetBtn');
+        if (roomInput && startBtn) {
+          roomInput.value = pendingRoom;
+          startBtn.click();
+        }
+        localStorage.removeItem('lyra_pending_room');
+      }, 1000);
+    }
+  }
 })();
