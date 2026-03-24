@@ -369,6 +369,8 @@
           Audio</button>
         <button id="toggleVideoBtn" class="btn" style="background: var(--gray-800); padding: 0.8rem 1.5rem;">📷 Disable
           Video</button>
+        <button id="toggleScreenShareBtn" class="btn" style="background: var(--gray-800); padding: 0.8rem 1.5rem;">💻
+          Share Screen</button>
 
         <div
           style="display: flex; gap: 0.5rem; align-items: center; margin: 0 1rem; padding: 0 1rem; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
@@ -380,6 +382,8 @@
             style="background: var(--green); padding: 0.8rem 1.5rem; color: var(--black);">Ring</button>
         </div>
 
+        <button id="copyInviteBtn" class="btn" style="background: var(--gray-800); padding: 0.8rem 1.5rem;">🔗 Copy
+          Link</button>
         <button id="leaveMeetBtn" class="btn" style="background: var(--red); padding: 0.8rem 1.5rem;">Leave
           Meeting</button>
       </div>
@@ -593,6 +597,13 @@
       // Add local tracks to the connection
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
+      // If we are currently screensharing, seamlessly replace the video track just sent!
+      if (typeof isScreenSharing !== 'undefined' && isScreenSharing && typeof localScreenStream !== 'undefined' && localScreenStream) {
+        const screenTrack = localScreenStream.getVideoTracks()[0];
+        const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender && screenTrack) sender.replaceTrack(screenTrack);
+      }
+
       // Handle remote tracks
       pc.ontrack = (event) => {
         addVideoStream(peerId, event.streams[0], false, peerName);
@@ -805,6 +816,84 @@
         e.target.textContent = videoTrack.enabled ? '📷 Disable Video' : '🚫 Enable Video';
         e.target.style.background = videoTrack.enabled ? 'var(--gray-800)' : 'var(--red)';
       }
+    });
+
+    let isScreenSharing = false;
+    let localScreenStream = null;
+
+    document.getElementById('toggleScreenShareBtn').addEventListener('click', async (e) => {
+      if (!isScreenSharing) {
+        try {
+          localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+          const screenVideoTrack = localScreenStream.getVideoTracks()[0];
+
+          screenVideoTrack.onended = () => { stopScreenSharing(); };
+
+          for (const peerId in peers) {
+            const pc = peers[peerId];
+            const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+            if (sender) sender.replaceTrack(screenVideoTrack);
+          }
+
+          const localVideo = document.getElementById('video_' + myUserId);
+          if (localVideo) localVideo.srcObject = new MediaStream([screenVideoTrack]);
+
+          isScreenSharing = true;
+          e.target.textContent = '❌ Stop Sharing';
+          e.target.style.background = 'var(--red)';
+        } catch (err) {
+          console.error("Screen sharing failed", err);
+          showToast('Screen sharing failed or cancelled.');
+        }
+      } else {
+        stopScreenSharing();
+      }
+    });
+
+    function stopScreenSharing() {
+      if (!isScreenSharing) return;
+      if (localScreenStream) {
+        localScreenStream.getTracks().forEach(track => track.stop());
+        localScreenStream = null;
+      }
+
+      const originalVideoTrack = localStream.getVideoTracks()[0];
+
+      for (const peerId in peers) {
+        const pc = peers[peerId];
+        const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+        if (sender && originalVideoTrack) sender.replaceTrack(originalVideoTrack);
+      }
+
+      const localVideo = document.getElementById('video_' + myUserId);
+      if (localVideo) localVideo.srcObject = localStream;
+
+      isScreenSharing = false;
+      const btn = document.getElementById('toggleScreenShareBtn');
+      if (btn) {
+        btn.textContent = '💻 Share Screen';
+        btn.style.background = 'var(--gray-800)';
+      }
+    }
+
+    document.getElementById('copyInviteBtn').addEventListener('click', (e) => {
+      if (!window.currentRoomName) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', window.currentRoomName);
+
+      const originalText = e.target.textContent;
+      navigator.clipboard.writeText(url.toString()).then(() => {
+        e.target.textContent = '✅ COPIED!';
+        e.target.style.background = 'var(--green)';
+        e.target.style.color = 'var(--black)';
+        setTimeout(() => {
+          e.target.textContent = originalText;
+          e.target.style.background = 'var(--gray-800)';
+          e.target.style.color = 'var(--white)';
+        }, 2000);
+      }).catch(err => {
+        alert("Failed to copy link: " + url.toString());
+      });
     });
 
     document.getElementById('leaveMeetBtn').addEventListener('click', leaveMeeting);
@@ -1058,6 +1147,38 @@
             cancelOutgoingCall();
           }
         }).subscribe();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomFromUrl = urlParams.get('room');
+
+      if (roomFromUrl && currentUser) {
+        const roomInput = document.getElementById('roomName');
+        if (roomInput) roomInput.value = roomFromUrl;
+
+        // Force a user interaction to accept media devices securely
+        const joinOverlay = document.createElement('div');
+        joinOverlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(10px);";
+        joinOverlay.innerHTML = `
+          <h1 style="color:var(--white); font-family:'Bebas Neue', sans-serif; font-size:4rem; margin-bottom:1rem; letter-spacing: 0.05em;">Meeting Invite</h1>
+          <p style="color:var(--gray-200); font-family:'Barlow Condensed', sans-serif; font-size:1.5rem; margin-bottom:3rem; text-transform: uppercase; letter-spacing: 0.1em;">You were invited to room: <strong style="color:var(--red);">${roomFromUrl}</strong></p>
+          <button id="directJoinLinkBtn" style="background:var(--green); color:var(--black); font-family:'Barlow Condensed', sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; font-size:1.5rem; padding:1.5rem 4rem; border:none; border-radius:4px; cursor:pointer; box-shadow:0 0 30px rgba(0, 232, 93, 0.4); transition: transform 0.2s;">JOIN CONFERENCE</button>
+        `;
+        document.body.appendChild(joinOverlay);
+
+        document.getElementById('directJoinLinkBtn').onclick = () => {
+          joinOverlay.remove();
+
+          // Clean the URL so refreshing the page doesn't trap them in a loop
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('room');
+          window.history.replaceState({}, document.title, newUrl.pathname);
+
+          const startBtn = document.getElementById('startMeetBtn');
+          if (startBtn) startBtn.click();
+        };
+      }
     });
 
     const styleSheet = document.createElement("style");
