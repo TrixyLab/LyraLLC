@@ -710,9 +710,22 @@
                 };
 
                 pc.ontrack = (event) => {
-                    console.log("Shell: Track received from", peerName);
-                    const streamData = { id: peerId, stream: event.streams[0], name: peerName };
+                    const stream = event.streams[0];
+                    if (!stream) {
+                        console.warn("Shell: Track received without stream from", peerName);
+                        return;
+                    }
+
+                    console.log(`Shell: Track [${event.track.kind}] received from ${peerName}. Stream ID: ${stream.id}`);
+                    
+                    // Log tracks in the stream for debugging
+                    const tracks = stream.getTracks();
+                    console.log(`Shell: Stream for ${peerName} now has ${tracks.length} tracks:`, tracks.map(t => t.kind));
+
+                    const streamData = { id: peerId, stream: stream, name: peerName };
                     window.LyraMeeting.remoteStreams[peerId] = streamData;
+                    
+                    // Always trigger UI update so addVideoWrapper handles multi-track arrivals
                     window.LyraMeeting.trigger('onStreamAdded', streamData);
                 };
 

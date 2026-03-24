@@ -978,27 +978,57 @@
         }
 
         function addVideoWrapper(id, stream, name, isLocal = false) {
-            if (document.getElementById(`vw-${id}`)) return;
-            const w = document.createElement('div'); w.className = 'video-wrapper' + (isLocal ? ' self' : ''); w.id = `vw-${id}`;
-            const v = document.createElement('video'); v.srcObject = stream; v.autoplay = true; v.playsinline = true;
-            if (isLocal) v.muted = true;
+            let w = document.getElementById(`vw-${id}`);
+            const isNew = !w;
+            
+            if (isNew) {
+                w = document.createElement('div'); 
+                w.className = 'video-wrapper' + (isLocal ? ' self' : ''); 
+                w.id = `vw-${id}`;
+                
+                const v = document.createElement('video'); 
+                v.autoplay = true; 
+                v.playsinline = true;
+                if (isLocal) v.muted = true;
+                else v.muted = false; // Explicitly ensure remote audio is NOT muted
 
-            // Check if it's a screen share (detect screen_ prefix from shell)
-            if (id.includes('screen') || id.includes('_screen')) {
-                v.setAttribute('data-screen', 'true');
-                w.classList.add('featured'); // Auto-focus screen shares
-                log("Presentation started: Screen detected.");
+                const o = document.createElement('div'); 
+                o.className = 'video-overlay';
+                o.innerHTML = `<div class="user-id-tag"><div class="status-pill"></div>${name}</div>`;
+
+                w.onclick = () => {
+                    document.querySelectorAll('.video-wrapper').forEach(x => x.classList.remove('featured'));
+                    w.classList.add('featured');
+                };
+
+                w.appendChild(v); 
+                w.appendChild(o); 
+                videoGrid.appendChild(w);
+                
+                log(`Uplink: New viewport for ${name} (${id})`);
             }
 
-            const o = document.createElement('div'); o.className = 'video-overlay';
-            o.innerHTML = `<div class="user-id-tag"><div class="status-pill"></div>${name}</div>`;
+            const v = w.querySelector('video');
+            if (v.srcObject !== stream) {
+                log(`Media Update: Re-binding stream for ${name}`);
+                v.srcObject = stream;
+            }
 
-            w.onclick = () => {
-                document.querySelectorAll('.video-wrapper').forEach(x => x.classList.remove('featured'));
-                w.classList.add('featured');
-            };
+            // RE-PLAY TO ENSURE AUDIO (Fix for some browser stalls)
+            v.play().catch(e => {
+                if (!isLocal) console.warn("Remote playback stall:", e);
+            });
 
-            w.appendChild(v); w.appendChild(o); videoGrid.appendChild(w);
+            // Track detailed logging
+            const tracks = stream.getTracks();
+            console.log(`[Meeting] Tracks for ${id}:`, tracks.map(t => `${t.kind}:${t.enabled?'on':'off'}:${t.readyState}`));
+
+            // Check if it's a screen share
+            if (id.includes('screen') || id.includes('_screen')) {
+                v.setAttribute('data-screen', 'true');
+                w.classList.add('featured'); 
+                log("Presentation prioritized.");
+            }
         }
 
         function updateParticipants() {
