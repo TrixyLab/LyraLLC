@@ -234,24 +234,24 @@
             isVideoDisabled: false,
             isScreenSharing: false,
             callbacks: {
-                onStreamAdded: [],
-                onStreamRemoved: [],
-                onStatusChanged: [],
-                onMuteStatus: []
+                onStreamAdded: null,
+                onStreamRemoved: null,
+                onStatusChanged: null,
+                onMuteStatus: null
             },
 
             registerCallback: (type, fn) => {
-                if (this.LyraMeeting.callbacks[type]) {
-                    this.LyraMeeting.callbacks[type].push(fn);
-                    // Re-sync existing streams for the new page
-                    if (type === 'onStreamAdded' && this.LyraMeeting.isActive) {
-                        Object.values(this.LyraMeeting.remoteStreams).forEach(data => fn(data));
-                    }
+                this.LyraMeeting.callbacks[type] = fn;
+                // Re-sync existing streams for the new page
+                if (type === 'onStreamAdded' && this.LyraMeeting.isActive) {
+                    Object.values(this.LyraMeeting.remoteStreams).forEach(data => fn(data));
                 }
             },
 
             trigger: (type, data) => {
-                this.LyraMeeting.callbacks[type].forEach(fn => fn(data));
+                if (this.LyraMeeting.callbacks[type]) {
+                    this.LyraMeeting.callbacks[type](data);
+                }
             },
 
             start: async (room, deviceConfig) => {
