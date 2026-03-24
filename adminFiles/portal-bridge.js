@@ -19,16 +19,23 @@
         // 2. Intercept local links to stay within the shell
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
-            if (link && link.href && link.href.includes('admin-') && !link.classList.contains('no-shell')) {
-                const targetPage = link.href.split('/').pop();
-                if (targetPage.startsWith('admin-')) {
+            if (link && link.href && !link.classList.contains('no-shell')) {
+                const url = new URL(link.href);
+                const targetPage = url.pathname.split('/').pop();
+                if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html')) {
                     e.preventDefault();
                     // Tell parent to navigate
-                    window.parent.postMessage({ type: 'NAVIGATE', page: targetPage }, '*');
+                    window.parent.postMessage({ type: 'NAVIGATE', page: targetPage + url.search }, '*');
                 }
             }
         });
 
         console.log("Portal Bridge: Shell integration active.");
+    } else if (!window.location.pathname.includes('admin-shell.html')) {
+        // AUTO-WRAP INTO SHELL
+        const page = window.location.pathname.split('/').pop();
+        if (page.startsWith('admin-')) {
+            window.location.href = 'admin-shell.html?p=' + page + window.location.search;
+        }
     }
 })();

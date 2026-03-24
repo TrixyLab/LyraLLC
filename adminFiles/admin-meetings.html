@@ -810,6 +810,16 @@
       }, 3000);
     }
 
+    const myUserId = currentUser + '_' + Math.random().toString(36).substr(2, 9);
+    const myScreenUserId = myUserId + '_screen';
+    let roomChannel = null;
+    let localStream = null;
+    let localScreenStream = null;
+    let peers = {}; // { "localId:remoteId": pc }
+    let isMuted = false;
+    let isVideoDisabled = false;
+    let isScreenSharing = false;
+
     // Global Meeting Management (Shell Delegate)
     const shell = (window.self !== window.top) ? window.parent.LyraMeeting : null;
 
@@ -860,13 +870,154 @@
           addVideoStream(shell.myUserId, stream, true, currentUser);
         } catch (e) { showToast("Shell failed to start meeting."); }
       } else {
-         // Fallback to local logic (if needed, or just alert)
-         alert("Please run this portal through the Dashboard Shell for the best experience.");
+        // standalone mode
+        window.currentRoomName = room;
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({
+            video: camId ? { deviceId: { exact: camId } } : true,
+            audio: micId ? { deviceId: { exact: micId } } : true
+          });
+          meetContainer.style.display = 'flex';
+          setupDiv.style.display = 'none';
+          document.getElementById('deviceSetupModal').classList.remove('active');
+          addVideoStream(myUserId, localStream, true, currentUser);
+
+          meetingPresence.track({ roomName: room, user: currentUser }).then(() => { });
+
+          roomChannel = supabase.channel('webrtc_room_' + room);
+          setupSignaling();
+          roomChannel.subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              roomChannel.send({
+                type: 'broadcast',
+                event: 'webrtc_signaling',
+                payload: { sender: myUserId, senderName: currentUser, type: 'peer_joined' }
+              });
+            }
+          });
+        } catch (e) { console.error(e); showToast("Failed to access camera/mic."); }
       }
     }
 
+    function setupSignaling() {
+      roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+        const { sender, target, type, data, senderName } = payload.payload;
+        const myTargetId = (target === myScreenUserId) ? myScreenUserId : myUserId;
+
+        if (target && target !== myUserId && target !== myScreenUserId) return;
+        if (sender === myUserId || sender === myScreenUserId) return;
+
+        if (type === 'peer_joined') {
+          createPeerConnection(sender, senderName, true, myUserId);
+          if (isScreenSharing) createPeerConnection(sender, senderName, true, myScreenUserId);
+        } else if (type === 'offer') {
+          handleOffer(sender, senderName, data, myTargetId);
+        } else if (type === 'answer') {
+          handleAnswer(sender, data, myTargetId);
+        } else if (type === 'ice_candidate') {
+          handleIceCandidate(sender, data, myTargetId);
+        } else if (type === 'peer_left') {
+          Object.keys(peers).forEach(key => {
+            if (key.endsWith(':' + sender)) removePeer(key);
+          });
+        } else if (type === 'mute_status') {
+          const icon = document.getElementById('mute_icon_' + sender);
+          if (icon) icon.style.display = data.isMuted ? 'inline' : 'none';
+        } else if (type === 'camera_status') {
+          const v = document.getElementById('video_' + sender);
+          const p = document.getElementById('pfp_img_' + sender);
+          if (v && p) {
+            v.style.display = data.videoDisabled ? 'none' : 'block';
+            p.style.display = data.videoDisabled ? 'block' : 'none';
+          }
+        }
+      });
+    }
+
+    async function handleOffer(peerId, peerName, offer, targetId) {
+      const pc = createPeerConnection(peerId, peerName, false, targetId);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      roomChannel.send({
+        type: 'broadcast', event: 'webrtc_signaling',
+        payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
+      });
+    }
+
+    async function handleAnswer(peerId, answer, targetId) {
+      const pc = peers[`${targetId}:${peerId}`];
+      if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    }
+
+    async function handleIceCandidate(peerId, candidate, targetId) {
+      const pc = peers[`${targetId}:${peerId}`];
+      if (pc && candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    }
+
+    function createPeerConnection(peerId, peerName, isInitiator, targetId) {
+      const peerKey = `${targetId}:${peerId}`;
+      if (peers[peerKey]) return peers[peerKey];
+
+      const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+      peers[peerKey] = pc;
+
+      if (targetId === myScreenUserId && localScreenStream) {
+        localScreenStream.getTracks().forEach(t => pc.addTrack(t, localScreenStream));
+      } else if (localStream && !peerId.endsWith('_screen')) {
+        localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+      }
+
+      pc.ontrack = (event) => {
+        addVideoStream(peerId, event.streams[0], false, peerName);
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          roomChannel.send({
+            type: 'broadcast', event: 'webrtc_signaling',
+            payload: { sender: targetId, target: peerId, type: 'ice_candidate', data: event.candidate }
+          });
+        }
+      };
+
+      if (isInitiator) {
+        pc.createOffer().then(offer => {
+          pc.setLocalDescription(offer);
+          roomChannel.send({
+            type: 'broadcast', event: 'webrtc_signaling',
+            payload: { sender: targetId, target: peerId, type: 'offer', data: offer, senderName: currentUser }
+          });
+        });
+      }
+      return pc;
+    }
+
     function leaveMeeting() {
-      if (shell) shell.leave();
+      if (shell) {
+        shell.leave();
+      } else {
+        meetingPresence.untrack().then(() => { });
+        cancelOutgoingCall();
+        if (roomChannel) {
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'webrtc_signaling',
+            payload: { sender: myUserId, type: 'peer_left' }
+          });
+          supabase.removeChannel(roomChannel);
+          roomChannel = null;
+        }
+        Object.keys(peers).forEach(p => removePeer(p));
+        if (localStream) {
+          localStream.getTracks().forEach(t => t.stop());
+          localStream = null;
+        }
+        if (localScreenStream) {
+          localScreenStream.getTracks().forEach(t => t.stop());
+          localScreenStream = null;
+        }
+      }
       document.getElementById('video-grid').innerHTML = '';
       meetContainer.style.display = 'none';
       setupDiv.style.display = 'flex';
@@ -877,23 +1028,119 @@
         shell.isMuted = !shell.isMuted;
         shell.localStream.getAudioTracks().forEach(t => t.enabled = !shell.isMuted);
         e.target.textContent = shell.isMuted ? '🔇 Unmute Audio' : '🎤 Mute Audio';
-        // Broadcast mute status...
+      } else {
+        if (!localStream) return;
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.enabled = !audioTrack.enabled;
+          isMuted = !audioTrack.enabled;
+          e.target.textContent = audioTrack.enabled ? '🎤 Mute Audio' : '🔇 Unmute Audio';
+          e.target.style.background = audioTrack.enabled ? 'var(--gray-800)' : 'var(--red)';
+          const localIcon = document.getElementById('mute_icon_' + myUserId);
+          if (localIcon) localIcon.style.display = audioTrack.enabled ? 'none' : 'inline';
+          if (roomChannel) {
+            roomChannel.send({
+              type: 'broadcast', event: 'webrtc_signaling',
+              payload: { sender: myUserId, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
+            });
+          }
+        }
       }
     });
 
     document.getElementById('toggleVideoBtn').addEventListener('click', (e) => {
-        if (shell) {
-            shell.isVideoDisabled = !shell.isVideoDisabled;
-            shell.localStream.getVideoTracks().forEach(t => t.enabled = !shell.isVideoDisabled);
-            e.target.textContent = shell.isVideoDisabled ? '📷 Enable Video' : '📷 Disable Video';
-            const v = document.getElementById('video_' + shell.myUserId);
-            const p = document.getElementById('pfp_img_' + shell.myUserId);
-            if (v && p) {
-                v.style.display = shell.isVideoDisabled ? 'none' : 'block';
-                p.style.display = shell.isVideoDisabled ? 'block' : 'none';
-            }
+      if (shell) {
+        shell.isVideoDisabled = !shell.isVideoDisabled;
+        shell.localStream.getVideoTracks().forEach(t => t.enabled = !shell.isVideoDisabled);
+        e.target.textContent = shell.isVideoDisabled ? '📷 Enable Video' : '📷 Disable Video';
+        const v = document.getElementById('video_' + shell.myUserId);
+        const p = document.getElementById('pfp_img_' + shell.myUserId);
+        if (v && p) {
+          v.style.display = shell.isVideoDisabled ? 'none' : 'block';
+          p.style.display = shell.isVideoDisabled ? 'block' : 'none';
         }
+      } else {
+        if (!localStream) return;
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.enabled = !videoTrack.enabled;
+          isVideoDisabled = !videoTrack.enabled;
+          e.target.textContent = videoTrack.enabled ? '📷 Disable Video' : '🚫 Enable Video';
+          e.target.style.background = videoTrack.enabled ? 'var(--gray-800)' : 'var(--red)';
+          const myPfp = document.getElementById('pfp_img_' + myUserId);
+          const myVid = document.getElementById('video_' + myUserId);
+          if (myPfp && myVid) {
+            myPfp.style.display = videoTrack.enabled ? 'none' : 'block';
+            myVid.style.display = videoTrack.enabled ? 'block' : 'none';
+          }
+          if (roomChannel) {
+            roomChannel.send({
+              type: 'broadcast', event: 'webrtc_signaling',
+              payload: { sender: myUserId, type: 'camera_status', data: { videoDisabled: !videoTrack.enabled } }
+            });
+          }
+        }
+      }
     });
+
+    document.getElementById('toggleScreenShareBtn').addEventListener('click', async (e) => {
+      if (shell) {
+         // Shell doesn't handle screen share UI yet, or we can use shell.isScreenSharing
+         // For now, let's just alert shell users that it's coming soon or handled locally
+         showToast("Screen sharing is currently handled standalone.");
+      }
+      
+      if (!isScreenSharing) {
+        document.getElementById('screenShareNotify').classList.add('active');
+      } else {
+        stopScreenSharing();
+      }
+    });
+
+    document.getElementById('confirmScreenBtn').addEventListener('click', async () => {
+      document.getElementById('screenShareNotify').classList.remove('active');
+      try {
+        localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const screenVideoTrack = localScreenStream.getVideoTracks()[0];
+        screenVideoTrack.onended = () => { stopScreenSharing(); };
+
+        addVideoStream(myScreenUserId, localScreenStream, true, currentUser + " (Screen)");
+
+        if (roomChannel) {
+          roomChannel.send({
+            type: 'broadcast', event: 'webrtc_signaling',
+            payload: { sender: myScreenUserId, senderName: currentUser + ' (Screen)', type: 'peer_joined' }
+          });
+        }
+
+        isScreenSharing = true;
+        const btn = document.getElementById('toggleScreenShareBtn');
+        btn.textContent = '❌ Stop Sharing';
+        btn.style.background = 'var(--red)';
+      } catch (err) {
+        console.error("Screen sharing failed", err);
+        showToast('Screen sharing failed or cancelled.');
+      }
+    });
+
+    function stopScreenSharing() {
+      if (!isScreenSharing) return;
+      if (localScreenStream) {
+        localScreenStream.getTracks().forEach(track => track.stop());
+        localScreenStream = null;
+      }
+      if (roomChannel) {
+        roomChannel.send({
+          type: 'broadcast', event: 'webrtc_signaling',
+          payload: { sender: myScreenUserId, type: 'peer_left' }
+        });
+      }
+      const localVid = document.getElementById('video_' + myScreenUserId);
+      if (localVid && localVid.parentNode) localVid.parentNode.remove();
+      isScreenSharing = false;
+      const btn = document.getElementById('toggleScreenShareBtn');
+      if (btn) { btn.textContent = '💻 Share Screen'; btn.style.background = 'var(--gray-800)'; }
+    }
 
     let preJoinStream = null;
 
