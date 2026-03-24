@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Meetings</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --green: #00E85D;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      margin-bottom: 3rem;
+    }
+
+    .brand-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .brand-logo span {
+      color: var(--red);
+    }
+
+    .nav-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-menu li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav-menu a:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-menu a.active {
+      color: var(--white);
+      background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red);
+      padding-left: calc(1rem - 3px);
+    }
+
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--red);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 3rem 4rem;
+      background: var(--black);
+      position: relative;
+    }
+
+    .main-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    .header-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .meeting-container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 70vh;
+      background: var(--gray-900);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 1rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.2s;
+      border: none;
+      background: var(--red);
+      color: var(--white);
+    }
+
+    .btn:hover {
+      background: var(--red-dark);
+    }
+
+    input[type="text"] {
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 1rem;
+      border-radius: 4px;
+      outline: none;
+      width: 300px;
+      margin-bottom: 1rem;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--red);
+    }
+  </style>
+  <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
+  <link rel="stylesheet" href="../animations.css">
+  <link rel="stylesheet" href="../responsive.css">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="../index.html" class="brand-logo">
+      <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus"
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
+        Status</label>
+      <select id="adminStatus" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
+        Presence</label>
+      <select id="presenceList" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html">Applications</a></li>
+      <li><a href="admin-roster.html">Management</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-meetings.html" class="active">Meetings</a></li>
+      <li><a href="admin-reviews.html">Performance Reviews</a></li>
+      <li><a href="admin-access.html">Admin Access</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li><a href="admin-settings.html">Settings</a></li>
+    </ul>
+
+    <a href="#" id="logoutBtn" class="logout-btn">
+      ← Logout
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div id="toast-container"
+      style="position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 9999;">
+    </div>
+    <div class="main-bg"></div>
+
+    <div class="header">
+      <div>
+        <p class="header-subtitle">Admin Portal</p>
+        <h1 class="header-title">Virtual Meetings</h1>
+      </div>
+    </div>
+
+    <div id="meet-setup" class="meeting-container">
+      <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; margin-bottom: 1rem;">Start or Join a Meeting
+      </h2>
+      <p style="color: var(--gray-200); margin-bottom: 2rem; max-width: 400px; text-align: center;">Enter a room name to
+        join an existing meeting or create a new one instantly.</p>
+      <input type="text" id="roomName" placeholder="Enter room name (e.g. WeeklySync)">
+      <button id="startMeetBtn" class="btn">Start Meeting</button>
+
+      <div id="call-admin-section"
+        style="margin-top: 1.5rem; width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start;">
+        <p
+          style="color: var(--gray-600); font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0;">
+          Or call an Admin:</p>
+        <div style="display: flex; gap: 0.5rem; width: 100%;">
+          <select id="adminToCall"
+            style="flex: 1; padding: 1rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+            <option value="" disabled selected>Select Admin...</option>
+          </select>
+          <button id="callAdminBtn" class="btn" style="padding: 1rem; font-size: 0.9rem;">RING</button>
+        </div>
+      </div>
+
+      <div id="history-container" style="width: 100%; max-width: 600px; margin-top: 3rem; text-align: left;">
+        <h3
+          style="font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+          Recent Meetings</h3>
+        <div id="history-list"
+          style="display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; max-height: 250px; padding-right: 10px;">
+          <!-- History items go here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="meet-container" class="meeting-container"
+      style="display: none; padding: 0; background: var(--black); flex-direction: column;">
+      <div id="video-grid"
+        style="flex: 1; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 1rem; padding: 1rem; overflow-y: auto;">
+        <!-- Videos will be injected here -->
+      </div>
+      <div id="meet-controls"
+        style="width: 100%; padding: 1rem; background: var(--gray-900); display: flex; justify-content: center; gap: 1rem; border-top: 1px solid rgba(255,255,255,0.05); z-index: 20;">
+        <button id="toggleAudioBtn" class="btn" style="background: var(--gray-800); padding: 0.8rem 1.5rem;">🎤 Mute
+          Audio</button>
+        <button id="toggleVideoBtn" class="btn" style="background: var(--gray-800); padding: 0.8rem 1.5rem;">📷 Disable
+          Video</button>
+
+        <div
+          style="display: flex; gap: 0.5rem; align-items: center; margin: 0 1rem; padding: 0 1rem; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+          <select id="inMeetAdminToCall"
+            style="padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.9rem; border-radius: 4px; outline: none; cursor: pointer;">
+            <option value="" disabled selected>Invite Admin...</option>
+          </select>
+          <button id="inMeetCallAdminBtn" class="btn"
+            style="background: var(--green); padding: 0.8rem 1.5rem; color: var(--black);">Ring</button>
+        </div>
+
+        <button id="leaveMeetBtn" class="btn" style="background: var(--red); padding: 0.8rem 1.5rem;">Leave
+          Meeting</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
+
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+
+    const startBtn = document.getElementById('startMeetBtn');
+    const roomInput = document.getElementById('roomName');
+    const setupDiv = document.getElementById('meet-setup');
+    const meetContainer = document.getElementById('meet-container');
+
+    const currentUser = localStorage.getItem('lyra_user') || 'Admin';
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.style.background = 'rgba(232, 0, 45, 0.9)';
+      toast.style.color = '#fff';
+      toast.style.padding = '10px 20px';
+      toast.style.borderRadius = '4px';
+      toast.style.fontFamily = "'Barlow Condensed', sans-serif";
+      toast.style.textTransform = 'uppercase';
+      toast.style.letterSpacing = '0.05em';
+      toast.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      });
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    let localStream;
+    let peers = {}; // {[userId]: RTCPeerConnection}
+    let roomChannel;
+    let myUserId = currentUser + '_' + Math.random().toString(36).substr(2, 9); // unique id per session
+
+    let audioContext;
+    function monitorAudioLevel(stream, wrapper, isLocal) {
+      if (!stream || stream.getAudioTracks().length === 0) return;
+      try {
+        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const audioSource = audioContext.createMediaStreamSource(new MediaStream([stream.getAudioTracks()[0]]));
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.4;
+        audioSource.connect(analyser);
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        const checkVolume = () => {
+          if (!document.body.contains(wrapper)) return;
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+          const average = sum / dataArray.length;
+
+          if (average > 10) {
+            wrapper.style.border = '2px solid var(--red)';
+          } else {
+            wrapper.style.border = '2px solid transparent';
+          }
+          requestAnimationFrame(checkVolume);
+        };
+        checkVolume();
+      } catch (e) { console.error("Error monitoring audio", e); }
+    }
+
+
+
+    const configuration = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    };
+
+    async function startMeeting(room) {
+      window.currentRoomName = room;
+      setupDiv.style.display = 'none';
+      meetContainer.style.display = 'flex';
+
+      // Insert record to DB so others see it in history
+      supabase.from('lyra_meetings').insert([{
+        roomName: room,
+        host: currentUser
+      }]).then(() => { });
+
+      // Get Local Media
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        addVideoStream(myUserId, localStream, true, currentUser);
+      } catch (err) {
+        console.error("Failed to get local media", err);
+        alert("Could not access camera/microphone.");
+        setupDiv.style.display = 'flex';
+        meetContainer.style.display = 'none';
+        return;
+      }
+
+      // Join Supabase Channel for signaling
+      roomChannel = supabase.channel('webrtc_room_' + room);
+
+      roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+        const { sender, target, type, data, senderName } = payload.payload;
+        // Ignore messages not meant for me, except peer_joined which is to everyone
+        if (target && target !== myUserId) return;
+        if (sender === myUserId) return;
+
+        if (type === 'peer_joined') {
+          console.log("Peer joined:", sender);
+          // Create an offer to the new peer
+          createPeerConnection(sender, senderName, true);
+          // Send current mute status to the new peer
+          const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
+          if (audioTrack) {
+            roomChannel.send({
+              type: 'broadcast',
+              event: 'webrtc_signaling',
+              payload: { sender: myUserId, senderName: currentUser, target: sender, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
+            });
+          }
+        } else if (type === 'offer') {
+          console.log("Received offer from:", sender);
+          handleOffer(sender, senderName, data);
+        } else if (type === 'answer') {
+          console.log("Received answer from:", sender);
+          handleAnswer(sender, data);
+        } else if (type === 'ice_candidate') {
+          handleIceCandidate(sender, data);
+        } else if (type === 'peer_left') {
+          removePeer(sender);
+        } else if (type === 'mute_status') {
+          const icon = document.getElementById('mute_icon_' + sender);
+          if (icon) icon.style.display = data.isMuted ? 'inline' : 'none';
+          showToast(senderName + (data.isMuted ? ' muted their mic' : ' unmuted their mic'));
+        }
+      });
+
+      roomChannel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Announce presence
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'webrtc_signaling',
+            payload: { sender: myUserId, senderName: currentUser, type: 'peer_joined' }
+          });
+          // Also broadcast current mute status
+          const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
+          if (audioTrack) {
+            setTimeout(() => {
+              roomChannel.send({
+                type: 'broadcast',
+                event: 'webrtc_signaling',
+                payload: { sender: myUserId, senderName: currentUser, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
+              });
+            }, 500);
+          }
+        }
+      });
+    }
+
+    function createPeerConnection(peerId, peerName, isInitiator) {
+      if (peers[peerId]) return peers[peerId];
+      const pc = new RTCPeerConnection(configuration);
+      peers[peerId] = pc;
+
+      // Add local tracks to the connection
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+      // Handle remote tracks
+      pc.ontrack = (event) => {
+        addVideoStream(peerId, event.streams[0], false, peerName);
+      };
+
+      // Handle ICE candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'webrtc_signaling',
+            payload: { sender: myUserId, target: peerId, type: 'ice_candidate', data: event.candidate }
+          });
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+          removePeer(peerId);
+        }
+      };
+
+      if (isInitiator) {
+        pc.createOffer().then(offer => {
+          pc.setLocalDescription(offer);
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'webrtc_signaling',
+            payload: { sender: myUserId, target: peerId, type: 'offer', data: offer, senderName: currentUser }
+          });
+        });
+      }
+
+      return pc;
+    }
+
+    async function handleOffer(peerId, peerName, offer) {
+      const pc = createPeerConnection(peerId, peerName, false);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      roomChannel.send({
+        type: 'broadcast',
+        event: 'webrtc_signaling',
+        payload: { sender: myUserId, target: peerId, type: 'answer', data: answer }
+      });
+    }
+
+    async function handleAnswer(peerId, answer) {
+      const pc = peers[peerId];
+      if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+      }
+    }
+
+    async function handleIceCandidate(peerId, candidate) {
+      const pc = peers[peerId];
+      if (pc && candidate) {
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) { console.error('Error adding received ice candidate', e); }
+      }
+    }
+
+    function addVideoStream(id, stream, isLocal = false, peerName = '') {
+      const videoGrid = document.getElementById('video-grid');
+      if (document.getElementById('video_wrapper_' + id)) {
+        // Update stream if already exists
+        document.getElementById('video_' + id).srcObject = stream;
+        return;
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.id = 'video_wrapper_' + id;
+      wrapper.style.position = 'relative';
+      wrapper.style.width = '100%';
+      wrapper.style.maxWidth = '400px';
+      wrapper.style.aspectRatio = '16/9';
+      wrapper.style.background = '#1a1a1a';
+      wrapper.style.borderRadius = '8px';
+      wrapper.style.overflow = 'hidden';
+      wrapper.style.border = '2px solid transparent';
+      wrapper.style.transition = 'border 0.1s';
+
+      const video = document.createElement('video');
+      video.id = 'video_' + id;
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
+      if (isLocal) {
+        video.muted = true; // Don't hear yourself
+        video.style.transform = 'scaleX(-1)'; // Mirror local video
+      }
+
+      const label = document.createElement('div');
+      label.style.position = 'absolute';
+      label.style.bottom = '10px';
+      label.style.left = '10px';
+      label.style.background = 'rgba(0,0,0,0.6)';
+      label.style.padding = '4px 8px';
+      label.style.borderRadius = '4px';
+      label.style.fontFamily = "'Barlow Condensed', sans-serif";
+      label.style.fontSize = '0.9rem';
+      label.style.color = 'var(--white)';
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = isLocal ? (peerName + ' (You)') : peerName;
+      label.appendChild(nameSpan);
+
+      const muteIcon = document.createElement('span');
+      muteIcon.id = 'mute_icon_' + id;
+      muteIcon.textContent = '🔇';
+      muteIcon.style.marginLeft = '5px';
+      muteIcon.style.color = 'var(--red)';
+      muteIcon.style.display = 'none';
+      if (isLocal && stream) {
+        const audioTrack = stream.getAudioTracks()[0];
+        if (audioTrack && !audioTrack.enabled) muteIcon.style.display = 'inline';
+      }
+      label.appendChild(muteIcon);
+
+      wrapper.appendChild(video);
+      wrapper.appendChild(label);
+      videoGrid.appendChild(wrapper);
+
+      monitorAudioLevel(stream, wrapper, isLocal);
+    }
+
+    function removePeer(peerId) {
+      if (peers[peerId]) {
+        peers[peerId].close();
+        delete peers[peerId];
+      }
+      const wrapper = document.getElementById('video_wrapper_' + peerId);
+      if (wrapper) wrapper.remove();
+    }
+
+    let currentOutgoingRinger = null;
+    let currentCallChannel = null;
+    let currentTargetAdmin = null;
+
+    function cancelOutgoingCall() {
+      if (currentOutgoingRinger) { currentOutgoingRinger.pause(); currentOutgoingRinger = null; }
+      if (currentCallChannel) { currentCallChannel.unsubscribe(); currentCallChannel = null; }
+      if (currentTargetAdmin) {
+        supabase.from('lyra_calls').delete().eq('id', currentTargetAdmin).then(() => { });
+        currentTargetAdmin = null;
+      }
+      const inBtn = document.getElementById('inMeetCallAdminBtn');
+      if (inBtn) inBtn.textContent = 'Ring';
+      const outBtn = document.getElementById('callAdminBtn');
+      if (outBtn && outBtn.textContent === 'RINGING...') outBtn.textContent = 'RING';
+    }
+
+    function leaveMeeting() {
+      cancelOutgoingCall();
+      if (roomChannel) {
+        roomChannel.send({
+          type: 'broadcast',
+          event: 'webrtc_signaling',
+          payload: { sender: myUserId, type: 'peer_left' }
+        });
+        supabase.removeChannel(roomChannel);
+        roomChannel = null;
+      }
+      Object.keys(peers).forEach(p => removePeer(p));
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+      }
+      document.getElementById('video-grid').innerHTML = '';
+      meetContainer.style.display = 'none';
+      setupDiv.style.display = 'flex';
+    }
+
+    document.getElementById('toggleAudioBtn').addEventListener('click', (e) => {
+      if (!localStream) return;
+      const audioTrack = localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        e.target.textContent = audioTrack.enabled ? '🎤 Mute Audio' : '🔇 Unmute Audio';
+        e.target.style.background = audioTrack.enabled ? 'var(--gray-800)' : 'var(--red)';
+
+        // Update local mute icon
+        const localIcon = document.getElementById('mute_icon_' + myUserId);
+        if (localIcon) localIcon.style.display = audioTrack.enabled ? 'none' : 'inline';
+
+        // Notify peers
+        if (roomChannel) {
+          roomChannel.send({
+            type: 'broadcast',
+            event: 'webrtc_signaling',
+            payload: { sender: myUserId, senderName: currentUser, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
+          });
+        }
+      }
+    });
+
+    document.getElementById('toggleVideoBtn').addEventListener('click', (e) => {
+      if (!localStream) return;
+      const videoTrack = localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        e.target.textContent = videoTrack.enabled ? '📷 Disable Video' : '🚫 Enable Video';
+        e.target.style.background = videoTrack.enabled ? 'var(--gray-800)' : 'var(--red)';
+      }
+    });
+
+    document.getElementById('leaveMeetBtn').addEventListener('click', leaveMeeting);
+
+    startBtn.addEventListener('click', () => {
+      let room = roomInput.value.trim();
+      if (!room) {
+        room = 'LYRA-Meeting-' + Math.random().toString(36).substring(7);
+      } else {
+        // Sanitize room name
+        room = room.replace(/[^a-zA-Z0-9-]/g, '-');
+      }
+      startMeeting(room);
+    });
+
+    const historyList = document.getElementById('history-list');
+
+    function fetchMeetings() {
+      supabase.from('lyra_meetings').select('*').order('timestamp', { ascending: false }).then(({ data }) => {
+        if (!historyList) return;
+        historyList.innerHTML = '';
+        if (!data || data.length === 0) {
+          historyList.innerHTML = '<p style="color: var(--gray-600); font-size: 0.9rem; text-align: center;">No recent meetings.</p>';
+          return;
+        }
+
+        data.forEach(meet => {
+          const date = new Date(meet.timestamp);
+          let hours = date.getHours();
+          let minutes = date.getMinutes();
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12;
+          hours = hours ? hours : 12; // the hour '0' should be '12'
+          minutes = minutes < 10 ? '0' + minutes : minutes;
+          const timeString = `${date.toLocaleDateString()} at ${hours}:${minutes} ${ampm}`;
+
+          const item = document.createElement('div');
+          item.style.display = 'flex';
+          item.style.justifyContent = 'space-between';
+          item.style.alignItems = 'center';
+          item.style.padding = '1rem';
+          item.style.background = 'rgba(255, 255, 255, 0.03)';
+          item.style.borderRadius = '4px';
+          item.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+
+          item.innerHTML = `
+            <div>
+              <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--white);">${meet.roomName}</div>
+              <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; color: var(--gray-200); letter-spacing: 0.05em;">${timeString}</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="rejoin-btn" data-room="${meet.roomName}" style="background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s;">Rejoin</button>
+              <button class="delete-history-btn" data-id="${meet.id}" style="background: rgba(232, 0, 45, 0.1); color: var(--red); border: 1px solid rgba(232, 0, 45, 0.3); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s;">Delete</button>
+            </div>
+          `;
+          historyList.appendChild(item);
+        });
+      });
+    }
+    fetchMeetings();
+    supabase.channel('sync_mtg').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, fetchMeetings).subscribe();
+
+    document.addEventListener('click', (e) => {
+      // Handle the Rejoin button
+      if (e.target.classList.contains('rejoin-btn')) {
+        const room = e.target.getAttribute('data-room');
+        roomInput.value = room;
+        startBtn.click();
+      }
+
+      // Handle the Delete button
+      if (e.target.classList.contains('delete-history-btn')) {
+        const id = e.target.getAttribute('data-id');
+        supabase.from('lyra_meetings').delete().eq('id', id).then(() => { });
+      }
+    });
+
+    function buildCustomSelect(selectId, defaultLabel, adminsData, presenceMap) {
+      const selectObj = document.getElementById(selectId);
+      if (!selectObj) return;
+      selectObj.style.display = 'none';
+
+      const container = document.createElement('div');
+      container.style.position = 'relative';
+      container.style.flex = '1';
+      container.style.width = '100%';
+      selectObj.parentNode.insertBefore(container, selectObj);
+
+      const btn = document.createElement('button');
+      btn.className = 'presence-btn';
+      btn.style.padding = selectId === 'inMeetAdminToCall' ? '0.8rem' : '1rem';
+      btn.style.background = 'rgba(0,0,0,0.5)';
+      btn.innerHTML = `<span id="${selectId}_text">${defaultLabel}</span> <span style="font-size:0.8rem; color:var(--gray-600);">▼</span>`;
+
+      const menu = document.createElement('div');
+      menu.className = 'presence-menu';
+      menu.style.bottom = selectId === 'inMeetAdminToCall' ? 'calc(100% + 5px)' : 'auto';
+      menu.style.top = selectId === 'inMeetAdminToCall' ? 'auto' : 'calc(100% + 5px)';
+
+      btn.onclick = (e) => { e.preventDefault(); menu.classList.toggle('open'); };
+      document.addEventListener('click', (e) => { if (!container.contains(e.target)) menu.classList.remove('open'); });
+
+      adminsData.forEach(name => {
+        const pStatus = presenceMap[name.toLowerCase()] || 'offline';
+        let dotClass = 'offline'; let lbl = 'Offline';
+        if (pStatus === 'online') { dotClass = 'online'; lbl = 'Online'; }
+        else if (pStatus === 'away') { dotClass = 'away'; lbl = 'Away'; }
+        else if (pStatus === 'dnd') { dotClass = 'dnd'; lbl = 'DND'; }
+
+        const item = document.createElement('div');
+        item.className = 'presence-item';
+        item.style.cursor = 'pointer';
+        item.innerHTML = `
+          <div class="p-dot ${dotClass}"></div>
+          <div class="p-name">${name}</div>
+          <div class="p-status-lbl">${lbl}</div>
+        `;
+        item.onclick = () => {
+          selectObj.innerHTML = `<option value="${name}" selected>${name}</option>`;
+          selectObj.value = name;
+          document.getElementById(`${selectId}_text`).textContent = name;
+          menu.classList.remove('open');
+        };
+        menu.appendChild(item);
+      });
+
+      container.appendChild(btn);
+      container.appendChild(menu);
+    }
+
+    Promise.all([
+      supabase.from('lyra_approved_admins').select('ign, name'),
+      supabase.from('lyra_presence').select('*')
+    ]).then(([adminsRes, presenceRes]) => {
+      const admins = adminsRes.data ? adminsRes.data.map(d => d.ign || d.name).filter(n => n && n.toLowerCase() !== currentUser.toLowerCase()) : [];
+      const presenceMap = {};
+      if (presenceRes.data) {
+        presenceRes.data.forEach(p => { presenceMap[p.id.toLowerCase()] = p.status; });
+      }
+      buildCustomSelect('adminToCall', 'Select Admin...', admins, presenceMap);
+      buildCustomSelect('inMeetAdminToCall', 'Invite Admin...', admins, presenceMap);
+    });
+
+    document.getElementById('inMeetCallAdminBtn').addEventListener('click', () => {
+      const btn = document.getElementById('inMeetCallAdminBtn');
+      if (btn.textContent === 'Ringing...') { cancelOutgoingCall(); return; }
+
+      const targetAdmin = document.getElementById('inMeetAdminToCall').value;
+      if (!targetAdmin) return alert('Select an admin to invite.');
+      if (!window.currentRoomName) return alert('No active room.');
+
+      btn.textContent = 'Ringing...';
+      currentOutgoingRinger = typeof window.lyraJinglePlayer === 'function' ? window.lyraJinglePlayer(false) : null;
+      currentTargetAdmin = targetAdmin;
+
+      supabase.from('lyra_calls').upsert({
+        id: targetAdmin,
+        from_user: currentUser,
+        roomName: window.currentRoomName,
+        status: 'ringing'
+      }).then(() => { });
+
+      currentCallChannel = supabase.channel('call_status_inmeet_' + targetAdmin)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + targetAdmin }, payload => {
+          const callData = payload.new;
+          if (callData && callData.status === 'declined') {
+            alert(targetAdmin + ' declined your invite.');
+            cancelOutgoingCall();
+          } else if (callData && callData.status === 'accepted') {
+            cancelOutgoingCall();
+          }
+        }).subscribe();
+    });
+
+    document.getElementById('callAdminBtn').addEventListener('click', () => {
+      const btn = document.getElementById('callAdminBtn');
+      if (btn.textContent === 'RINGING...') { cancelOutgoingCall(); return; }
+
+      const targetAdmin = document.getElementById('adminToCall').value;
+      if (!targetAdmin) return alert('Select an admin to call.');
+
+      let room = roomInput.value.trim();
+      if (!room) {
+        room = 'LYRA-Meeting-' + Math.random().toString(36).substring(7);
+        roomInput.value = room;
+      } else {
+        room = room.replace(/[^a-zA-Z0-9-]/g, '-');
+      }
+
+      btn.textContent = 'RINGING...';
+      currentOutgoingRinger = typeof window.lyraJinglePlayer === 'function' ? window.lyraJinglePlayer(false) : null;
+      currentTargetAdmin = targetAdmin;
+
+      // Automatically start meeting for the caller
+      startBtn.click();
+
+      supabase.from('lyra_calls').upsert({
+        id: targetAdmin,
+        from_user: currentUser,
+        roomName: room,
+        status: 'ringing'
+      }).then(() => { });
+
+      // Notify caller of status changes
+      currentCallChannel = supabase.channel('call_status_' + targetAdmin)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + targetAdmin }, payload => {
+          const callData = payload.new;
+          if (callData && callData.status === 'declined') {
+            alert(targetAdmin + ' declined your call.');
+            cancelOutgoingCall();
+          } else if (callData && callData.status === 'accepted') {
+            // They joined!
+            alert(targetAdmin + ' joined the call!');
+            cancelOutgoingCall();
+          }
+        }).subscribe();
+    });
+
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `
+      .rejoin-btn:hover { background: rgba(255,255,255,0.1) !important; color: var(--white) !important; border-color: var(--white) !important; }
+      .delete-history-btn:hover { background: var(--red) !important; color: var(--white) !important; }
+    `;
+    document.head.appendChild(styleSheet);
+  </script>
+  <script src="../animations.js"></script>
+  <script src="../responsive.js"></script>
+</body>
+
+</html>
