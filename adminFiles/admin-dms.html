@@ -975,7 +975,7 @@
       if (link) {
         e.preventDefault();
         const chId = link.getAttribute('data-channel');
-        if (chId && chId !== currentChannel) {
+        if (chId) {
           switchChannel(chId);
         }
       }
@@ -1042,10 +1042,18 @@
     });
 
     function switchChannel(channelId) {
+      console.log(`DMs: Switching to channel [${channelId}]`);
+      if (!channelId) {
+        currentChannel = '';
+        document.getElementById('chatHeaderContent').innerHTML = '<div><h2 class="chat-title">Select a DM</h2><p class="chat-desc">No active conversation.</p></div>';
+        return;
+      }
+
       if (messagesRef) supabase.removeChannel(messagesRef);
       if (typingRef) supabase.removeChannel(typingRef);
 
       currentChannel = channelId;
+      document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
       document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
       const activeLink = document.querySelector(`.channel-link[data-channel="${channelId}"]`);
       if (activeLink) activeLink.classList.add('active');

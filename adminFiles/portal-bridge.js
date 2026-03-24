@@ -36,9 +36,10 @@
                 try {
                   const parsed = new URL(link.href);
                   const targetPage = parsed.pathname.split('/').pop();
+                  const currentPage = window.location.pathname.split('/').pop();
                   
-                  // Only intercept links to OTHER admin files
-                  if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html')) {
+                  // ONLY intercept if it's a DIFFERENT admin page from the current one
+                  if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html') && targetPage !== currentPage) {
                       e.preventDefault();
                       window.parent.postMessage({ type: 'NAVIGATE', page: targetPage + parsed.search }, '*');
                   }

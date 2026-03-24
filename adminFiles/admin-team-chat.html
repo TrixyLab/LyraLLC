@@ -524,9 +524,7 @@
       <div class="chat-channels">
         <p class="channel-header">Team HQ</p>
         <div id="defaultChannels">
-          <a href="#" class="channel-link active" data-channel="team-announcements">📢 announcements</a>
-          <a href="#" class="channel-link" data-channel="team-chat">💬 team-chat</a>
-          <a href="#" class="channel-link" data-channel="scrim-coordination">⚔️ scrims</a>
+          <!-- Populated dynamically to ensure correct prefixing -->
         </div>
 
         <div
@@ -672,17 +670,39 @@
 
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendBtn.click(); });
 
-    // Channel Switching Listeners
-    document.querySelectorAll('.channel-link').forEach(link => {
-      link.onclick = (e) => {
+    // Dynamic Channel Initialization
+    function initDefaultChannels() {
+      const defaults = [
+        { id: 'announcements', label: '📢 announcements', desc: 'Official team announcements and alerts.' },
+        { id: 'chat', label: '💬 team-chat', desc: 'General chatter for the team.' },
+        { id: 'scrims', label: '⚔️ scrims', desc: 'Scrim coordination and results.' }
+      ];
+      const container = document.getElementById('defaultChannels');
+      container.innerHTML = defaults.map(d => {
+        const fullId = `team-${teamParam.toLowerCase()}-${regParam.toLowerCase()}-${d.id}`;
+        return `<a href="#" class="channel-link${fullId === currentChannel ? ' active' : ''}" data-channel="${fullId}" data-desc="${d.desc}">${d.label}</a>`;
+      }).join('');
+    }
+    initDefaultChannels();
+
+    // Channel Switching Listeners (Event Delegation)
+    document.querySelector('.chat-channels').addEventListener('click', (e) => {
+      const link = e.target.closest('.channel-link');
+      if (link) {
         e.preventDefault();
         document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
-        switchChannel(link.dataset.channel);
-      };
+        
+        const chId = link.dataset.channel;
+        const desc = link.dataset.desc || 'Team discussion channel.';
+        document.getElementById('channelDesc').innerText = desc;
+        
+        switchChannel(chId);
+      }
     });
 
-    switchChannel('team-' + teamParam + '-' + regParam + '-general');
+    // Initial load
+    switchChannel(currentChannel);
   </script>
 </body>
 

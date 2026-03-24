@@ -620,10 +620,19 @@
             localStream: null,
             localScreenStream: null,
             peers: {},
-            remoteStreams: {},
-            roomChannel: null,
             isScreenSharing: false,
             heartbeatInterval: null,
+            audioCtx: null,
+            gainNodes: {}, // peerId -> gainNode
+            
+            initAudioCtx: () => {
+                if (!window.LyraMeeting.audioCtx) {
+                    window.LyraMeeting.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (window.LyraMeeting.audioCtx.state === 'suspended') {
+                    window.LyraMeeting.audioCtx.resume();
+                }
+            },
             
             startHeartbeat: (room) => {
                 window.LyraMeeting.stopHeartbeat();
@@ -871,6 +880,17 @@
                             audio.id = `shell-audio-${peerId}`;
                             document.getElementById('shell-audio-pool').appendChild(audio);
                             window.LyraMeeting.audioElements[peerId] = audio;
+                            
+                            // Web Audio Gain Node for 250% Boost Support
+                            try {
+                                window.LyraMeeting.initAudioCtx();
+                                const source = window.LyraMeeting.audioCtx.createMediaElementSource(audio);
+                                const gainNode = window.LyraMeeting.audioCtx.createGain();
+                                gainNode.gain.value = 1.0;
+                                source.connect(gainNode);
+                                gainNode.connect(window.LyraMeeting.audioCtx.destination);
+                                window.LyraMeeting.gainNodes[peerId] = gainNode;
+                            } catch(e) { console.warn("Shell: WebAudio init failed for peer", peerId, e); }
                         }
                         audio.srcObject = stream;
                         audio.play().catch(e => console.warn("Shell: Audio autoplay blocked. Requires user interaction.", e));
@@ -1072,10 +1092,13 @@
             },
 
             setRemoteVolume: (id, val) => {
-                const el = window.LyraMeeting.audioElements[id];
-                if (el) {
-                    el.volume = parseFloat(val);
-                    console.log(`Shell: Volume for ${id} set to ${val}`);
+                const gainNode = window.LyraMeeting.gainNodes[id];
+                if (gainNode) {
+                    gainNode.gain.setTargetAtTime(parseFloat(val), window.LyraMeeting.audioCtx.currentTime, 0.05);
+                    console.log(`Shell: Gain for ${id} set to ${val}`);
+                } else {
+                    const el = window.LyraMeeting.audioElements[id];
+                    if (el) el.volume = Math.min(1.0, parseFloat(val));
                 }
             },
 
@@ -1146,6 +1169,13 @@
                 }
             };
         }
+
+        // AUDIO CONTEXT UNLOCK
+        window.addEventListener('mousedown', () => {
+            if (window.LyraMeeting && window.LyraMeeting.initAudioCtx) {
+                window.LyraMeeting.initAudioCtx();
+            }
+        });
     </script>
 </head>
 
