@@ -77,19 +77,18 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         e.stopPropagation();
         bar.style.top = '-70px';
       };
-
-      bar.onclick = () => {
-        window.focus();
-        window.location.href = 'admin-chat.html';
-      };
     }
     return bar;
   }
 
-  function triggerRedNotify(text) {
+  function triggerRedNotify(text, url = 'admin-chat.html') {
     const bar = ensureNotifyBar();
     document.getElementById('lyra-notify-text').innerText = text;
     bar.style.top = '0';
+    bar.onclick = () => {
+        window.focus();
+        window.location.href = url;
+    };
     if (!text.includes('MENTIONED')) {
       setTimeout(() => { if (bar.style.top === '0px') bar.style.top = '-70px'; }, 8000);
     }
@@ -149,13 +148,62 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   // --- Admin Presence System using Supabase Realtime ---
   const globalChannel = supabase.channel('lyra_global');
   globalChannel.on('presence', { event: 'sync' }, () => {
-    if (typeof window.updatePresenceUI === 'function') window.updatePresenceUI();
+    updatePresenceUI();
   }).subscribe(async (status) => {
     if (status === 'SUBSCRIBED') {
-      const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+      const savedStatus = localStorage.getItem('admin_status') || 'online';
       await globalChannel.track({ user: currentUser, status: savedStatus });
-      // Also write to DB for persistent view
-      await supabase.from('lyra_presence').upsert({ id: currentUser, status: savedStatus });
+      // Also write to DB for persistent view (e.g. for Owner Console)
+      const userObj = JSON.parse(localStorage.getItem('lyra_user'));
+      if (userObj && userObj.alias) {
+        await supabase.from('lyra_roster').update({ status: savedStatus, last_active: new Date().toISOString() }).eq('alias', userObj.alias);
+      }
+    }
+  });
+
+  // Centralized Presence UI Handler
+  window.updatePresenceUI = function() {
+    const presenceList = document.getElementById('presenceList');
+    if (!presenceList) return;
+
+    const state = globalChannel.presenceState();
+    const onlineUsers = new Map();
+
+    Object.keys(state).forEach(key => {
+      state[key].forEach(presence => {
+        onlineUsers.set(presence.user, presence.status);
+      });
+    });
+
+    presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+    onlineUsers.forEach((status, user) => {
+        const icon = status === 'online' ? '🟢' : (status === 'away' ? '🟡' : '🔴');
+        const option = document.createElement('option');
+        option.textContent = `${icon} ${user}`;
+        presenceList.appendChild(option);
+    });
+  };
+
+  // Sync Global Status Dropdown
+  document.addEventListener('DOMContentLoaded', () => {
+    const adminStatus = document.getElementById('adminStatus');
+    if (adminStatus) {
+      const savedStatus = localStorage.getItem('admin_status') || 'online';
+      adminStatus.value = savedStatus;
+
+      adminStatus.addEventListener('change', async (e) => {
+        const newStatus = e.target.value;
+        localStorage.setItem('admin_status', newStatus);
+        
+        // Update Realtime Presence
+        await globalChannel.track({ user: currentUser, status: newStatus });
+
+        // Update Database Persistence
+        const userObj = JSON.parse(localStorage.getItem('lyra_user'));
+        if (userObj && userObj.alias) {
+           await supabase.from('lyra_roster').update({ status: newStatus, last_active: new Date().toISOString() }).eq('alias', userObj.alias);
+        }
+      });
     }
   });
 
@@ -172,17 +220,30 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       if (msg.author && msg.author.toLowerCase() === currentUser.toLowerCase()) return;
 
       const ch = msg.channel_id;
+      const isDM = ch && ch.startsWith('dm_');
+      const targetUrl = isDM ? `admin-dms.html?channel=${ch}` : `admin-chat.html?channel=${ch}`;
+
       let isMentioned = false;
       const msgText = (msg.text || "").toLowerCase();
       if (currentUser && (msgText.includes('@' + currentUser.toLowerCase()) || msgText.includes('@everyone'))) {
         isMentioned = true;
       }
 
-      const title = isMentioned ? 'MENTIONED: ' + msg.author : `New Message in #${ch}`;
+      const title = isMentioned ? 'MENTIONED: ' + msg.author : (isDM ? `Direct Message: ${msg.author}` : `New Message in #${ch}`);
       const body = isMentioned ? `You were mentioned in #${ch}` : `${msg.author}: ${msg.text || "Sent an image"}`;
 
-      showToast(title, msg.author, body, 'admin-chat.html');
-      triggerRedNotify(isMentioned ? `🚨 YOU WERE MENTIONED BY ${msg.author.toUpperCase()} in #${ch.toUpperCase()}` : `💬 NEW MESSAGE IN #${ch.toUpperCase()}`);
+      showToast(title, msg.author, body, targetUrl);
+      
+      let notifyText = '';
+      if (isMentioned) {
+          notifyText = `🚨 YOU WERE MENTIONED BY ${msg.author.toUpperCase()} in #${ch.toUpperCase()}`;
+      } else if (isDM) {
+          notifyText = `✉️ NEW PRIVATE MESSAGE FROM ${msg.author.toUpperCase()}`;
+      } else {
+          notifyText = `💬 NEW MESSAGE IN #${ch.toUpperCase()}`;
+      }
+      
+      triggerRedNotify(notifyText, targetUrl);
     })
     .subscribe();
 
@@ -195,7 +256,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const targetUrl = app.rolevalue === 'adminAccess' ? 'admin-access.html' : 'admin-dashboard.html';
       showToast('New Application Received', app.name || 'Applicant', `Role: ${app.role || 'Member'}`, targetUrl);
-      triggerRedNotify(`📝 NEW APPLICATION: ${app.name.toUpperCase()}`);
+      triggerRedNotify(`📝 NEW APPLICATION: ${app.name.toUpperCase()}`, targetUrl);
     })
     .subscribe();
 

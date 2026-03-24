@@ -460,21 +460,35 @@
     let pendingLoginData = null;
 
     function showError(title, text, showRequest = false) {
-      document.getElementById('errorTitle').innerText = title;
-      document.getElementById('errorText').innerText = text;
-      document.getElementById('requestAccessBtn').style.display = showRequest ? 'flex' : 'none';
+      const modal = document.getElementById('accessDeniedModal');
+      const content = modal.children[0];
+      const accentBar = content.children[0];
+      const titleEl = document.getElementById('errorTitle');
+      const textEl = document.getElementById('errorText');
+      const requestBtn = document.getElementById('requestAccessBtn');
+
+      titleEl.innerText = title;
+      textEl.innerText = text;
+      requestBtn.style.display = showRequest ? 'flex' : 'none';
       
-      accessDeniedModal.style.display = 'flex';
+      // Default to error theme (red) for login issues
+      const themeColor = 'var(--red)';
+      accentBar.style.background = themeColor;
+      content.style.borderColor = themeColor;
+
+      modal.style.display = 'flex';
       setTimeout(() => {
-        accessDeniedModal.style.opacity = '1';
-        accessDeniedModal.children[0].style.transform = 'scale(1)';
+        modal.style.opacity = '1';
+        content.style.transform = 'scale(1)';
       }, 10);
     }
 
     function hideError() {
-      accessDeniedModal.style.opacity = '0';
-      accessDeniedModal.children[0].style.transform = 'scale(0.9)';
-      setTimeout(() => { accessDeniedModal.style.display = 'none'; }, 300);
+      const modal = document.getElementById('accessDeniedModal');
+      const content = modal.children[0];
+      modal.style.opacity = '0';
+      content.style.transform = 'scale(0.9)';
+      setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 
     function handleNotificationChoice(enabled) {
