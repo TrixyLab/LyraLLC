@@ -1142,7 +1142,17 @@
       supabase.from('chat_channels').upsert([{ id: ch, name: ch, created_by: 'System' }]).then(()=>{});
     });
 
-    // --- Channel Management ---
+    // --- Branding & Identity ---
+    async function fetchGlobalBranding() {
+      const { data } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
+      if (data && data.logo_url) {
+        document.querySelectorAll('.brand-logo img').forEach(img => {
+          img.src = data.logo_url;
+        });
+      }
+    }
+    fetchGlobalBranding();
+
     function fetchCustomChannels() {
       supabase.from('chat_channels').select('*').order('timestamp', { ascending: true }).then(({data}) => {
         const customChannelsContainer = document.getElementById('customChannels');
@@ -1352,7 +1362,7 @@
       // Derive role badge from actual user role
       const rawRole = (localStorage.getItem('lyra_role') || '').toLowerCase();
       let avatarRole = 'staff';
-      if (rawRole.includes('owner') || rawRole.includes('it director') || authUser === 'admin' || authUser === 'versa') avatarRole = 'owner';
+      if (rawRole.includes('owner') || rawRole.includes('it director') || currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa') avatarRole = 'owner';
       else if (rawRole.includes('management') || rawRole.includes('director') || rawRole.includes('recruiter')) avatarRole = 'management';
 
       supabase.from('chat_messages').insert([{

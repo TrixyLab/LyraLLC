@@ -624,6 +624,46 @@
         </div>
       </div>
 
+      <!-- Global Branding (Owner Only) -->
+      <div id="brandingCard" class="app-card" style="flex-direction: column; align-items: stretch; display:none; grid-column: 1 / -1; border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.01);">
+        <div style="display:flex; align-items:center; gap:1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.8rem; margin-bottom: 2rem;">
+            <div style="width:12px; height:12px; background:var(--white); border-radius:2px; transform:rotate(45deg);"></div>
+            <h2 style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--white); margin:0;">Global Identity & Branding</h2>
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:3rem;">
+          <div style="display:flex; flex-direction:column; gap:1.5rem;">
+            <div>
+              <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.6rem;">Global Portal Logo (URL or Base64)</label>
+              <input type="text" id="globalLogoInput" placeholder="https://example.com/logo.png" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:1rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none; font-size:0.95rem;">
+              <p style="color:var(--gray-600); font-size:0.75rem; margin-top:0.5rem;">Overrides the default Lyra logo in Chat and Meetings for all administrators.</p>
+            </div>
+            <button id="saveBrandingBtn" style="width:100%; font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.15em;text-transform:uppercase;padding:1rem;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);background:var(--white);color:black;border:none; transition:all 0.2s;">Secure Global Identity</button>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.03); padding:2rem; border:1px dashed rgba(255,255,255,0.1); min-height:180px;">
+            <p style="color:var(--gray-600); font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; font-size:0.75rem; margin-bottom:1rem;">Preview</p>
+            <img id="brandingPreview" src="../LyraEsportsLogo.png" style="max-width:120px; max-height:80px; object-fit:contain; opacity:0.8;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Meeting Preferences -->
+      <div class="app-card" style="flex-direction: column; align-items: stretch;">
+        <h2 style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--accent); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Conference Settings</h2>
+        
+        <div style="display:flex; align-items:center; justify-content:space-between; padding: 1rem; background: rgba(0,232,93,0.05); border: 1px solid rgba(0,232,93,0.1); border-radius: 4px;">
+          <div>
+            <p style="font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--white); font-size:1.1rem;">AI Noise Suppression</p>
+            <p style="color:var(--gray-600); font-size:0.8rem;">Filter out background noise during meetings.</p>
+          </div>
+          <label class="switch" style="position:relative; display:inline-block; width:50px; height:24px;">
+            <input type="checkbox" id="noiseSuppressionToggle" style="opacity:0; width:0; height:0;">
+            <span style="position:absolute; cursor:pointer; inset:0; background-color:rgba(255,255,255,0.1); border-radius:34px; transition:0.4s;" id="switchBg"></span>
+          </label>
+        </div>
+        <p style="color:var(--gray-600); font-size:0.75rem; margin-top:1rem; text-align:center;">Settings are synced to your local administrative profile.</p>
+      </div>
+
     </div>
 
     </div>
@@ -963,6 +1003,65 @@
         e.preventDefault();
         trigger.parentElement.classList.toggle('open');
       });
+    });
+
+    // Branding Persistence
+    const isOwner = localStorage.getItem('lyra_role') === 'Owner' || (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa');
+    const brandingCard = document.getElementById('brandingCard');
+    const logoInput = document.getElementById('globalLogoInput');
+    const logoPreview = document.getElementById('brandingPreview');
+    const saveBrandingBtn = document.getElementById('saveBrandingBtn');
+
+    if (isOwner && brandingCard) {
+      brandingCard.style.display = 'flex';
+      
+      async function loadGlobalBranding() {
+        const { data, error } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
+        if (data && data.logo_url) {
+          logoInput.value = data.logo_url;
+          logoPreview.src = data.logo_url;
+        }
+      }
+      loadGlobalBranding();
+
+      logoInput.addEventListener('input', (e) => {
+        logoPreview.src = e.target.value || '../LyraEsportsLogo.png';
+      });
+
+      saveBrandingBtn.onclick = async () => {
+        saveBrandingBtn.disabled = true;
+        saveBrandingBtn.innerText = 'SECURING...';
+        
+        try {
+          const { error } = await supabase.from('lyra_branding').upsert({ 
+            id: 'global', 
+            logo_url: logoInput.value,
+            updated_at: new Date().toISOString(),
+            updated_by: currentUser
+          });
+
+          if (error) throw error;
+          alert('Global identity updated successfully!');
+        } catch (err) {
+          console.error(err);
+          alert('Failed to update branding: ' + err.message);
+        } finally {
+          saveBrandingBtn.disabled = false;
+          saveBrandingBtn.innerText = 'SECURE GLOBAL IDENTITY';
+        }
+      };
+    }
+
+    // Noise Suppression Toggle
+    const nsToggle = document.getElementById('noiseSuppressionToggle');
+    const nsBg = document.getElementById('switchBg');
+    let noiseSuppression = localStorage.getItem('lyra_noise_suppression') === 'true';
+    nsToggle.checked = noiseSuppression;
+    if (noiseSuppression) nsBg.style.backgroundColor = 'var(--accent)';
+
+    nsToggle.addEventListener('change', (e) => {
+      localStorage.setItem('lyra_noise_suppression', e.target.checked);
+      nsBg.style.backgroundColor = e.target.checked ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
     });
 
     // Auto-expand dropdown if child is active

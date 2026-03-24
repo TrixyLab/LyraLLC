@@ -510,6 +510,40 @@
         .logout-btn:hover {
             color: var(--red);
         }
+        #activeCallBar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(13, 13, 13, 0.95);
+            border: 1px solid var(--red);
+            border-radius: 8px;
+            padding: 12px 20px;
+            display: none;
+            align-items: center;
+            gap: 15px;
+            z-index: 999999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(232,0,45,0.3);
+            font-family: 'Barlow Condensed', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.4s ease-out;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        #activeCallBar .pulse-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; box-shadow: 0 0 10px var(--red); animation: pulse 2s infinite; }
+        #activeCallBar .info { display: flex; flex-direction: column; }
+        #activeCallBar .room { font-weight: 700; color: var(--white); font-size: 14px; }
+        #activeCallBar .status { font-size: 10px; color: var(--gray-400); }
+        #activeCallBar .btn-group { display: flex; gap: 8px; }
+        #activeCallBar button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: 700; transition: all 0.2s; }
+        #activeCallBar button.primary { background: var(--red); border-color: var(--red); }
+        #activeCallBar button:hover { background: rgba(255,255,255,0.2); }
+        #activeCallBar button.primary:hover { background: #ff1a43; }
+
+        #shell-audio-pool { display: none; }
     </style>
     <!-- Supabase Core (Required early for Shell State - only one instance needed) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -551,12 +585,50 @@
         window.LyraMeeting = {
             isActive: false,
             currentRoom: null,
+            audioElements: {}, // peerId -> audio el
             localStream: null,
             localScreenStream: null,
             peers: {},
             remoteStreams: {},
             roomChannel: null,
             isScreenSharing: false,
+
+            getIdentity: () => {
+                return { ign: window.currentUser || 'Operative', role: window.userRole || 'Staff' };
+            },
+
+            // PERSISTENCE BRIDGE
+            upsertMeeting: async (room) => {
+                window.LyraMeeting.isActive = true;
+                window.LyraMeeting.currentRoom = room;
+                const bar = document.getElementById('activeCallBar');
+                const barRoom = document.getElementById('barRoomName');
+                if (bar) bar.style.display = 'flex';
+                if (barRoom) barRoom.innerText = room;
+
+                const client = window.supabase || supabase;
+                if (!client) return;
+                try {
+                    return await client.from('lyra_meetings').upsert({
+                        room_name: room,
+                        creator_ign: window.currentUser || 'Operative',
+                        is_active: true,
+                        last_activity: new Date().toISOString()
+                    }, { onConflict: 'room_name' });
+                } catch (e) { console.error("Shell: Lobby Upsert Error", e); }
+            },
+
+            onLobbyUpdate: (callback) => {
+                const client = window.supabase || supabase;
+                if (!client) return;
+                client.channel('lobby_persistence_updates')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
+                        console.log("Shell: Received lobby table update.");
+                        callback(payload);
+                    })
+                    .subscribe();
+            },
+
             // Late-binding identity to ensure real IGN is used
             getUserId: () => (window.currentUser || 'Operative') + '_' + Math.random().toString(36).substr(2, 9),
             myUserId: '', 
@@ -569,7 +641,8 @@
             },
             registerCallback: (type, fn) => {
                 window.LyraMeeting.callbacks[type] = fn;
-                if (type === 'onStreamAdded' && window.LyraMeeting.isActive) {
+                // REHYDRATION: If we already have streams, notify the new listener immediately
+                if (type === 'onStreamAdded') {
                     Object.values(window.LyraMeeting.remoteStreams).forEach(data => fn(data));
                 }
             },
@@ -589,8 +662,16 @@
                     const client = window.supabase || supabase;
                     if (!client) throw new Error("Supabase client not initialized in shell.");
                     
+                    const useNS = localStorage.getItem('lyra_noise_suppression') === 'true';
                     const vConstraint = (deviceConfig && deviceConfig.camId && deviceConfig.camId !== 'none') ? { deviceId: { ideal: deviceConfig.camId } } : true;
-                    const aConstraint = (deviceConfig && deviceConfig.micId && deviceConfig.micId !== 'none') ? { deviceId: { ideal: deviceConfig.micId } } : true;
+                    const aConstraint = { 
+                        echoCancellation: true, 
+                        noiseSuppression: useNS, 
+                        autoGainControl: true 
+                    };
+                    if (deviceConfig && deviceConfig.micId && deviceConfig.micId !== 'none') {
+                        aConstraint.deviceId = { ideal: deviceConfig.micId };
+                    }
 
                     const withTimeout = (promise, ms) => {
                         let timeoutId;
@@ -719,9 +800,19 @@
 
                     console.log(`Shell: Track [${event.track.kind}] received from ${peerName}. Stream ID: ${stream.id}`);
                     
-                    // Log tracks in the stream for debugging
-                    const tracks = stream.getTracks();
-                    console.log(`Shell: Stream for ${peerName} now has ${tracks.length} tracks:`, tracks.map(t => t.kind));
+                    // PERSISTENT AUDIO PLAYBACK (in Shell DOM)
+                    if (event.track.kind === 'audio') {
+                        let audio = window.LyraMeeting.audioElements[peerId];
+                        if (!audio) {
+                            audio = document.createElement('audio');
+                            audio.autoplay = true;
+                            audio.id = `shell-audio-${peerId}`;
+                            document.getElementById('shell-audio-pool').appendChild(audio);
+                            window.LyraMeeting.audioElements[peerId] = audio;
+                        }
+                        audio.srcObject = stream;
+                        audio.play().catch(e => console.warn("Shell: Audio autoplay blocked. Requires user interaction.", e));
+                    }
 
                     const streamData = { id: peerId, stream: stream, name: peerName };
                     window.LyraMeeting.remoteStreams[peerId] = streamData;
@@ -796,6 +887,11 @@
                 return window.LyraMeeting.isMuted;
             },
 
+            muteRemoteAudio: (peerId, shouldMute) => {
+                const el = window.LyraMeeting.audioElements[peerId];
+                if (el) el.muted = shouldMute;
+            },
+
             toggleCam: () => {
                 if (!window.LyraMeeting.localStream) return false;
                 window.LyraMeeting.isVideoDisabled = !window.LyraMeeting.isVideoDisabled;
@@ -803,7 +899,36 @@
                 return window.LyraMeeting.isVideoDisabled;
             },
 
-            toggleScreenShare: async () => {
+            getIdentity: () => {
+                return { ign: window.currentUser || 'Operative', role: window.userRole || 'Staff' };
+            },
+
+            // PERSISTENCE BRIDGE
+            upsertMeeting: async (room) => {
+                const client = window.supabase || supabase;
+                if (!client) return;
+                try {
+                    return await client.from('lyra_meetings').upsert({
+                        room_name: room,
+                        creator_ign: window.currentUser || 'Operative',
+                        is_active: true,
+                        last_activity: new Date().toISOString()
+                    }, { onConflict: 'room_name' });
+                } catch (e) { console.error("Shell: Lobby Upsert Error", e); }
+            },
+
+            onLobbyUpdate: (callback) => {
+                const client = window.supabase || supabase;
+                if (!client) return;
+                client.channel('lobby_persistence_updates')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
+                        console.log("Shell: Received lobby table update.");
+                        callback(payload);
+                    })
+                    .subscribe();
+            },
+
+            toggleScreenShare: async (config = {}) => {
                 if (window.LyraMeeting.isScreenSharing) {
                     // STOP
                     window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
@@ -815,11 +940,18 @@
                 } else {
                     // START
                     try {
-                        // ENABLE AUDIO CAPTURE FOR SCREEN SHARING
-                        window.LyraMeeting.localScreenStream = await navigator.mediaDevices.getDisplayMedia({ 
-                            video: true, 
-                            audio: true 
-                        });
+                        // RESOLUTION & FRAME RATE MAPPING
+                        const constraints = {
+                            video: {
+                                width: { ideal: config.width || 1920 },
+                                height: { ideal: config.height || 1080 },
+                                frameRate: { ideal: config.frameRate || 30 }
+                            },
+                            audio: true // Always request audio for screen share now
+                        };
+
+                        console.log("Shell: Requesting screen share with constraints:", constraints.video);
+                        window.LyraMeeting.localScreenStream = await navigator.mediaDevices.getDisplayMedia(constraints);
                         window.LyraMeeting.isScreenSharing = true;
                         
                         // Handle stop from browser UI
@@ -828,10 +960,11 @@
                         };
                         
                         // Notify others we are sharing
+                        const id = window.LyraMeeting.getIdentity();
                         window.LyraMeeting.roomChannel.send({
                             type: 'broadcast',
                             event: 'webrtc_signaling',
-                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: (window.currentUser || 'Admin') + ' (Screen)', type: 'peer_joined' }
+                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: (id.ign || 'Admin') + ' (Screen)', type: 'peer_joined' }
                         });
                     } catch (err) { console.error("Shell: Screen share failed", err); return false; }
                 }
@@ -840,14 +973,8 @@
 
             fetchMeetings: async () => {
                 const client = window.supabase || supabase;
-                if (!client) {
-                    console.error("Shell: Supabase client unavailable for fetch.");
-                    return { data: [], error: { message: "Supabase Unreachable" } };
-                }
-                return await client.from('lyra_meetings')
-                    .select('*')
-                    .eq('is_active', true)
-                    .order('created_at', { ascending: false });
+                if (!client) return { data: [], error: { message: "Supabase Unreachable" } };
+                return await client.from('lyra_meetings').select('*').eq('is_active', true).order('created_at', { ascending: false });
             },
 
             removePeerBySender: (senderId) => {
@@ -869,38 +996,77 @@
             },
 
             leave: () => {
+                console.log("Shell: Leaving meeting context.");
                 if (window.LyraMeeting.roomChannel) {
                     window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: window.LyraMeeting.myUserId, type: 'peer_left' } });
                     if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: window.LyraMeeting.myScreenUserId, type: 'peer_left' } });
                     supabase.removeChannel(window.LyraMeeting.roomChannel);
                 }
-                Object.keys(window.LyraMeeting.peers).forEach(k => window.LyraMeeting.removePeer(k));
+                Object.keys(window.LyraMeeting.peers).forEach(k => {
+                    window.LyraMeeting.peers[k].close();
+                    delete window.LyraMeeting.peers[k];
+                });
                 if (window.LyraMeeting.localStream) window.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
                 if (window.LyraMeeting.localScreenStream) window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
                 
                 window.LyraMeeting.isActive = false;
                 window.LyraMeeting.currentRoom = null;
-                const indicator = document.getElementById('globalCallIndicator');
-                if (indicator) indicator.style.display = 'none';
+                window.LyraMeeting.remoteStreams = {};
+                
+                // Cleanup persistent audio
+                document.getElementById('shell-audio-pool').innerHTML = '';
+                window.LyraMeeting.audioElements = {};
+
+                const bar = document.getElementById('activeCallBar');
+                if (bar) bar.style.display = 'none';
+                
                 window.LyraMeeting.trigger('onStatusChanged', 'inactive');
+            }
+        };
+
+        // SHELL BAR ACTIONS
+        document.getElementById('barReturn').onclick = () => {
+            if (!window.LyraMeeting.currentRoom) return;
+            const room = window.LyraMeeting.currentRoom;
+            const page = 'admin-meetings.html?room=' + encodeURIComponent(room);
+            iframe.src = page;
+            syncActiveState('admin-meetings.html');
+
+            const url = new URL(window.location);
+            url.searchParams.set('p', 'admin-meetings.html');
+            url.searchParams.set('room', room);
+            window.history.pushState({}, '', url);
+        };
+        document.getElementById('barEnd').onclick = () => {
+            if (confirm("End current meeting call?")) {
+                window.LyraMeeting.leave();
+                if (iframe.src.includes('admin-meetings.html')) {
+                    iframe.src = 'admin-meetings.html';
+                }
             }
         };
     </script>
 </head>
 
 <body>
+    <div id="shell-audio-pool"></div>
+    <div id="activeCallBar">
+        <div class="pulse-dot"></div>
+        <div class="info">
+            <span class="room" id="barRoomName">OFF-OPS</span>
+            <span class="status">MEETING IN PROGRESS</span>
+        </div>
+        <div class="btn-group">
+            <button id="barReturn" class="primary">RETURN</button>
+            <button id="barEnd">END CALL</button>
+        </div>
+    </div>
 
     <aside class="sidebar">
         <a href="../index.html" class="brand-logo">
             <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
             <div><span>L</span>YRA</div>
         </a>
-
-        <!-- Status Pill -->
-        <div id="globalCallIndicator">
-            <div class="pulse-dot"></div>
-            <span class="call-text">Persistent Session Active</span>
-        </div>
 
         <!-- STATUS DROPDOWN -->
         <div class="status-dropdown-wrap" id="statusDropdownWrap">
@@ -1358,6 +1524,17 @@
             localStorage.clear();
             window.location.href = '../login.html';
         });
+
+        // 7. GLOBAL BRANDING
+        async function fetchGlobalBranding() {
+            try {
+                const { data } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
+                if (data && data.logo_url) {
+                    document.querySelectorAll('.brand-logo img').forEach(img => img.src = data.logo_url);
+                }
+            } catch (e) { console.warn("Shell: Branding fetch failed.", e); }
+        }
+        fetchGlobalBranding();
     </script>
 </body>
 

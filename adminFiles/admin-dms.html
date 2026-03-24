@@ -1161,6 +1161,17 @@
     
     // Wait for channels to load before switching channel
 
+    // --- Branding & Identity ---
+    async function fetchGlobalBranding() {
+      const { data } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
+      if (data && data.logo_url) {
+        document.querySelectorAll('.brand-logo img').forEach(img => {
+          img.src = data.logo_url;
+        });
+      }
+    }
+    fetchGlobalBranding();
+
     // --- Channel Management ---
     function fetchCustomChannels() {
       supabase.from('chat_channels').select('*').order('timestamp', { ascending: true }).then(({data}) => {
@@ -1431,7 +1442,7 @@
         author: currentUser,
         time: timeStr,
         text: text,
-        avatarclass: 'admin'
+        avatarclass: (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa') ? 'owner' : 'admin'
       }]).then(({error})=>{
         if (error) {
           console.error("Message Send Error:", error);

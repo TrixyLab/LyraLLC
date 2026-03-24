@@ -708,6 +708,17 @@
     const imageUpload = document.getElementById('imageUpload');
     const uploadBtn = document.getElementById('uploadBtn');
 
+    // --- Branding & Identity ---
+    async function fetchGlobalBranding() {
+      const { data } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
+      if (data && data.logo_url) {
+        document.querySelectorAll('.brand-logo img').forEach(img => {
+          img.src = data.logo_url;
+        });
+      }
+    }
+    fetchGlobalBranding();
+
     function switchChannel(channelId) {
       if (messagesRef) supabase.removeChannel(messagesRef);
       if (typingRef) supabase.removeChannel(typingRef);
