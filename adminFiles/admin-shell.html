@@ -985,7 +985,10 @@
                 if (!answer) return console.warn("Shell: Received null answer from", peerId);
                 const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
                 if (pc) {
-                    try { await pc.setRemoteDescription(new RTCSessionDescription(answer)); } 
+                    try { 
+                        const desc = new RTCSessionDescription(answer);
+                        await pc.setRemoteDescription(desc); 
+                    } 
                     catch (err) { console.error("Shell: Answer handling failed", err); }
                 }
             },
@@ -994,7 +997,10 @@
                 if (!candidate) return;
                 const pc = window.LyraMeeting.peers[`${targetId}:${sender}`];
                 if (pc) {
-                    try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); }
+                    try { 
+                        const ice = new RTCIceCandidate(candidate);
+                        await pc.addIceCandidate(ice); 
+                    }
                     catch (err) { console.warn("Shell: ICE candidate failed", err); }
                 }
             },

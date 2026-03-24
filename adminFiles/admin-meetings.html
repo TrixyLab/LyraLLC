@@ -1473,14 +1473,26 @@
             const v = w.querySelector('video');
             v.srcObject = stream; // Always re-bind to pick up new tracks
 
+            // Force a layout update and re-check stream state
+            w.style.display = 'none'; // Temporarily hide to force reflow
+            w.offsetHeight; // Trigger reflow
+            w.style.display = ''; // Show again
+
             // RE-PLAY TO ENSURE AUDIO (Fix for some browser stalls)
             v.play().catch(e => {
                 if (!isLocal) console.warn("Remote playback stall:", e);
             });
 
             const tracks = stream ? stream.getTracks() : [];
-            const hasVideo = tracks.some(t => t.kind === 'video' && t.enabled);
+            const hasVideo = tracks.some(t => t.kind === 'video' && t.readyState === 'live');
             w.classList.toggle('has-video', hasVideo);
+            
+            // Forced nudge for visibility
+            if (hasVideo) {
+                v.style.display = 'block';
+                v.style.opacity = '1';
+                setTimeout(() => { if (v.paused) v.play().catch(() => {}); }, 150);
+            }
 
             console.log(`[Meeting] Tracks for ${id}:`, tracks.map(t => `${t.kind}:${t.enabled?'on':'off'}:${t.readyState}`));
 
