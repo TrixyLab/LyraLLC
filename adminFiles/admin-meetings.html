@@ -248,6 +248,7 @@
             gap: 1.5rem;
             position: relative;
             z-index: 500;
+            display: none;
         }
 
         .btn {
@@ -409,8 +410,15 @@
             </div>
             <div class="lobby-right">
                 <div class="form-group">
-                    <span class="label-sm">Operational Channel</span>
-                    <input type="text" id="roomName" class="form-input" value="MAIN-OPS">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="label-sm">Meeting Name / Room ID</span>
+                        <div style="display:flex; gap:10px;">
+                            <span id="clearRoom" title="Clear Name" style="cursor:pointer; font-size:10px; color:#555; font-weight:bold;">CLEAR</span>
+                            <span id="randomizeRoom" title="Generate Name" style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold;"><i class="fas fa-magic"></i> AUTO</span>
+                        </div>
+                    </div>
+                    <input type="text" id="roomName" class="form-input" placeholder="e.g. MISSION-OMEGA" value="MAIN-OPS" style="margin-bottom:0.5rem; border-color:var(--accent);">
+                    <p style="font-size:10px; color:#555; margin-bottom:1rem;">Type any name to create a new dedicated room.</p>
                 </div>
                 <div class="form-group">
                     <span class="label-sm">Camera Input</span>
@@ -420,7 +428,14 @@
                     <span class="label-sm">Audio Input</span>
                     <select id="micSelect" class="form-select"></select>
                 </div>
-                <button id="joinBtn" class="primary-btn">Initialize Connection</button>
+                <button id="joinBtn" class="primary-btn">CREATE MEETING</button>
+
+                <div id="liveSessions" style="margin-top: 2rem;">
+                    <span class="label-sm">Active Sessions</span>
+                    <div id="sessionList" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px;">
+                        <div style="padding: 20px; text-align: center; color: #444; font-size: 11px;">Scanning for active links...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -436,7 +451,7 @@
         </aside>
     </div>
 
-    <footer class="control-bar">
+    <footer class="control-bar" id="controlBar">
         <div class="room-info">
             <div class="recording-dot"></div>
             <span class="room-name" id="displayRoom">SECURE SESSION</span>
@@ -462,6 +477,13 @@
             </svg>
         </button>
 
+        <button class="btn" id="inviteBtn" title="Invite Admins">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+        </button>
+
         <button class="btn leave" id="leaveBtn" title="Leave Session">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M18 6L6 18M6 6l12 12" />
@@ -484,7 +506,13 @@
     </footer>
 
     <script>
-        const shell = window.parent.LyraMeeting;
+        // Safe Shell Detection
+        let shell = null;
+        try {
+            shell = window.parent.LyraMeeting;
+        } catch (e) {
+            console.error("Shell Access Error:", e.message);
+        }
         const joinBtn = document.getElementById('joinBtn'), lobby = document.getElementById('lobby'), previewVideo = document.getElementById('previewVideo');
         const camSelect = document.getElementById('camSelect'), micSelect = document.getElementById('micSelect'), videoGrid = document.getElementById('videoGrid');
         const pList = document.getElementById('pList'), sidebar = document.getElementById('sidebar');
@@ -538,6 +566,23 @@
         }
 
         async function initLobby() {
+            // Auto-fill room from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomParam = urlParams.get('room');
+            if (roomParam) document.getElementById('roomName').value = roomParam;
+
+            if (window.location.origin === "null") {
+                log("⚠️ Origin is 'null' (Local File detected).");
+                log("Cross-frame features and Realtime require a web server.");
+            }
+            if (!shell) {
+                log("!! Portal Shell unreachable !!");
+                log("Please open this page through admin-shell.html on a web server.");
+                const warn = document.createElement('div');
+                warn.style.cssText = 'background:rgba(232,0,45,0.1); border:1px solid var(--red); padding:1rem; margin-bottom:1rem; border-radius:4px; font-size:0.8rem; line-height:1.4;';
+                warn.innerHTML = `<strong>SECURITY WARNING:</strong> Direct hardware access and Realtime sync are blocked by your browser because this file is not on a web server.<br><br><a href="admin-shell.html" style="color:white; font-weight:bold;">TRY OPENING VIA SHELL</a>`;
+                document.querySelector('.lobby-right').prepend(warn);
+            }
             await getDevices();
             fetchMeetings();
             try {
@@ -561,7 +606,33 @@
                 tip.innerHTML = `Still stuck? <a href="admin-meetings.html" target="_blank" style="color:#E8002D; text-decoration:none; font-weight:bold;">OPEN IN NEW WINDOW</a>`;
                 document.querySelector('.lobby-right').appendChild(tip);
             }
+
+            // REAL-TIME SYNC FOR LOBBY
+            let db = null;
+            try { db = window.parent.supabase; } catch(e) {}
+            if (db) {
+                db.channel('lobby_updates')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
+                      log("Lobby Refresh: Data change detected.");
+                      fetchMeetings();
+                  })
+                  .subscribe();
+            }
         }
+
+        // Randomize Room Name
+        document.getElementById('randomizeRoom').onclick = () => {
+            const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+            document.getElementById('roomName').value = 'OPS-' + code;
+            log("New channel ID generated: OPS-" + code);
+        };
+
+        // Clear Room Name
+        document.getElementById('clearRoom').onclick = () => {
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomName').focus();
+            log("Input cleared for custom naming.");
+        };
 
         initLobby();
 
@@ -575,30 +646,45 @@
         }
 
         async function fetchMeetings() {
-            log("Fetching active sessions...");
-            const { data, error } = await window.parent.supabase.from('lyra_meetings').select('*').eq('is_active', true).order('created_at', { ascending: false });
-            if (error) { log("History Load Error: " + error.message); return; }
+            let db = null;
+            try { db = window.parent.supabase; } catch (e) { }
+            if (!db) return;
 
-            const list = document.createElement('div');
-            list.id = 'meetingHistoryList';
-            list.style.cssText = 'margin-bottom:20px; border:1px solid rgba(255,255,255,0.05); background:rgba(0,0,0,0.2); padding:10px; max-height:150px; overflow-y:auto;';
+            const { data, error } = await db.from('lyra_meetings').select('*').eq('is_active', true).order('created_at', { ascending: false });
 
-            if (!data || data.length === 0) {
-                list.innerHTML = '<p style="color:#666; font-size:11px; text-align:center;">No active sessions found.</p>';
-            } else {
-                data.forEach(m => {
-                    const btn = document.createElement('div');
-                    btn.style.cssText = 'padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; font-size:12px; display:flex; justify-content:space-between; align-items:center;';
-                    btn.innerHTML = `<span>#${m.room_name}</span> <span style="font-size:10px; color:#555;">by ${m.creator_ign}</span>`;
-                    btn.onclick = () => { document.getElementById('roomName').value = m.room_name; log("Selected: " + m.room_name); };
-                    list.appendChild(btn);
-                });
+            const list = document.getElementById('sessionList');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (error) {
+                list.innerHTML = `<div style="padding:10px; color:var(--red); font-size:10px;">Sync Error: ${error.message}</div>`;
+                return;
             }
 
-            const historySlot = document.querySelector('.lobby-right .form-group:first-child');
-            const oldList = document.getElementById('meetingHistoryList');
-            if (oldList) oldList.remove();
-            historySlot.parentNode.insertBefore(list, historySlot);
+            if (!data || data.length === 0) {
+                list.innerHTML = `<div style="padding:20px; text-align:center; color:#444; font-size:11px;">No active sessions found. Start one above.</div>`;
+            } else {
+                data.forEach(m => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;';
+
+                    const info = document.createElement('div');
+                    info.innerHTML = `<div style="font-weight:bold; font-size:12px; color:var(--accent);">#${m.room_name}</div><div style="font-size:10px; color:#555;">Host: ${m.creator_ign}</div>`;
+
+                    const join = document.createElement('button');
+                    join.innerText = 'JOIN';
+                    join.style.cssText = 'background:var(--accent); border:none; padding:5px 15px; color:white; font-family:Bebas Neue; font-size:14px; cursor:pointer; border-radius:2px;';
+                    join.onclick = () => {
+                        document.getElementById('roomName').value = m.room_name;
+                        log("Joining established session: " + m.room_name);
+                        document.getElementById('joinBtn').click(); // Trigger main join logic
+                    };
+
+                    row.appendChild(info);
+                    row.appendChild(join);
+                    list.appendChild(row);
+                });
+            }
         }
 
         joinBtn.onclick = async () => {
@@ -608,22 +694,39 @@
 
             if (localStream) localStream.getTracks().forEach(t => t.stop());
 
+            if (!shell) {
+                joinBtn.innerText = "SHELL ERROR";
+                log("!! Fatal: Shell Connection Blocked !!");
+                alert("Security Error: This module cannot communicate with the portal shell. \n\nPlease run this from a web server (http://localhost or HTTPS).");
+                return;
+            }
+
             try {
                 log("Requesting shell initialization...");
                 const s = await shell.start(room, { camId: camSelect.value, micId: micSelect.value });
                 log("Shell ready, joining viewport.");
 
-                // Track meeting in DB if not already there
-                const { error: dbErr } = await window.parent.supabase.from('lyra_meetings').upsert({
-                    room_name: room,
-                    creator_ign: window.parent.currentUser || 'Unknown',
-                    is_active: true,
-                    last_activity: new Promise(r => r(new Date().toISOString()))
-                }, { onConflict: 'room_name' });
-                if (dbErr) log("DB Info: " + dbErr.message);
-
+                // IMMEDIATE UI TRANSITION
                 lobby.style.display = 'none';
+                document.getElementById('controlBar').style.display = 'flex';
                 document.getElementById('displayRoom').innerText = room;
+
+                // Auto-open sidebar on start
+                sidebar.classList.add('open');
+
+                // Track meeting in DB (Background)
+                let db = null;
+                try { db = window.parent.supabase; } catch (e) { }
+                if (db) {
+                    db.from('lyra_meetings').upsert({
+                        room_name: room,
+                        creator_ign: window.parent.currentUser || 'Unknown',
+                        is_active: true,
+                        last_activity: new Date().toISOString()
+                    }, { onConflict: 'room_name' }).then(({ error: dbErr }) => {
+                        if (dbErr) log("DB Info: " + dbErr.message);
+                    });
+                }
 
                 // Add Local Video
                 addVideoWrapper('local', s, 'You', true);
@@ -708,6 +811,19 @@
         document.getElementById('toggleCinema').onclick = () => {
             videoGrid.classList.toggle('cinema');
             document.getElementById('toggleCinema').classList.toggle('active');
+        };
+        document.getElementById('inviteBtn').onclick = () => {
+            const room = document.getElementById('displayRoom').innerText;
+            const inviteUrl = window.location.origin + window.location.pathname.replace('admin-meetings.html', 'admin-shell.html') + '?p=admin-meetings.html&room=' + encodeURIComponent(room);
+
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                const originalText = document.getElementById('inviteBtn').innerHTML;
+                document.getElementById('inviteBtn').innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => { document.getElementById('inviteBtn').innerHTML = originalText; }, 2000);
+                log("Invite Link copied to clipboard!");
+            }).catch(err => {
+                alert("Invite Link: " + inviteUrl);
+            });
         };
         document.getElementById('leaveBtn').onclick = () => {
             if (confirm("Disconnect from secure link?")) {

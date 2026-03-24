@@ -510,15 +510,21 @@
             color: var(--red);
         }
     </style>
-    <!-- Supabase Core (Required early for Shell State) -->
+    <!-- Supabase Core (Required early for Shell State - only one instance needed) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../supabase-config.js"></script>
 
     <script>
         // CORE SHELL STATE
         const updateSessionState = () => {
-            window.currentUser = localStorage.getItem('lyra_user');
-            window.userRole = localStorage.getItem('lyra_role');
+            try {
+                window.currentUser = localStorage.getItem('lyra_user');
+                window.userRole = localStorage.getItem('lyra_role');
+            } catch (e) {
+                console.warn("Shell: LocalStorage access blocked. Using default session values.");
+                window.currentUser = null;
+                window.userRole = null;
+            }
 
             // Initial fallback
             if (!window.currentUser) window.currentUser = 'Operative';
@@ -529,12 +535,15 @@
         // SYNC DISPLAY NAME: Ensure we use the real IGN from the database
         const syncIdentity = () => {
             if (window.currentUser === 'Operative') return;
-            supabase.from('lyra_approved_admins').select('ign').eq('ign', window.currentUser).single().then(({ data }) => {
+            const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+            if (!client) return;
+            
+            client.from('lyra_approved_admins').select('ign').eq('ign', window.currentUser).single().then(({ data }) => {
                 if (data && data.ign) {
                     window.currentUser = data.ign;
-                    localStorage.setItem('lyra_user', data.ign);
+                    try { localStorage.setItem('lyra_user', data.ign); } catch(e) {}
                 }
-            });
+            }).catch(e => console.warn("Shell: Identity sync failed.", e.message));
         };
         syncIdentity();
 
@@ -1100,9 +1109,7 @@
             allow="camera; microphone; display-capture; autoplay"></iframe>
     </main>
 
-    <!-- Supabase Core (for Global Meeting) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../supabase-config.js"></script>
+    <!-- Duplicate Supabase scripts removed from here to prevent overwriting global client -->
 
     <script>
         const iframe = document.getElementById('portal-content');
@@ -1111,7 +1118,14 @@
         // Initial Load from URL
         const urlParams = new URLSearchParams(window.location.search);
         const startPage = urlParams.get('p') || 'admin-overview.html';
-        iframe.src = startPage;
+
+        // Pass all other params to the iframe
+        let iframeSrc = startPage;
+        const subParams = new URLSearchParams(window.location.search);
+        subParams.delete('p');
+        if (subParams.toString()) iframeSrc += (startPage.includes('?') ? '&' : '?') + subParams.toString();
+        
+        iframe.src = iframeSrc;
 
         // 1. NAVIGATION LOGIC
         function syncActiveState(page) {
@@ -1236,9 +1250,18 @@
 
         // 4. CONSOLIDATED ROLE-BASED VISIBILITY
         const applyVisibilityRules = () => {
-            const authUserLc = (localStorage.getItem('lyra_user') || '').toLowerCase();
-            const currentRoleLc = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
-            const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+            let authUserLc = '';
+            let currentRoleLc = 'staff';
+            let isSimulation = false;
+            
+            try {
+                authUserLc = (localStorage.getItem('lyra_user') || '').toLowerCase();
+                currentRoleLc = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
+                isSimulation = localStorage.getItem('lyra_view_as') !== null;
+            } catch (e) {
+                console.warn("Shell: Visibility check - Storage restricted. Using basic staff permissions.");
+            }
+
             const isHardcodedSuper = (authUserLc === 'admin' || authUserLc === 'versa') && !isSimulation;
 
             // Flexible checks for IT Director and Owner

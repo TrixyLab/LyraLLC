@@ -15,7 +15,12 @@
     `;
     document.head.appendChild(immediateStyle);
 
-    const inShell = window.self !== window.top && window.parent.LyraMeeting;
+    let inShell = false;
+    try {
+        inShell = window.self !== window.top && window.parent && window.parent.LyraMeeting;
+    } catch (e) {
+        console.warn("Portal Bridge: Direct parent access blocked (Cross-Origin). Navigation will use fallback mode.");
+    }
 
     if (inShell) {
         // Intercept local links to stay within the shell
@@ -34,10 +39,20 @@
 
         console.log("Portal Bridge: Shell integration active.");
     } else if (!window.location.pathname.includes('admin-shell.html')) {
-        // AUTO-WRAP INTO SHELL
-        const page = window.location.pathname.split('/').pop();
-        if (page.startsWith('admin-')) {
-            window.location.href = 'admin-shell.html?p=' + page + window.location.search;
+        // AUTO-WRAP INTO SHELL - ONLY if we are truly at the top level.
+        // If we are in an iframe but inShell is false, we are already wrapped 
+        // but can't access parent properties (e.g. origin null).
+        if (window.self === window.top) {
+            const page = window.location.pathname.split('/').pop();
+            if (page.startsWith('admin-')) {
+                window.location.href = 'admin-shell.html?p=' + page + window.location.search;
+            }
+        } else {
+            console.log("Portal Bridge: Already in an iframe, skipping auto-wrap.");
+            // We're likely in a shell but couldn't verify it via property access.
+            // Hide the immediate style to reveal the page content correctly.
+            const bridgeStyle = document.getElementById('portal-bridge-immediate');
+            if (bridgeStyle) bridgeStyle.remove();
         }
     } else {
         // Running standalone (not in shell, not an admin page) - restore sidebar
