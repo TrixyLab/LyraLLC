@@ -525,16 +525,6 @@
         notificationModal.style.display = 'flex';
         setTimeout(() => {
           notificationModal.style.opacity = '1';
-        document.querySelector('form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const passwordInput = document.getElementById('password').value;
-
-      const proceedLogin = (user, role = 'Staff') => {
-        pendingLoginData = { username: user, role: role };
-        notificationModal.style.display = 'flex';
-        setTimeout(() => {
-          notificationModal.style.opacity = '1';
           notificationModal.children[0].style.transform = 'scale(1)';
         }, 10);
       };
@@ -580,12 +570,12 @@
                   userRole = 'Staff';
                 }
                 
-                proceedLogin(username, userRole);
+                proceedLogin(adminMatch.ign || username, userRole);
               })
               .catch(err => {
                 console.error('Unexpected roster error:', err);
                 // ✅ Graceful fallback
-                proceedLogin(username, adminMatch.role || 'Staff');
+                proceedLogin(adminMatch.ign || username, adminMatch.role || 'Staff');
               });
           } else {
             showError("Invalid Credentials", "The password provided does not match our records for this operative. Please try again or reset your password.");
@@ -595,3 +585,20 @@
         }
       });
     });
+
+    function showError(title, text, isDecline = false) {
+      const modal = document.getElementById('errorModal');
+      document.getElementById('errorTitle').innerText = title;
+      document.getElementById('errorText').innerText = text;
+      modal.style.display = 'flex';
+      setTimeout(() => modal.style.opacity = '1', 10);
+    }
+
+    function closeError() {
+      const modal = document.getElementById('errorModal');
+      modal.style.opacity = '0';
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
+  </script>
+</body>
+</html>

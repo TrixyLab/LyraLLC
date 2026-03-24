@@ -789,16 +789,9 @@
         <div class="form-group" style="margin-bottom: 2rem;">
             <label>Target Role</label>
             <select id="simRoleSelect" style="width:100%; height:50px; font-size:1rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:white; padding:0 1rem; outline:none;">
-                <option value="Management">Management (Full Dashboard)</option>
-                <option value="Game management">Game management</option>
-                <option value="IT Director">IT Director</option>
-                <option value="Operation Directors">Operation Directors</option>
-                <option value="Production Management">Production Management</option>
-                <option value="Director of Media">Director of Media</option>
-                <option value="Lead Recruiter">Lead Recruiter</option>
-                <option value="Coach">Coach</option>
+                <option value="Owner">Owner (Pre-Full Access)</option>
+                <option value="Management">Management (Full Access - No Owner Console)</option>
                 <option value="Staff">Staff (Operations Only)</option>
-                <option value="Owner">Owner (Reset to Master)</option>
             </select>
         </div>
         <div class="modal-footer">
@@ -820,9 +813,23 @@
 
     let allMembers = [];
 
+    const checkIsOwner = () => {
+      const u = (localStorage.getItem('lyra_user') || '').toLowerCase();
+      const r = (localStorage.getItem('lyra_role') || '').toLowerCase();
+      const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+      
+      // Master overrides
+      if ((u === 'admin' || u === 'versa') && !isSimulation) return true;
+      
+      // Flexible role matching
+      const isOwner = r.includes('owner');
+      const isIT = r.includes('it') && r.includes('director');
+      
+      return isOwner || isIT;
+    };
+
     async function syncDatabase() {
-        const currentUser = localStorage.getItem('lyra_user');
-        if (!window.checkLyraOwner()) {
+        if (!checkIsOwner()) {
             window.location.href = 'admin-dashboard.html';
             return;
         }
@@ -1063,44 +1070,44 @@
     const userRole = localStorage.getItem('lyra_role');
     const currentUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
     const isSimulation = localStorage.getItem('lyra_view_as') !== null;
-    const isHardcodedSuper = (currentUser === 'admin' || currentUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
-    const isManagement = isOwnerOrIT || 
-                        userRole === 'Operation Directors' || 
-                        userRole === 'Management' || 
-                        userRole === 'Game management' || 
-                        userRole === 'Director of Media' || 
-                        userRole === 'Lead Recruiter';
-    
-    // Hide Management if not authorized
-    if (!isManagement) {
-      const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = 'none';
-      
-      const page = window.location.pathname.split("/").pop();
-      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
-    }
+    // 4. CONSOLIDATED ROLE visibility
+    const applyVisibility = () => {
+        const uRole = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
+        const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+        const isSim = localStorage.getItem('lyra_view_as') !== null;
+        const isSuper = (uUser === 'admin' || uUser === 'versa') && !isSim;
+        
+        const isOwnerOrIT = uRole.includes('owner') || uRole.includes('it director') || isSuper;
+        const isManagement = isOwnerOrIT || 
+                            uRole.includes('management') || 
+                            uRole.includes('director') || 
+                            uRole.includes('recruiter') ||
+                            uRole.includes('lead') ||
+                            uRole.includes('manager');
 
-    if (isOwnerOrIT) {
-      const superNav = document.getElementById('nav-super');
-      if (superNav) superNav.style.display = 'block';
-    }
+        // Nav visibility
+        const mgmtNav = document.getElementById('nav-management');
+        if (mgmtNav) mgmtNav.style.display = isManagement ? 'block' : 'none';
 
-    // Staff Restriction: Only Overview, Comms, and Settings
-    if (userRole === 'Staff') {
-      const newsNav = document.getElementById('nav-news');
-      const ordersNav = document.getElementById('nav-orders');
-      const accessNav = document.getElementById('nav-access');
-      if (newsNav) newsNav.style.display = 'none';
-      if (ordersNav) ordersNav.style.display = 'none';
-      if (accessNav) accessNav.style.display = 'none';
-      
-      // Redirect if staff reaches restricted page
-      const page = window.location.pathname.split("/").pop();
-      const restrictedPages = ['admin-news.html', 'admin-orders.html', 'admin-reviews.html', 'admin-roster.html', 'admin-access.html', 'admin-super-panel.html'];
-      if (restrictedPages.includes(page)) window.location.href = 'admin-overview.html';
-    }
+        const superNav = document.getElementById('nav-super');
+        if (superNav) superNav.style.display = isOwnerOrIT ? 'block' : 'none';
+
+        const versaNav = document.getElementById('nav-versa-master');
+        if (versaNav) {
+            versaNav.style.display = (uUser === 'versa' && !isSim) ? 'block' : 'none';
+        }
+
+        const newsNav = document.getElementById('nav-news');
+        const ordersNav = document.getElementById('nav-orders');
+        if (newsNav) newsNav.style.display = isManagement ? 'block' : 'none';
+        if (ordersNav) ordersNav.style.display = isManagement ? 'block' : 'none';
+
+        // Redirect if Staff reaches restricted page (this page is restricted)
+        if (!isOwnerOrIT) {
+            window.location.href = 'admin-overview.html';
+        }
+    };
+    applyVisibility();
 
     // View As Simulation Logic
     function openViewAs() {
@@ -1117,8 +1124,13 @@
     }
     function stopSimulation() {
         localStorage.removeItem('lyra_view_as');
-        if (currentUser === 'admin' || currentUser === 'versa') {
+        const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+        // Restore real role based on primary identity
+        if (uUser === 'admin' || uUser === 'versa' || uUser === 'it director') {
             localStorage.setItem('lyra_role', 'Owner');
+        } else {
+            // Default to Staff, but bridge will automatically refresh this on next load anyway
+            localStorage.setItem('lyra_role', 'Staff');
         }
         location.reload();
     }

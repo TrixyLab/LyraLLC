@@ -2,7 +2,7 @@
  * portal-bridge.js
  * Standardized integration for Lyra Admin modules running inside the Portal Shell.
  */
-(function() {
+(function () {
     // ALWAYS hide the sidebar immediately to prevent any flash, regardless of shell detection.
     // This covers the race condition where the shell hasn't propagated LyraMeeting yet.
     const immediateStyle = document.createElement('style');
@@ -16,7 +16,7 @@
     document.head.appendChild(immediateStyle);
 
     const inShell = window.self !== window.top && window.parent.LyraMeeting;
-    
+
     if (inShell) {
         // Intercept local links to stay within the shell
         document.addEventListener('click', (e) => {

@@ -320,7 +320,18 @@
       const { data, error } = await supabase.from('lyra_events').select('*').gte('start_time', today.toISOString()).order('start_time', { ascending: true });
       const container = document.getElementById('eventsList');
       
-      if (error || !data || data.length === 0) {
+      if (error) {
+        if (error.code === 'PGRST205') {
+          container.innerHTML = '<div class="empty-state">Database table "lyra_events" is missing. Please run the Supabase schema SQL.</div>';
+          console.warn('Table lyra_events does not exist yet.');
+        } else {
+          container.innerHTML = '<div class="empty-state">Error loading events: ' + error.message + '</div>';
+          console.error('Error fetching events:', error);
+        }
+        return;
+      }
+      
+      if (!data || data.length === 0) {
         container.innerHTML = '<div class="empty-state">No upcoming events scheduled.</div>';
         return;
       }
@@ -347,7 +358,11 @@
     }
 
     fetchEvents();
-    supabase.channel('public:lyra_events').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_events' }, fetchEvents).subscribe();
+    supabase.channel('public:lyra_events').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_events' }, fetchEvents).subscribe((status) => {
+      if (status === 'CHANNEL_ERROR') {
+         console.warn('Realtime subscription issue for lyra_events - table may be missing.');
+      }
+    });
 
     // Role-based Navigation Access
     const userRole = localStorage.getItem('lyra_role');

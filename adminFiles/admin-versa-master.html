@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LYRA - Versa Master Control</title>
+    <script src="portal-bridge.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
+    <style>
+        :root {
+            --red: #E8002D; --red-dark: #a80020;
+            --green: #00E85D; --green-dark: #00a843;
+            --white: #FFFFFF; --black: #000000;
+            --gray-200: #CCCCCC; --gray-600: #555555;
+            --gray-800: #1A1A1A; --gray-900: #0D0D0D;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.07);
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; 
+            min-height: 100vh; overflow-x: hidden;
+            background: radial-gradient(circle at 0% 0%, rgba(232, 0, 45, 0.1), transparent 50%), #000;
+        }
+
+        .master-container { max-width: 1400px; margin: 0 auto; padding: 4rem 2rem; }
+        
+        .header-section { margin-bottom: 4rem; border-left: 4px solid var(--red); padding-left: 2rem; }
+        .header-section h1 { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.05em; line-height: 1; }
+        .header-section p { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.3em; margin-top: 0.5rem; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
+        
+        .master-card {
+            background: rgba(20, 20, 20, 0.4); border: 1px solid var(--glass-border);
+            padding: 2.5rem; backdrop-filter: blur(20px); transition: transform 0.3s;
+        }
+        .master-card:hover { transform: translateY(-5px); border-color: rgba(232, 0, 45, 0.3); }
+        .card-header { margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem; }
+        .card-header h3 { font-family: 'Bebas Neue'; font-size: 1.8rem; letter-spacing: 0.05em; }
+        
+        .action-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        .input-dark { flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem; color: #fff; font-family: 'Barlow'; }
+        .btn-master { background: var(--red); color: white; border: none; padding: 0.8rem 1.5rem; font-family: 'Barlow Condensed'; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.2s; }
+        .btn-master:hover { background: var(--red-dark); }
+        .btn-master.secondary { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-master.secondary:hover { background: rgba(255,255,255,0.1); }
+
+        /* LOG TABLE */
+        .log-table-wrap { margin-top: 4rem; background: rgba(10,10,10,0.6); border: 1px solid var(--glass-border); border-radius: 4px; overflow: hidden; }
+        .log-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .log-table th { background: rgba(255,255,255,0.03); padding: 1rem 1.5rem; font-family: 'Barlow Condensed'; font-weight: 700; text-transform: uppercase; font-size: 0.8rem; color: var(--gray-600); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .log-table td { padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 0.9rem; }
+        .log-table tr:hover { background: rgba(232,0,45,0.02); }
+        
+        .status-pill { padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; }
+        .status-pill.danger { background: rgba(232,0,45,0.15); color: var(--red); }
+        .status-pill.success { background: rgba(0,232,93,0.15); color: var(--green); }
+    </style>
+</head>
+<body>
+    <div class="master-container">
+        <header class="header-section">
+            <h1>Versa Master Console</h1>
+            <p>Direct System Override Terminal</p>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Account Management -->
+            <div class="master-card">
+                <div class="card-header"><h3>Account Management</h3></div>
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label style="display:block; font-size:0.7rem; color:var(--gray-600); text-transform:uppercase; margin-bottom:0.5rem;">Target IGN</label>
+                    <div class="action-row">
+                        <input type="text" id="targetIgn" class="input-dark" placeholder="Enter operative IGN...">
+                        <button class="btn-master" onclick="fetchTarget()">Search</button>
+                    </div>
+                </div>
+                <div id="targetResult" style="display:none; padding:1.5rem; background:rgba(0,0,0,0.3); border-radius:4px;">
+                    <p id="targetName" style="font-weight:700; margin-bottom:1rem;"></p>
+                    <div class="action-row">
+                        <button class="btn-master secondary" onclick="forceReset()" style="flex:1;">Force Reset</button>
+                        <button class="btn-master danger" onclick="deleteAccount()" style="flex:1; background:#800;">Delete Admin</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Overrides -->
+            <div class="master-card">
+                <div class="card-header"><h3>Global Configuration</h3></div>
+                <div class="action-row" style="margin-bottom: 2rem;">
+                    <div style="flex:1;">
+                        <p style="font-size:0.8rem; color:var(--gray-600); margin-bottom:0.5rem;">Maintenance Mode</p>
+                        <button class="btn-master secondary" id="maintToggle" onclick="toggleMaint()">OFF</button>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-master" onclick="syncRoster()" style="width:100%;">Sync All Rosters</button>
+                </div>
+            </div>
+
+            <!-- Login Security -->
+            <div class="master-card">
+                <div class="card-header"><h3>Login Security</h3></div>
+                <p style="font-size:0.85rem; color:var(--gray-600); margin-bottom:1.5rem;">Manage direct login credentials for super-admin identities.</p>
+                <div class="action-row">
+                    <button class="btn-master secondary" onclick="alert('Master password change requires database migration script.')" style="width:100%;">Change Master Password</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-table-wrap">
+            <div style="padding:1.5rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="font-family:'Bebas Neue'; font-size:1.5rem;">Audit Logs</h3>
+                <button class="btn-master secondary" style="font-size:0.7rem; padding:0.4rem 0.8rem;" onclick="loadLogs()">Refresh</button>
+            </div>
+            <table class="log-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Action</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="logBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+    <script>
+        const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+        if (authUser !== 'versa') {
+            document.body.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; text-align:center;"><div><h1 style="color:var(--red); font-family:\'Bebas Neue\'; font-size:5rem;">ACCESS DENIED</h1><p>Versa Identity Only</p></div></div>';
+        }
+
+        async function fetchTarget() {
+            const ign = document.getElementById('targetIgn').value.trim();
+            if (!ign) return;
+            const { data, error } = await supabase.from('lyra_approved_admins').select('*').eq('ign', ign).single();
+            if (data) {
+                document.getElementById('targetResult').style.display = 'block';
+                document.getElementById('targetName').innerText = `${data.name} (${data.ign}) - ${data.role}`;
+                window.currentTarget = data;
+            } else {
+                alert("Operative not found.");
+            }
+        }
+
+        async function forceReset() {
+            if (!confirm(`Force password reset for ${window.currentTarget.ign}?`)) return;
+            const { error } = await supabase.from('lyra_approved_admins').update({ password: 'Pending' }).eq('ign', window.currentTarget.ign);
+            if (!error) { alert("Account reset to Pending status."); logAudit('Password Force Reset', window.currentTarget.ign); }
+        }
+
+        async function deleteAccount() {
+            if (!confirm(`PERMANENTLY DELETE ${window.currentTarget.ign} admin access?`)) return;
+            const { error } = await supabase.from('lyra_approved_admins').delete().eq('ign', window.currentTarget.ign);
+            if (!error) { alert("Operative removed from directory."); location.reload(); logAudit('Account Deletion', window.currentTarget.ign); }
+        }
+
+        async function logAudit(action, target) {
+            // Future implementation: Audit table sync
+            console.log(`[AUDIT] ${action} on ${target}`);
+        }
+
+        function loadLogs() {
+            const body = document.getElementById('logBody');
+            const logs = [
+                { time: new Date().toLocaleString(), action: 'System Check', target: 'GLOBAL', status: 'SUCCESS' },
+                { time: '2026-03-24 14:30', action: 'Login Attempt', target: 'VERSA', status: 'SUCCESS' }
+            ];
+            body.innerHTML = logs.map(l => `
+                <tr>
+                    <td>${l.time}</td>
+                    <td>${l.action}</td>
+                    <td>${l.target}</td>
+                    <td><span class="status-pill success">${l.status}</span></td>
+                </tr>
+            `).join('');
+        }
+        loadLogs();
+    </script>
+</body>
+</html>

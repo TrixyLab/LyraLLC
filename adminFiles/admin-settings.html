@@ -566,8 +566,10 @@
         <button id="saveSecurityBtn"
           style="margin-top:auto;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:transparent;color:var(--gray-200);border:1px solid rgba(255,255,255,0.2); transition: all 0.2s;">Update
           Password</button>
-         <!-- App Update Hub (Public for All Admins) -->
-      <div class="app-card" style="flex-direction: column; align-items: stretch; background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(0, 232, 93, 0.1);">
+      </div>
+
+      <!-- App Update Hub (Public for All Admins) -->
+      <div id="updateHub" class="app-card" style="flex-direction: column; align-items: stretch; background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(0, 232, 93, 0.1);">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
              <h2 style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:0.05em;">Owner Update Control</h2>
           <div id="statusPulse" style="width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); animation: pulse 2s infinite;"></div>
@@ -620,7 +622,9 @@
             </div>
           </div>
         </div>
-      </div>     </div>
+      </div>
+
+    </div>
 
     </div>
 
@@ -640,25 +644,48 @@
   <script src="../supabase-config.js"></script>
 
   <script>
-    const currentUser = localStorage.getItem('lyra_user');
-    if (!currentUser) window.location.href = 'login.html';
+    // Support both direct and shell-integrated login state
+    const currentUser = localStorage.getItem('lyra_user') || (window.parent && window.parent.currentUser);
+    const inShell = window.self !== window.top;
+    
+    if (!currentUser && !inShell) {
+      console.warn("Settings: No session found, redirecting to login.");
+      window.location.href = '../login.html';
+    }
 
     let userNodeId = null;
     let currentDbPass = null;
 
+    const userRoleRaw = localStorage.getItem('lyra_role') || (window.parent && window.parent.userRole);
+    const authUserRaw = localStorage.getItem('lyra_user') || (window.parent && window.parent.currentUser);
+
+    const checkIsOwner = () => {
+      const u = (authUserRaw || '').toLowerCase();
+      const r = (userRoleRaw || '').toLowerCase();
+      const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+      
+      // Absolute check for hardcoded super admins
+      const isSuper = (u === 'admin' || u === 'versa');
+      if (isSuper && !isSimulation) return true;
+      
+      return r.includes('owner') || r.includes('it director') || (isSuper && !isSimulation);
+    };
+
     supabase.from('lyra_approved_admins').select('*').then(({data, error}) => {
-      const isOwner = window.checkLyraOwner();
-      const userRole = localStorage.getItem('lyra_role');
-      const isAuthorizedForControls = isOwner || userRole === 'IT Director';
+      const isOwner = checkIsOwner();
+      const isAuthorizedForControls = isOwner || (userRoleRaw && userRoleRaw.toLowerCase().includes('it director'));
 
       if (isAuthorizedForControls) {
         const bCard = document.getElementById('broadcastCard');
         if (bCard) bCard.style.display = 'flex';
-        // Show owner console/updates logic
+        const uHub = document.getElementById('updateHub');
+        if (uHub) uHub.style.display = 'flex';
       } else {
         // Hide update control sections for non-authorized users
-        const updateHub = document.querySelector('.app-card[style*="background: rgba(20, 20, 20, 0.4)"]');
-        if (updateHub) updateHub.style.display = 'none';
+        const uHub = document.getElementById('updateHub');
+        if (uHub) uHub.style.display = 'none';
+        const bCard = document.getElementById('broadcastCard');
+        if (bCard) bCard.style.display = 'none';
       }
 
       if (data) {
@@ -829,7 +856,6 @@
     });
 
     document.getElementById('saveProfileBtn').addEventListener('click', () => {
-      if (!userNodeId) return;
       const btn = document.getElementById('saveProfileBtn');
       const newIgn = document.getElementById('profIgn').value.trim();
       const newName = document.getElementById('profName').value.trim();
@@ -838,42 +864,26 @@
       const newBanner = document.getElementById('profBannerData').value;
       const confirmPass = document.getElementById('confirmSavePass').value;
 
-      if (!confirmPass) {
-        alert("Please enter your current password to confirm changes.");
-        return;
-      }
-
-      if (confirmPass !== currentDbPass) {
-        alert("Incorrect password. Verification failed.");
-        return;
-      }
+      if (!confirmPass) { alert("Please enter your current password to confirm changes."); return; }
+      if (confirmPass !== currentDbPass) { alert("Incorrect password. Verification failed."); return; }
 
       btn.innerText = 'SAVING...';
 
-      supabase.from('lyra_approved_admins').update({
+      // Use UPSERT by IGN to allow new records for hardcoded admins
+      supabase.from('lyra_approved_admins').upsert({
         ign: newIgn,
         name: newName,
         email: newEmail,
         pfp: newPfp,
-        banner: newBanner
-      }).eq('id', userNodeId).then(({error}) => {
+        banner: newBanner,
+        role: localStorage.getItem('lyra_role') || 'Staff' // Keep current role
+      }, { onConflict: 'ign' }).then(({error}) => {
         if (error) {
           console.error("Profile Save Error:", error);
-          
-          let friendlyMsg = error.message;
-          let title = "System Sync Alert";
-          
-          if (error.message.includes('banner')) {
-            title = "Database Sync Required";
-            friendlyMsg = "The profile banner system requires a one-time database schema update. Please contact the IT Director to synchronize the structure.";
-          }
-          
-          showLyraError(title, friendlyMsg);
-          
+          showLyraError("System Sync Alert", error.message);
           btn.innerText = 'SAVE FAILED';
           btn.style.background = 'var(--red)';
         } else {
-          // Update session if IGN changed
           localStorage.setItem('lyra_user', newIgn);
           btn.innerText = 'SAVED ✓';
           btn.style.background = 'var(--green)';
@@ -944,7 +954,7 @@
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
       e.preventDefault();
       localStorage.removeItem('lyra_user');
-      window.location.href = 'index.html';
+      window.location.href = '../index.html';
     });
 
     // Nav Dropdown Toggle
@@ -968,31 +978,37 @@
       }
     });
     // Role-based Navigation Access
-    const userRole = localStorage.getItem('lyra_role');
-    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
-    const role = (userRole || '').toLowerCase();
-    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
-    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
-    const isManagement = isOwnerOrIT || 
-                        role.includes('management') || 
-                        role.includes('operation directors') || 
-                        role.includes('director') || 
-                        role.includes('recruiter');
-    
-    // Hide Management if not authorized
-    if (!isManagement) {
+    const applyVisibility = () => {
+      const uRole = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
+      const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+      const isSim = localStorage.getItem('lyra_view_as') !== null;
+      const isSuper = (uUser === 'admin' || uUser === 'versa') && !isSim;
+      
+      const isOwnerOrIT = uRole.includes('owner') || uRole.includes('it director') || isSuper;
+      const isManagement = isOwnerOrIT || 
+                          uRole.includes('management') || 
+                          uRole.includes('director') || 
+                          uRole.includes('recruiter') ||
+                          uRole.includes('lead') ||
+                          uRole.includes('manager');
+      
       const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = 'none';
-      const pagePath = window.location.pathname.split("/").pop();
-      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(pagePath)) window.location.href = 'admin-overview.html';
-    }
+      if (mgmtNav) mgmtNav.style.display = isManagement ? 'block' : 'none';
 
-    if (isOwnerOrIT) {
       const superNav = document.getElementById('nav-super');
-      if (superNav) superNav.style.display = 'block';
-    }
+      if (superNav) superNav.style.display = isOwnerOrIT ? 'block' : 'none';
+
+      const versaNav = document.getElementById('nav-versa-master'); // Add if exists
+      if (versaNav) {
+          versaNav.style.display = (uUser === 'versa' && !isSim) ? 'block' : 'none';
+      }
+
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      if (newsNav) newsNav.style.display = isManagement ? 'block' : 'none';
+      if (ordersNav) ordersNav.style.display = isManagement ? 'block' : 'none';
+    };
+    applyVisibility();
 
     if (role === 'staff') {
       const newsNav = document.getElementById('nav-news');
@@ -1001,7 +1017,7 @@
       if (newsNav) newsNav.style.display = 'none';
       if (ordersNav) ordersNav.style.display = 'none';
       if (accessNav) accessNav.style.display = 'none';
-      const restrictedPages = ['admin-news.html', 'admin-orders.html', 'admin-reviews.html', 'admin-roster.html', 'admin-access.html', 'admin-super-panel.html', 'admin-settings.html'];
+      const restrictedPages = ['admin-news.html', 'admin-orders.html', 'admin-reviews.html', 'admin-roster.html', 'admin-access.html', 'admin-super-panel.html'];
       if (restrictedPages.includes(window.location.pathname.split("/").pop())) window.location.href = 'admin-overview.html';
     }
   </script>

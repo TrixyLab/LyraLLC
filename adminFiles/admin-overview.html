@@ -400,7 +400,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       </div>
 
       <!-- PERFORMANCE SECTION -->
-      <div class="header" style="margin-top: 4rem; margin-bottom: 2rem;">
+      <div class="header" id="management-reports-header" style="margin-top: 4rem; margin-bottom: 2rem;">
         <div>
           <p class="header-subtitle">Accountability</p>
           <h2 class="header-title" style="font-size:2.2rem;">Today's Management Updates</h2>
@@ -423,14 +423,14 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         <div class="empty-state" style="grid-column: 1/-1; text-align: center; color: var(--gray-600); font-style: italic; padding: 2rem;">No events scheduled for today.</div>
       </div>
 
-      <div class="header" style="margin-top: 4rem; margin-bottom: 2rem;">
+      <div class="header" id="performance-header" style="margin-top: 4rem; margin-bottom: 2rem;">
         <div>
           <p class="header-subtitle">Analytics</p>
           <h2 class="header-title" style="font-size:2.2rem;">Management Performance</h2>
         </div>
       </div>
 
-      <div class="analytics-grid">
+      <div class="analytics-grid" id="management-analytics">
         <div class="analytics-card">
           <h3>Monthly Operations Health</h3>
           <div class="kpi-row">
@@ -696,7 +696,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           .order('start_time', { ascending: true });
 
         if (error) {
-          console.error('Error fetching events:', error);
+          if (error.code === 'PGRST205') {
+            console.warn('Table lyra_events does not exist yet. Please run the Supabase schema SQL.');
+          } else {
+            console.error('Error fetching events:', error);
+          }
           return;
         }
 
@@ -738,7 +742,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           calculateFleetPerformance();
         })
         .on('postgres_changes', {event:'*', schema:'public', table:'lyra_events'}, fetchUpcomingEvents)
-        .subscribe();
+        .subscribe((status, err) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.warn('Realtime subscription issue - specific tables (likely lyra_events) may be missing.');
+          }
+        });
     }
     // Nav Dropdown Toggle
     document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
@@ -761,38 +769,53 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       }
     });
     // Role-based Navigation Access
-    const userRole = localStorage.getItem('lyra_role');
-    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
-    const role = (userRole || '').toLowerCase();
-    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
-    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
-    const isManagement = isOwnerOrIT || 
-                        role.includes('management') || 
-                        role.includes('operation directors') || 
-                        role.includes('director') || 
-                        role.includes('recruiter');
-    
-    // Hide Management if not authorized
-    if (!isManagement) {
+    const applyVisibility = () => {
+      const uRole = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
+      const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+      const isSim = localStorage.getItem('lyra_view_as') !== null;
+      const isSuper = (uUser === 'admin' || uUser === 'versa') && !isSim;
+      
+      const isOwnerOrIT = uRole.includes('owner') || uRole.includes('it director') || isSuper;
+      const isManagement = isOwnerOrIT || 
+                          uRole.includes('management') || 
+                          uRole.includes('director') || 
+                          uRole.includes('recruiter') ||
+                          uRole.includes('lead') ||
+                          uRole.includes('manager');
+      
       const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = 'none';
-      const page = window.location.pathname.split("/").pop();
-      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
-    }
+      if (mgmtNav) mgmtNav.style.display = isManagement ? 'block' : 'none';
 
-    if (isOwnerOrIT) {
       const superNav = document.getElementById('nav-super');
-      if (superNav) superNav.style.display = 'block';
-    }
+      if (superNav) superNav.style.display = isOwnerOrIT ? 'block' : 'none';
 
-    if (role === 'staff') {
+      const versaNav = document.getElementById('nav-versa-master');
+      if (versaNav) versaNav.style.display = (uUser === 'versa' && !isSim) ? 'block' : 'none';
+
       const newsNav = document.getElementById('nav-news');
       const ordersNav = document.getElementById('nav-orders');
-      if (newsNav) newsNav.style.display = 'none';
-      if (ordersNav) ordersNav.style.display = 'none';
-    }
+      if (newsNav) newsNav.style.display = isManagement ? 'block' : 'none';
+      if (ordersNav) ordersNav.style.display = isManagement ? 'block' : 'none';
+
+      // --- DASHBOARD CONTENT FILTERING ---
+      const reportsHeader = document.getElementById('management-reports-header');
+      const reportsGrid = document.getElementById('managementReports');
+      const analyticsHeader = document.getElementById('performance-header');
+      const analyticsGrid = document.getElementById('management-analytics');
+
+      if (!isManagement) {
+          if (reportsHeader) reportsHeader.style.display = 'none';
+          if (reportsGrid) reportsGrid.style.display = 'none';
+          if (analyticsHeader) analyticsHeader.style.display = 'none';
+          if (analyticsGrid) analyticsGrid.style.display = 'none';
+      } else {
+          if (reportsHeader) reportsHeader.style.display = 'flex';
+          if (reportsGrid) reportsGrid.style.display = 'grid';
+          if (analyticsHeader) analyticsHeader.style.display = 'flex';
+          if (analyticsGrid) analyticsGrid.style.display = 'grid';
+      }
+    };
+    applyVisibility();
 
   </script>
   <script src="../animations.js"></script>

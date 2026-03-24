@@ -1810,6 +1810,38 @@
       }, 500);
     }
 
+    // Role-based Navigation Access
+    const applyVisibility = () => {
+      const uRole = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
+      const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+      const isSim = localStorage.getItem('lyra_view_as') !== null;
+      const isSuper = (uUser === 'admin' || uUser === 'versa') && !isSim;
+      
+      const isOwnerOrIT = uRole.includes('owner') || uRole.includes('it director') || isSuper;
+      const isManagement = isOwnerOrIT || 
+                          uRole.includes('management') || 
+                          uRole.includes('director') || 
+                          uRole.includes('recruiter') ||
+                          uRole.includes('lead') ||
+                          uRole.includes('manager');
+      
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = isManagement ? 'block' : 'none';
+
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = isOwnerOrIT ? 'block' : 'none';
+
+      const versaNav = document.getElementById('nav-versa-master');
+      if (versaNav) {
+          versaNav.style.display = (uUser === 'versa' && !isSim) ? 'block' : 'none';
+      }
+
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      if (newsNav) newsNav.style.display = isManagement ? 'block' : 'none';
+      if (ordersNav) ordersNav.style.display = isManagement ? 'block' : 'none';
+    };
+    applyVisibility();
   </script>
     
 

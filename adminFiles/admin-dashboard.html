@@ -712,7 +712,8 @@
               else if (roleSearch.includes('rocket') || roleSearch.includes('rl')) { finalGame = 'rocketleague'; }
               
               const finalCustomRole = app.gamerole || app.role || 'Player';
-              const rawRoleTag = (isManagement || (app.role && (app.role.toLowerCase() === 'director' || app.role.toLowerCase() === 'it'))) ? 'Management' : 'Staff';
+              // Default to 'Staff' for all new recruits; higher access must be granted manually
+              const rawRoleTag = 'Staff';
 
               // 1. Insert into Security table
               supabase.from('lyra_approved_admins').upsert([{
