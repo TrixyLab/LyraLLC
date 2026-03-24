@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Performance Reviews</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #E8002D; --red-dark: #a80020;
+      --green: #00E85D; --green-dark: #00a843;
+      --yellow: #E8B900;
+      --white: #FFFFFF; --black: #000000;
+      --gray-200: #CCCCCC; --gray-600: #555555;
+      --gray-800: #1A1A1A; --gray-900: #0D0D0D;
+    }
+    p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
+p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    body {
+      background: var(--black); color: var(--white);
+      font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex;
+    }
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px; background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex; flex-direction: column; padding: 2rem;
+      position: fixed; height: 100vh; z-index: 100;
+      overflow-y: auto; scrollbar-width: none;
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .brand-logo {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em;
+      color: var(--white); text-decoration: none; margin-bottom: 3rem;
+    }
+    .brand-logo img { height: 2rem; width: auto; }
+    .brand-logo span { color: var(--red); }
+    .nav-menu { list-style: none; flex: 1; }
+    .nav-menu li { margin-bottom: 0.5rem; }
+    .nav-menu a {
+      display: flex; align-items: center; gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 1rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600);
+      text-decoration: none; padding: 1rem; border-radius: 4px; transition: all 0.2s;
+    }
+    .nav-menu a:hover { color: var(--white); background: rgba(255, 255, 255, 0.03); }
+    .nav-menu a.active {
+      color: var(--white); background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red); padding-left: calc(1rem - 3px);
+    }
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--white);
+      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+      padding: 1rem; transition: color 0.2s;
+    }
+    .logout-btn:hover { color: var(--red); }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1; margin-left: 280px; padding: 3rem 4rem;
+      background: var(--black); position: relative; min-height: 100vh;
+    }
+    .main-bg {
+      position: fixed; inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+    .header {
+      position: relative; z-index: 10; display: flex; justify-content: space-between;
+      align-items: flex-end; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; letter-spacing: 0.03em; line-height: 1; color: var(--white); }
+    .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.8rem; margin-bottom: 0.5rem; }
+
+    /* ACTIONS */
+    .btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.85rem;
+      letter-spacing: 0.15em; text-transform: uppercase; padding: 0.8rem 1.5rem; text-align: center;
+      cursor: pointer; text-decoration: none; border: none; transition: all 0.2s;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+    .btn-primary { background: var(--red); color: var(--white); }
+    .btn-primary:hover { background: var(--red-dark); }
+    .btn-secondary { background: transparent; color: var(--gray-200); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.05); color: var(--white); border-color: var(--white); }
+
+    /* TABS */
+    .tabs-container {
+      position: relative; z-index: 10; display: flex; gap: 2rem; margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem;
+    }
+    .tab-btn {
+      background: transparent; border: none; color: var(--gray-600);
+      font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
+      text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
+      padding-bottom: 0.5rem; transition: color 0.2s; position: relative;
+    }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--white); }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: -9px; left: 0; width: 100%; height: 3px; background: var(--red);
+    }
+
+    /* REVIEWS GRID */
+    .reviews-grid {
+      position: relative; z-index: 10; display: none; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    .reviews-grid.active { display: grid; }
+    
+    .review-card {
+      background: var(--gray-900); border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .review-card:hover { border-color: rgba(232, 0, 45, 0.3); background: rgba(26, 26, 26, 0.9); }
+    
+    .rc-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .rc-role {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.75rem;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-200);
+      background: rgba(255, 255, 255, 0.1); padding: 0.25rem 0.75rem;
+      display: inline-block; margin-bottom: 0.8rem;
+    }
+    .rc-name {
+      font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.03em;
+      line-height: 1; color: var(--white); margin-bottom: 0.5rem;
+    }
+    .rc-meta { color: var(--gray-600); font-size: 0.85rem; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; }
+    
+    .rc-score-box {
+      text-align: center; border: 1px solid rgba(255,255,255,0.1); padding: 1rem; min-width: 80px;
+    }
+    .rc-score { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; line-height: 1; }
+    
+    /* Dynamic score colors */
+    .score-A { color: var(--green); }
+    .score-B { color: var(--yellow); }
+    .score-C { color: var(--red); }
+    .score-F { color: var(--red-dark); }
+    
+    .rc-p, h1, h2, h3, h4, h5, h6 { transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease; }
+p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform: translateY(-2px); text-shadow: 0 0 12px rgba(255, 255, 255, 0.25); color: var(--white); }
+    body {
+      color: var(--gray-200); font-size: 0.95rem; line-height: 1.6; border-left: 2px solid rgba(255,255,255,0.1); padding-left: 1rem;
+    }
+    
+    .rc-footer { display: flex; justify-content: flex-end; }
+
+    @media (max-width: 1200px) {
+      .reviews-grid.active { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
+  <link rel="stylesheet" href="../animations.css">
+  <link rel="stylesheet" href="../responsive.css">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="../index.html" class="brand-logo">
+      <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
+      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
+      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html">Applications</a></li>
+      <li><a href="admin-roster.html">Roster Management</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-meetings.html">Meetings</a></li>
+      <li><a href="admin-reviews.html" class="active">Performance Reviews</a></li>
+      <li><a href="admin-access.html">Admin Access</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li><a href="admin-settings.html">Settings</a></li>
+    </ul>
+    <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="main-bg"></div>
+
+    <div class="header" style="justify-content: space-between; align-items: center;">
+      <div>
+        <p class="header-subtitle">Admin Portal</p>
+        <h1 class="header-title">Performance Reviews</h1>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="addReviewBtn">+ Add Review</button>
+      </div>
+    </div>
+
+    <div class="tabs-container">
+      <button class="tab-btn active" data-target="players-reviews">Players</button>
+      <button class="tab-btn" data-target="staff-reviews">Management & Staff</button>
+      <button class="tab-btn" data-target="archived-reviews">Archived</button>
+    </div>
+
+    <!-- PLAYERS REVIEWS -->
+    <div id="players-reviews" class="reviews-grid active">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- STAFF REVIEWS -->
+    <div id="staff-reviews" class="reviews-grid">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- ARCHIVED REVIEWS -->
+    <div id="archived-reviews" class="reviews-grid">
+      <!-- Injected via JS -->
+    </div>
+
+  </main>
+
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
+
+  <script>
+    // Initial Seed Data //
+    const seedReviews = [
+      { id: Date.now()+1, type: 'player', role: 'VALORANT IGL', name: 'Julian "Beno" Cruz', meta: 'LAST REVIEW: Q1 2026', score: 'A', scoreclass: 'score-A', notes: 'Excellent leadership. Shotcalling improved dramatically during LCQ. Needs to work slightly on individual aim mechanics during high-pressure clutch situations, but strategic value is immense.', archived: false },
+      { id: Date.now()+2, type: 'player', role: 'LoL Jungle', name: 'Min-ho "Shadow" Kim', meta: 'LAST REVIEW: Q1 2026', score: 'B', scoreclass: 'score-B', notes: 'Solid objective control. Pathing in the early game has been somewhat predictable recently; coaching staff is addressing this. High mechanical ceiling.', archived: false },
+      { id: Date.now()+3, type: 'staff', role: 'Head Coach - VAL', name: 'Vault', meta: 'LAST REVIEW: YESTERDAY', score: 'A', scoreclass: 'score-A', notes: 'Prepared exceptional anti-strats for playoffs. Team morale is high under his leadership. Successfully integrated the new rookie.', archived: false },
+      { id: Date.now()+4, type: 'staff', role: 'Content Creator', name: 'Sarah "Sare" Jenkins', meta: 'LAST REVIEW: Q4 2025', score: 'C', scoreclass: 'score-C', notes: 'Missed upload quota twice last month. Video editing quality is superb, but organizational habits need improvement. Check in next week.', archived: false }
+    ];
+
+    let reviews = [];
+
+    function saveReview(r) {
+      supabase.from('lyra_perf_reviews').upsert([r]).then(({error})=>{
+        if (error) console.error("saveReview Error:", error);
+      });
+    }
+
+    function initReviews() {
+      supabase.from('lyra_perf_reviews').select('*').then(({data, error}) => {
+        if (error) console.error("initReviews Error:", error);
+        if (!data || data.length === 0) {
+          seedReviews.forEach(r => saveReview(r));
+          reviews = seedReviews;
+        } else {
+          reviews = data;
+        }
+        renderReviews();
+      });
+      supabase.channel('sync_reviews').on('postgres_changes', {event:'*', schema:'public', table:'lyra_perf_reviews'}, () => {
+        supabase.from('lyra_perf_reviews').select('*').then(({data}) => {
+          reviews = data || [];
+          renderReviews();
+        });
+      }).subscribe();
+    }
+
+    function renderReviews() {
+      const playersContainer = document.getElementById('players-reviews');
+      const staffContainer = document.getElementById('staff-reviews');
+      const archivedContainer = document.getElementById('archived-reviews');
+      
+      playersContainer.innerHTML = '';
+      staffContainer.innerHTML = '';
+      archivedContainer.innerHTML = '';
+
+      reviews.forEach(r => {
+        if (!r) return;
+        const card = document.createElement('div');
+        card.className = 'review-card';
+        card.innerHTML = `
+          <div class="rc-header">
+            <div>
+              <span class="rc-role">${r.role}</span>
+              <h2 class="rc-name">${r.name}</h2>
+              <p class="rc-meta">${r.meta}</p>
+            </div>
+            <div class="rc-score-box">
+              <div class="rc-score ${r.scoreclass}">${r.score}</div>
+            </div>
+          </div>
+          <div class="rc-body">
+            "${r.notes}"
+          </div>
+          <div class="rc-footer" style="gap: 1rem;">
+            ${r.archived ? 
+              `<button class="btn btn-secondary restore-btn" data-id="${r.id}">Restore</button>` : 
+              `<button class="btn btn-secondary archive-btn" data-id="${r.id}">Archive</button>`
+            }
+            <button class="btn btn-secondary update-btn" data-id="${r.id}">Edit Review</button>
+          </div>
+        `;
+
+        if (r.archived) {
+          archivedContainer.appendChild(card);
+        } else if (r.type === 'player') {
+          playersContainer.appendChild(card);
+        } else {
+          staffContainer.appendChild(card);
+        }
+      });
+    }
+
+    // Add Review
+    document.getElementById('addReviewBtn').addEventListener('click', () => {
+      const type = prompt("Is this for a 'player' or 'staff'?", "player");
+      if (!type || (type.toLowerCase() !== 'player' && type.toLowerCase() !== 'staff')) return;
+      
+      const name = prompt("Name:");
+      if (!name) return;
+      
+      const role = prompt("Role/Title:");
+      const scoreRaw = prompt("Score (A, B, C, F):", "A");
+      let score = scoreRaw ? scoreRaw.toUpperCase() : 'B';
+      if (!['A','B','C','F'].includes(score)) score = 'C';
+      
+      const notes = prompt("Review Notes:");
+
+      const newReview = {
+        id: Date.now(),
+        type: type.toLowerCase(),
+        name: name,
+        role: role || 'Member',
+        meta: 'LAST REVIEW: JUST NOW',
+        score: score,
+        scoreclass: 'score-' + score,
+        notes: notes || 'No notes provided.',
+        archived: false
+      };
+      
+      saveReview(newReview);
+    });
+
+    // Action Logic: Edit, Archive, and Restore
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('archive-btn')) {
+        if(confirm("Archive this review?")) {
+          const id = parseInt(e.target.getAttribute('data-id'));
+          supabase.from('lyra_perf_reviews').update({ archived: true }).eq('id', id).then(() => {
+            const r = reviews.find(rev => rev && rev.id === id);
+            if (r) {
+              r.archived = true;
+              renderReviews();
+            }
+          });
+        }
+      }
+
+      if (e.target.classList.contains('restore-btn')) {
+        const id = parseInt(e.target.getAttribute('data-id'));
+        supabase.from('lyra_perf_reviews').update({ archived: false }).eq('id', id).then(() => {
+          const r = reviews.find(rev => rev && rev.id === id);
+          if (r) {
+            r.archived = false;
+            renderReviews();
+          }
+        });
+      }
+
+      if (e.target.classList.contains('update-btn')) {
+        const id = parseInt(e.target.getAttribute('data-id'));
+        const r = reviews.find(rev => rev && rev.id === id);
+        
+        if (r) {
+          const newNotes = prompt(`Update notes for ${r.name}:`, r.notes);
+          if (newNotes !== null) {
+            const newScoreRaw = prompt("Update Score (A, B, C, F):", r.score);
+            let newScore = newScoreRaw ? newScoreRaw.toUpperCase() : r.score;
+            if (['A','B','C','F'].includes(newScore)) {
+              newScore = newScore;
+            } else {
+              newScore = r.score;
+            }
+            const newScoreClass = 'score-' + newScore;
+            
+            supabase.from('lyra_perf_reviews').update({ 
+               notes: newNotes, 
+               score: newScore, 
+               scoreclass: newScoreClass, 
+               meta: 'LAST REVIEW: JUST NOW' 
+            }).eq('id', id).then(() => {
+               r.notes = newNotes;
+               r.score = newScore;
+               r.scoreclass = newScoreClass;
+               r.meta = 'LAST REVIEW: JUST NOW';
+               renderReviews();
+            });
+          }
+        }
+      }
+    });
+
+    // Tab Logic
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const grids = document.querySelectorAll('.reviews-grid');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const targetGrid = document.getElementById(targetId);
+        
+        tabBtns.forEach(b => b.classList.remove('active'));
+        grids.forEach(g => {
+          g.classList.remove('active');
+          g.style.opacity = '1'; // Reset opacity
+          g.style.transform = 'translateY(0)'; // Reset transform
+        });
+
+        btn.classList.add('active');
+        targetGrid.classList.add('active');
+      });
+    });
+
+    // Init
+    initReviews();
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+  <script src="../animations.js"></script>
+  <script src="../responsive.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
