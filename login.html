@@ -500,7 +500,14 @@
         if (pendingLoginData) {
           localStorage.setItem('lyra_user', pendingLoginData.username);
           localStorage.setItem('lyra_role', pendingLoginData.role || 'Staff');
-          window.location.href = 'adminFiles/admin-dashboard.html';
+
+          // Route to appropriate landing page based on role
+          const r = (pendingLoginData.role || '').toLowerCase();
+          const isManagement = r.includes('owner') || r.includes('management') ||
+                               r.includes('director') || r.includes('recruiter') ||
+                               r.includes('it');
+          const landingPage = isManagement ? 'admin-dashboard.html' : 'admin-overview.html';
+          window.location.href = 'adminFiles/admin-shell.html?p=' + landingPage;
         }
       }, 300);
     }
