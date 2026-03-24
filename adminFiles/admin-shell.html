@@ -908,13 +908,41 @@
                 const client = window.supabase || supabase;
                 if (!client) return;
                 try {
-                    return await client.from('lyra_meetings').upsert({
+                    const res = await client.from('lyra_meetings').upsert({
                         room_name: room,
                         creator_ign: window.currentUser || 'Operative',
                         is_active: true,
                         last_activity: new Date().toISOString()
                     }, { onConflict: 'room_name' });
+                    
+                    window.LyraMeeting.startHeartbeat(room);
+                    return res;
                 } catch (e) { console.error("Shell: Lobby Upsert Error", e); }
+            },
+
+            heartbeatInterval: null,
+            startHeartbeat: (room) => {
+                if (window.LyraMeeting.heartbeatInterval) clearInterval(window.LyraMeeting.heartbeatInterval);
+                window.LyraMeeting.heartbeatInterval = setInterval(async () => {
+                    if (!window.LyraMeeting.isActive) {
+                        clearInterval(window.LyraMeeting.heartbeatInterval);
+                        return;
+                    }
+                    const client = window.supabase || supabase;
+                    if (client) {
+                        await client.from('lyra_meetings').update({
+                            last_activity: new Date().toISOString(),
+                            is_active: true
+                        }).eq('room_name', room).then(() => {});
+                    }
+                }, 30000); // 30s heartbeat
+            },
+
+            stopHeartbeat: () => {
+                if (window.LyraMeeting.heartbeatInterval) {
+                    clearInterval(window.LyraMeeting.heartbeatInterval);
+                    window.LyraMeeting.heartbeatInterval = null;
+                }
             },
 
             onLobbyUpdate: (callback) => {
@@ -974,7 +1002,14 @@
             fetchMeetings: async () => {
                 const client = window.supabase || supabase;
                 if (!client) return { data: [], error: { message: "Supabase Unreachable" } };
-                return await client.from('lyra_meetings').select('*').eq('is_active', true).order('created_at', { ascending: false });
+                
+                // Return meetings active in the last 2 minutes
+                const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+                return await client.from('lyra_meetings')
+                    .select('*')
+                    .eq('is_active', true)
+                    .gt('last_activity', twoMinsAgo)
+                    .order('last_activity', { ascending: false });
             },
 
             removePeerBySender: (senderId) => {
@@ -1009,6 +1044,16 @@
                 if (window.LyraMeeting.localStream) window.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
                 if (window.LyraMeeting.localScreenStream) window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
                 
+                // Cleanup session in DB
+                if (window.LyraMeeting.currentRoom) {
+                    const room = window.LyraMeeting.currentRoom;
+                    const client = window.supabase || supabase;
+                    if (client) {
+                        client.from('lyra_meetings').update({ is_active: false }).eq('room_name', room).then(() => {});
+                    }
+                }
+                window.LyraMeeting.stopHeartbeat();
+
                 window.LyraMeeting.isActive = false;
                 window.LyraMeeting.currentRoom = null;
                 window.LyraMeeting.remoteStreams = {};
