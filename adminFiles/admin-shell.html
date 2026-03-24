@@ -745,13 +745,33 @@
                         return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
                     };
 
+                    const safeGetMedia = async (constraints) => {
+                        console.log("Shell: Probing media with constraints:", constraints);
+                        try {
+                            return await withTimeout(navigator.mediaDevices.getUserMedia(constraints), 15000);
+                        } catch (err) {
+                            console.warn(`Shell: Media attempt failed (${err.name}). Checking for hardware availability...`);
+                            if (err.name === 'NotFoundError' || err.name === 'NotReadableError' || err.name === 'NotAllowedError') {
+                                if (constraints.video && constraints.audio) {
+                                    console.log("Shell: Retrying with Audio only...");
+                                    return await safeGetMedia({ audio: constraints.audio });
+                                } else if (constraints.audio && !constraints.video) {
+                                    // Audio failed too? Try video only as last resort (user might have cam but no mic)
+                                    console.log("Shell: Audio failed, retrying with Video only...");
+                                    return await safeGetMedia({ video: true });
+                                }
+                            }
+                            throw err; // Re-throw if it's a persistent or fatal error (e.g. SecurityError)
+                        }
+                    };
+
                     try {
-                        console.log("Shell: Requesting getUserMedia...");
-                        window.LyraMeeting.localStream = await withTimeout(navigator.mediaDevices.getUserMedia({ video: vConstraint, audio: aConstraint }), 30000);
-                        console.log("Shell: getUserMedia success.");
+                        window.LyraMeeting.localStream = await safeGetMedia({ video: vConstraint, audio: aConstraint });
+                        console.log("Shell: Unified media acquisition successful.");
                     } catch (err) {
-                        console.error("Shell: Media access failed.", err);
+                        console.error("Shell: All media acquisition attempts failed.", err);
                         window.LyraMeeting.localStream = null;
+                        // Not alerting here, we allow the join to proceed silently
                     }
 
                     window.LyraMeeting.isActive = true;

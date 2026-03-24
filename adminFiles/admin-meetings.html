@@ -1043,9 +1043,18 @@
         async function requestPermissions() {
             log("Prompting for hardware access...");
             try {
-                const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                // Resilient Probe
+                let s = null;
+                try { s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); }
+                catch(e) { 
+                    try { s = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                    catch(e2) { s = await navigator.mediaDevices.getUserMedia({ video: true }); }
+                }
+                
                 log("Access GRANTED.");
-                s.getTracks().forEach(t => t.stop());
+                if (s) {
+                    s.getTracks().forEach(t => t.stop());
+                }
                 await getDevices(); // Refresh list now that labels are unlocked
                 document.getElementById('permBtn')?.remove();
                 initLobby(); // Restart lobby preview
@@ -1077,10 +1086,23 @@
             fetchMeetings();
             try {
                 log("Attempting media probe...");
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                previewVideo.srcObject = localStream;
-                log("Media probe successful.");
-                await getDevices(); // Refresh labels now that we have session permission
+                // Resilient Lobby Probe
+                try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); }
+                catch(e) {
+                    try { localStream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+                    catch(e2) {
+                        try { localStream = await navigator.mediaDevices.getUserMedia({ video: true }); }
+                        catch(e3) { localStream = null; }
+                    }
+                }
+
+                if (localStream) {
+                    previewVideo.srcObject = localStream;
+                    log("Media probe successful.");
+                } else {
+                    log("Media probe failed: No hardware found.");
+                }
+                await getDevices(); // Refresh labels
             } catch (e) {
                 log("Media probe failed: " + e.message);
                 const b = document.createElement('button');
@@ -1265,7 +1287,7 @@
             log("Attempting uplink to: " + room);
             joinBtn.innerText = "AUTHENTICATING..."; joinBtn.disabled = true;
 
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (localStream && localStream.getTracks) localStream.getTracks().forEach(t => t.stop());
 
             if (!shell) {
                 joinBtn.innerText = "SHELL ERROR";
@@ -1334,6 +1356,7 @@
         // SPEAKER DETECTION LOGIC
         let audioCtx, analyser, dataArray;
         function initSpeakerDetection(stream, id) {
+            if (!stream || !stream.getAudioTracks || stream.getAudioTracks().length === 0) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const source = audioCtx.createMediaStreamSource(stream);
@@ -1422,6 +1445,14 @@
             });
 
             // Track detailed logging
+            if (!stream) {
+                // If no stream (hardware-less join), skip track setup
+                console.warn("Lobby: addVideoWrapper called without stream for", name);
+                v.style.display = 'none'; // Maybe show an avatar?
+                w.classList.add('audio-only');
+                return;
+            }
+            
             const tracks = stream.getTracks();
             console.log(`[Meeting] Tracks for ${id}:`, tracks.map(t => `${t.kind}:${t.enabled?'on':'off'}:${t.readyState}`));
 
