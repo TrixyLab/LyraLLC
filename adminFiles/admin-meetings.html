@@ -3,31 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
     <title>Meetings</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Assuming a CSS file for styling -->
+    <style>
+        /* Dark Theme styles */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .sidebar {
+            background-color: #1e1e1e;
+            padding: 15px;
+        }
+        .sidebar a {
+            color: #ff4757; /* Red Accent */
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+        }
+        .sidebar a:hover {
+            background-color: #ff4757;
+            color: #fff;
+        }
+        .header {
+            background-color: #1e1e1e;
+            padding: 10px;
+            text-align: center;
+        }
+        .meeting-container {
+            margin: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+    </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2>Meetings</h2>
-        <ul>
-            <li><a href="#">Scheduled Meetings</a></li>
-            <li><a href="#">Archived Meetings</a></li>
-        </ul>
+        <h2>Navigation</h2>
+        <a href="#home">Home</a>
+        <a href="#meetings">Meetings</a>
+        <a href="#about">About</a>
     </div>
-    <div class="main-content">
-        <h1>Meeting Interface</h1>
-        <div class="meeting-list">
-            <div class="meeting-item">
-                <h3>Meeting 1</h3>
-                <p>Date: 2026-03-25</p>
-                <p>Status: Scheduled</p>
-            </div>
-            <div class="meeting-item">
-                <h3>Meeting 2</h3>
-                <p>Date: 2026-03-26</p>
-                <p>Status: Scheduled</p>
+    <div class="header">
+        <h1>Meetings UI</h1>
+    </div>
+    <div class="meeting-container">
+        <h2>Upcoming Meetings</h2>
+        <button id="openModal">Schedule Meeting</button>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" style="color:red;cursor:pointer;">&times;</span>
+                <h2>Schedule a Meeting</h2>
+                <form>
+                    <label for="title">Meeting Title:</label>
+                    <input type="text" id="title" name="title"><br><br>
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date"><br><br>
+                    <input type="submit" value="Submit">
+                </form>
             </div>
         </div>
     </div>
+    <script>
+        var modal = document.getElementById('myModal');
+        var btn = document.getElementById('openModal');
+        var span = document.getElementById('closeModal');
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
 </body>
 </html>
