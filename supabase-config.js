@@ -564,6 +564,11 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           callPopup = null;
 
           if (window.location.pathname.includes('admin-meetings.html')) {
+            // If already in a meeting, cleanly leave it first.
+            const meetContainer = document.getElementById('meet-container');
+            if (meetContainer && meetContainer.style.display !== 'none' && typeof window.leaveMeeting === 'function') {
+              window.leaveMeeting();
+            }
             const roomInput = document.getElementById('roomName');
             const startBtn = document.getElementById('startMeetBtn');
             if (roomInput && startBtn) {
@@ -597,13 +602,27 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const pendingRoom = localStorage.getItem('lyra_pending_room');
   if (pendingRoom && window.location.pathname.includes('admin-meetings.html')) {
     setTimeout(() => {
-      const roomInput = document.getElementById('roomName');
-      const startBtn = document.getElementById('startMeetBtn');
-      if (roomInput && startBtn) {
-        roomInput.value = pendingRoom;
-        startBtn.click();
-      }
+      // Create a mandatory interaction overlay to satisfy browser getUserMedia security policies
+      const joinOverlay = document.createElement('div');
+      joinOverlay.style = "position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999999; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(10px);";
+      joinOverlay.innerHTML = `
+        <h1 style="color:var(--white); font-family:'Bebas Neue', sans-serif; font-size:4rem; margin-bottom:1rem; letter-spacing: 0.05em;">Ready to Join</h1>
+        <p style="color:var(--gray-200); font-family:'Barlow Condensed', sans-serif; font-size:1.5rem; margin-bottom:3rem; text-transform: uppercase; letter-spacing: 0.1em;">Meeting Room: <strong style="color:var(--red);">${pendingRoom}</strong></p>
+        <button id="confirmJoinBtn" style="background:var(--green); color:var(--black); font-family:'Barlow Condensed', sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.15em; font-size:1.5rem; padding:1.5rem 4rem; border:none; border-radius:4px; cursor:pointer; box-shadow:0 0 30px rgba(0, 232, 93, 0.4); transition: transform 0.2s;">JOIN CONFERENCE</button>
+      `;
+      document.body.appendChild(joinOverlay);
+      
+      document.getElementById('confirmJoinBtn').onclick = () => {
+        joinOverlay.remove();
+        const roomInput = document.getElementById('roomName');
+        const startBtn = document.getElementById('startMeetBtn');
+        if (roomInput && startBtn) {
+          roomInput.value = pendingRoom;
+          startBtn.click();
+        }
+      };
+      
       localStorage.removeItem('lyra_pending_room');
-    }, 1000);
+    }, 500);
   }
 })();
