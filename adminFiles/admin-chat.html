@@ -945,10 +945,10 @@
         </div>
         <div class="profile-divider"></div>
         <div class="profile-stat-box">
-          <div class="profile-stat-label">Lyra Portal Role</div>
+          <div class="profile-stat-label">Team Role</div>
           <div class="role-badge">
             <div class="role-dot"></div>
-            <span id="p-modal-role" class="role-text">STAFF</span>
+            <span id="p-modal-role" class="role-text">—</span>
           </div>
         </div>
         <div class="profile-stat-box">
@@ -1349,16 +1349,21 @@
       minutes = minutes < 10 ? '0' + minutes : minutes;
       const timeStr = hours + ':' + minutes + ' ' + ampm;
 
+      // Derive role badge from actual user role
+      const rawRole = (localStorage.getItem('lyra_role') || '').toLowerCase();
+      let avatarRole = 'staff';
+      if (rawRole.includes('owner') || rawRole.includes('it director') || authUser === 'admin' || authUser === 'versa') avatarRole = 'owner';
+      else if (rawRole.includes('management') || rawRole.includes('director') || rawRole.includes('recruiter')) avatarRole = 'management';
+
       supabase.from('chat_messages').insert([{
         channel_id: currentChannel,
         author: currentUser,
         time: timeStr,
         text: text,
-        avatarclass: 'admin'
+        avatarclass: avatarRole
       }]).then(({error})=>{
         if (error) {
-          console.error("Message Send Error:", error);
-          alert("Failed to send message: " + error.message + "\n\n(Tip: Ensure this channel actually exists in the chat_channels table. Default ones are being auto-created now!)");
+          console.error("Message Send Error:", error.message);
         }
       });
 
@@ -1573,7 +1578,7 @@
       
       document.getElementById('p-modal-ign').innerText = '@' + (username.toUpperCase());
       document.getElementById('p-modal-name').innerText = prof.name || 'Member';
-      document.getElementById('p-modal-role').innerText = prof.customrole || prof.rawrole || 'STAFF';
+      document.getElementById('p-modal-role').innerText = prof.customrole || prof.rawrole || '—';
       
       const avatarDiv = document.getElementById('p-modal-avatar');
       if (prof.pfp) {
