@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
     rel="stylesheet">
   <style>
     *,
@@ -511,7 +511,9 @@
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
       <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html" class="active">Messages</a></li>
+      <li><a href="admin-chat.html" class="active">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
       <li><a href="admin-news.html">News & Content</a></li>
@@ -584,12 +586,23 @@
     </div>
   </main>
 
-  <!-- Firebase Core + Database -->
-  <!-- Firebase Core + Database -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
-  <script src="../firebase-config.js"></script>
+  <!-- Lyra Custom Modal -->
+  <div id="lyraModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:99999; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s;">
+    <div id="lyraModalContent" style="background:var(--gray-900); border:1px solid rgba(255,255,255,0.1); padding:2rem; border-radius:8px; min-width:350px; text-align:center; transform:translateY(20px); transition:transform 0.2s;">
+      <h3 id="lyraModalTitle" style="font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:var(--white); margin-bottom:1rem; letter-spacing:0.05em;">Confirm</h3>
+      <p id="lyraModalText" style="color:var(--gray-200); margin-bottom:1.5rem; font-size:1rem; font-family:'Barlow',sans-serif;"></p>
+      <input type="text" id="lyraModalInput" style="display:none; width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:var(--white); font-family:'Barlow',sans-serif; margin-bottom:1.5rem; outline:none;" placeholder="Enter value..." autocomplete="off">
+      <select id="lyraModalSelect" style="display:none; width:100%; padding:0.8rem; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; margin-bottom:1.5rem; outline:none; text-transform:uppercase;"></select>
+      <div style="display:flex; gap:1rem; justify-content:center;">
+        <button id="lyraModalCancel" class="btn btn-secondary" style="flex:1;">Cancel</button>
+        <button id="lyraModalConfirm" class="btn btn-primary" style="flex:1;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
 
   <script>
     const chatContainer = document.getElementById('chatMessages');
@@ -602,81 +615,184 @@
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
     const sessionId = Math.random().toString(36).substring(2, 15); // Unique session ID
 
-    let userProfiles = {};
-    db.ref('lyra_approved_admins').on('value', snap => {
-      snap.forEach(child => {
-        const val = child.val();
-        if (typeof val !== 'string' && val.ign) userProfiles[val.ign.toLowerCase()] = val;
+    function showLyraModal(title, text, type, confirmText, callback, optionsArray = []) {
+      const modal = document.getElementById('lyraModal');
+      const content = document.getElementById('lyraModalContent');
+      document.getElementById('lyraModalTitle').innerText = title;
+      document.getElementById('lyraModalText').innerText = text;
+      
+      const input = document.getElementById('lyraModalInput');
+      const paramSelect = document.getElementById('lyraModalSelect');
+      
+      input.value = '';
+      input.style.display = type === 'prompt' ? 'block' : 'none';
+      
+      paramSelect.innerHTML = '';
+      if (type === 'select') {
+        optionsArray.forEach(o => {
+          const opt = document.createElement('option');
+          opt.value = o.val;
+          opt.innerText = o.label;
+          paramSelect.appendChild(opt);
+        });
+        paramSelect.style.display = 'block';
+      } else {
+        paramSelect.style.display = 'none';
+      }
+
+      if(type === 'prompt') setTimeout(() => input.focus(), 100);
+
+      const confirmBtn = document.getElementById('lyraModalConfirm');
+      confirmBtn.innerText = confirmText;
+      if (confirmText.toLowerCase().includes('delete') || confirmText.toLowerCase().includes('remove')) {
+        confirmBtn.style.background = 'var(--red)';
+        confirmBtn.style.color = 'var(--white)';
+      } else {
+        confirmBtn.style.background = 'var(--white)';
+        confirmBtn.style.color = 'var(--black)';
+      }
+      
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.style.opacity = '1';
+        content.style.transform = 'translateY(0)';
+      }, 10);
+
+      const cleanup = () => {
+        modal.style.opacity = '0';
+        content.style.transform = 'translateY(20px)';
+        setTimeout(() => { modal.style.display = 'none'; }, 200);
+        
+        // Remove event listeners by replacing nodes
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        const cancelBtn = document.getElementById('lyraModalCancel');
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+      };
+
+      document.getElementById('lyraModalCancel').addEventListener('click', () => {
+        cleanup();
+        callback(null);
       });
-    });
+
+      document.getElementById('lyraModalConfirm').addEventListener('click', () => {
+        cleanup();
+        if (type === 'prompt') callback(input.value);
+        else if (type === 'select') callback(paramSelect.value);
+        else callback(true);
+      });
+      
+      input.onkeypress = (e) => {
+        if(e.key === 'Enter') {
+          cleanup();
+          callback(input.value);
+        }
+      };
+    }
+
+    let userProfiles = {};
+    function fetchUserProfiles() {
+      supabase.from('lyra_approved_admins').select('*').then(({data}) => {
+        userProfiles = {};
+        if(data) {
+          data.forEach(val => {
+             if (val.ign) userProfiles[val.ign.toLowerCase()] = val;
+          });
+        }
+      });
+    }
+    fetchUserProfiles();
+    supabase.channel('sync_admins_chat').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchUserProfiles).subscribe();
 
     let currentChannel = 'general';
     let messagesRef = null;
     let typingRef = null;
-    const customChannelsRef = db.ref('chat_channels');
-    const storageRef = firebase.storage().ref();
+    
+    // Load initial channel on page load
+    switchChannel(currentChannel);
+
+    // Auto-upsert default channels to prevent Foreign Key constraint errors 
+    const defaultChans = ['general', 'announcements', 'finance-reports'];
+    defaultChans.forEach(ch => {
+      supabase.from('chat_channels').upsert([{ id: ch, name: ch, created_by: 'System' }]).then(()=>{});
+    });
 
     // --- Channel Management ---
-    customChannelsRef.on('value', (snapshot) => {
-      const customChannelsContainer = document.getElementById('customChannels');
-      customChannelsContainer.innerHTML = '';
+    function fetchCustomChannels() {
+      supabase.from('chat_channels').select('*').order('timestamp', { ascending: true }).then(({data}) => {
+        const customChannelsContainer = document.getElementById('customChannels');
+        customChannelsContainer.innerHTML = '';
 
-      const channels = snapshot.val();
-      if (channels) {
-        Object.keys(channels).forEach(key => {
-          const ch = channels[key];
-          const a = document.createElement('a');
-          a.href = '#';
-          a.className = 'channel-link';
-          if (currentChannel === key) a.classList.add('active');
-          a.setAttribute('data-channel', key);
+        if (data) {
+          const defaultChansList = ['general', 'announcements', 'finance-reports'];
+          data.filter(ch => !defaultChansList.includes(ch.name)).forEach(ch => {
+            if (!ch.name.startsWith('dm_')) {
+              const a = document.createElement('a');
+              a.href = '#';
+              a.className = 'channel-link';
+              if (currentChannel === ch.name) a.classList.add('active');
+              a.setAttribute('data-channel', ch.name);
 
-          a.innerHTML = `
-            <span style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-              <span style="padding-left: 0.8rem;"># ${ch.name}</span>
-              <button class="delete-channel-btn" data-id="${key}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0;" title="Delete Channel">&times;</button>
-            </span>
-          `;
-          customChannelsContainer.appendChild(a);
-        });
-      }
-      if (typeof bindChannelClicks === 'function') bindChannelClicks();
-    });
-
-    document.getElementById('addChannelBtn').addEventListener('click', () => {
-      const name = prompt("Enter new channel name (e.g. roster-drafts):");
-      if (name && name.trim().length > 0) {
-        const safeName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
-        customChannelsRef.child(safeName).set({
-          name: safeName,
-          createdBy: currentUser,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-        switchChannel(safeName);
-      }
-    });
-
-    function bindChannelClicks() {
-      document.querySelectorAll('.channel-link').forEach(link => {
-        const newLink = link.cloneNode(true);
-        link.parentNode.replaceChild(newLink, link);
-        newLink.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (e.target.classList.contains('delete-channel-btn')) {
-            const chId = e.target.getAttribute('data-id');
-            if (confirm(`Delete #${chId}?`)) {
-              customChannelsRef.child(chId).remove();
-              db.ref('chat_messages/' + chId).remove();
-              if (currentChannel === chId) switchChannel('general');
+              a.innerHTML = `
+                <span style="pointer-events: none; display:flex; justify-content:space-between; align-items:center; width:100%;">
+                  <span style="padding-left: 0.8rem;"># ${ch.name}</span>
+                  <button class="delete-channel-btn" data-id="${ch.name}" style="pointer-events: auto; background:none; border:none; color:var(--gray-600); cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-600)'" title="Delete Channel">
+                    <svg pointer-events="none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </span>
+              `;
+              customChannelsContainer.appendChild(a);
             }
-            return;
-          }
-          const chId = newLink.getAttribute('data-channel');
-          if (chId && chId !== currentChannel) switchChannel(chId);
-        });
+          });
+        }
       });
     }
-    window.bindChannelClicks = bindChannelClicks;
+    fetchCustomChannels();
+    supabase.channel('sync_custom_channels').on('postgres_changes', {event:'*', schema:'public', table:'chat_channels'}, fetchCustomChannels).subscribe();
+
+    document.getElementById('addChannelBtn').addEventListener('click', () => {
+      showLyraModal("Create Channel", "Enter a name for the new custom team channel:", "prompt", "Create", (name) => {
+        if (name && name.trim().length > 0) {
+          const safeName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+          supabase.from('chat_channels').insert([{
+            id: safeName,
+            name: safeName,
+            created_by: currentUser
+          }]).then(()=>{});
+          switchChannel(safeName);
+        }
+      });
+    });
+
+    document.querySelector('.chat-channels').addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.delete-channel-btn');
+      if (deleteBtn) {
+        e.preventDefault();
+        const chId = deleteBtn.getAttribute('data-id');
+        const displayName = '#' + chId;
+        
+        showLyraModal("Delete Channel", `Are you sure you want to permanently delete ${displayName}? All messages will be lost.`, "confirm", "Delete", (res) => {
+          if (res) {
+            supabase.from('chat_channels').delete().eq('name', chId).then(()=>{});
+            supabase.from('chat_messages').delete().eq('channel_id', chId).then(()=>{});
+            if (currentChannel === chId) {
+              switchChannel('general');
+            }
+          }
+        });
+        return;
+      }
+
+      const link = e.target.closest('.channel-link');
+      if (link) {
+        e.preventDefault();
+        const chId = link.getAttribute('data-channel');
+        if (chId && chId !== currentChannel) {
+          switchChannel(chId);
+        }
+      }
+    });
 
     function linkify(text) {
       if (!text) return "";
@@ -713,9 +829,9 @@
           </div>
         </div>
         <div class="msg-text" style="padding-left:0; font-size:0.95rem; line-height:1.3; color:var(--gray-200); word-break:break-word; margin-top:-2px;">
-          ${msg.imageUrl ? `<img src="${msg.imageUrl}" style="max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; display:block;" onclick="window.open('${msg.imageUrl}')">` : ''}
+          ${msg.imageurl ? `<img src="${msg.imageurl}" style="max-width:100%; border-radius:8px; margin-bottom:4px; cursor:pointer; display:block;" onclick="window.open('${msg.imageurl}')">` : ''}
           ${linkify(msg.text)}
-          ${isMe ? `<span class="delete-msg" data-key="${key}" style="cursor:pointer; opacity:0.2; font-size:0.7rem; margin-left:8px;" title="Delete Message">🗑️</span>` : ''}
+          ${isMe ? `<button class="delete-msg" data-key="${key}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; padding:0; margin-left:12px; transition:color 0.2s; display:inline-flex; align-items:center; justify-content:center; opacity:0.5;" title="Delete Message" onmouseover="this.style.color='var(--red)'; this.style.opacity='1';" onmouseout="this.style.color='var(--gray-600)'; this.style.opacity='0.5';"><svg pointer-events="none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>` : ''}
         </div>
       `;
       chatContainer.appendChild(div);
@@ -724,58 +840,72 @@
 
     // Handle Deletion
     document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('delete-msg')) {
-        const key = e.target.getAttribute('data-key');
-        if (confirm("Delete this message?")) {
-          db.ref('chat_messages/' + currentChannel + '/' + key).remove();
-        }
+      const delMsgBtn = e.target.closest('.delete-msg');
+      if (delMsgBtn) {
+        const key = delMsgBtn.getAttribute('data-key');
+        showLyraModal("Delete Message", "Permanently delete this message for everyone?", "confirm", "Delete", (res) => {
+          if (res) {
+            supabase.from('chat_messages').delete().eq('id', key).then(()=>{});
+          }
+        });
       }
     });
 
     function switchChannel(channelId) {
-      if (messagesRef) messagesRef.off();
-      if (typingRef) typingRef.off();
+      if (messagesRef) supabase.removeChannel(messagesRef);
+      if (typingRef) supabase.removeChannel(typingRef);
 
       currentChannel = channelId;
-      document.querySelector('.chat-title').innerText = '# ' + channelId;
+      if (channelId.startsWith('dm_')) {
+        const parts = channelId.split('_');
+        const otherUser = String(parts[1]) === currentUser.toLowerCase() ? parts[2] : parts[1];
+        document.querySelector('.chat-title').innerText = '@ ' + otherUser;
+        document.querySelector('.chat-desc').innerText = 'Private Direct Message';
+      } else {
+        document.querySelector('.chat-title').innerText = '# ' + channelId;
+        document.querySelector('.chat-desc').innerText = 'Company-wide discussion and team chatter.';
+      }
 
       document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
       const activeLink = document.querySelector(`.channel-link[data-channel="${channelId}"]`);
       if (activeLink) activeLink.classList.add('active');
 
       chatContainer.innerHTML = '';
-      messagesRef = db.ref('chat_messages/' + currentChannel);
-      typingRef = db.ref('typing_status/' + currentChannel);
-
-      messagesRef.on('child_added', snapshot => renderMessage(snapshot.val(), snapshot.key));
-      messagesRef.on('child_removed', snapshot => {
-        const el = document.querySelector(`.message[data-key="${snapshot.key}"]`);
-        if (el) el.remove();
+      
+      supabase.from('chat_messages').select('*').eq('channel_id', currentChannel).order('timestamp', {ascending: true}).then(({data}) => {
+        if(data) {
+          data.forEach(msg => renderMessage(msg, msg.id));
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       });
 
-      typingRef.on('value', (snapshot) => {
-        const typingData = snapshot.val();
-        if (typingData) {
-          const now = Date.now();
-          const typingUsers = new Set();
-          
-          Object.keys(typingData).forEach(sid => {
-            const data = typingData[sid];
-            if (sid !== sessionId && data && data.user && (now - data.timestamp < 5000)) {
-              typingUsers.add(data.user);
+      messagesRef = supabase.channel('msg_' + currentChannel)
+        .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'channel_id=eq.'+currentChannel}, payload => {
+          renderMessage(payload.new, payload.new.id);
+        })
+        .on('postgres_changes', {event: 'DELETE', schema: 'public', table: 'chat_messages', filter: 'channel_id=eq.'+currentChannel}, payload => {
+          const el = document.querySelector(`.message[data-key="${payload.old.id}"]`);
+          if (el) el.remove();
+        }).subscribe();
+
+      typingRef = supabase.channel('typing_' + currentChannel);
+      typingRef.on('presence', { event: 'sync' }, () => {
+        const state = typingRef.presenceState();
+        const typingUsers = new Set();
+        Object.keys(state).forEach(key => {
+          state[key].forEach(presence => {
+            if (presence.user !== currentUser) {
+              typingUsers.add(presence.user);
             }
           });
-
-          if (typingUsers.size > 0) {
-            typingIndicator.textContent = Array.from(typingUsers).join(', ') + (typingUsers.size > 1 ? " are typing..." : " is typing...");
-            typingIndicator.style.display = 'block';
-          } else {
-            typingIndicator.style.display = 'none';
-          }
+        });
+        if (typingUsers.size > 0) {
+          typingIndicator.textContent = Array.from(typingUsers).join(', ') + (typingUsers.size > 1 ? " are typing..." : " is typing...");
+          typingIndicator.style.display = 'block';
         } else {
           typingIndicator.style.display = 'none';
         }
-      });
+      }).subscribe();
     }
 
     function sendMessage() {
@@ -791,16 +921,23 @@
       minutes = minutes < 10 ? '0' + minutes : minutes;
       const timeStr = hours + ':' + minutes + ' ' + ampm;
 
-      messagesRef.push({
+      supabase.from('chat_messages').insert([{
+        channel_id: currentChannel,
         author: currentUser,
         time: timeStr,
         text: text,
-        timestamp: firebase.database.ServerValue.TIMESTAMP,
-        avatarClass: 'admin'
+        avatarclass: 'admin'
+      }]).then(({error})=>{
+        if (error) {
+          console.error("Message Send Error:", error);
+          alert("Failed to send message: " + error.message + "\n\n(Tip: Ensure this channel actually exists in the chat_channels table. Default ones are being auto-created now!)");
+        }
       });
 
       chatInput.value = '';
-      typingRef.child(sessionId).remove();
+      if(typingRef && typingRef.state === 'joined') {
+        typingRef.untrack();
+      }
     }
 
     sendBtn.addEventListener('click', sendMessage);
@@ -816,14 +953,19 @@
     let adminList = ['everyone'];
     let selectedSuggestionIndex = -1;
 
-    db.ref('lyra_approved_admins').on('value', snap => {
-      adminList = ['everyone'];
-      snap.forEach(child => {
-        const val = child.val();
-        if (typeof val === 'string') adminList.push(val);
-        else if (val.ign) adminList.push(val.ign);
+    function fetchAdminMentions() {
+      supabase.from('lyra_approved_admins').select('*').then(({data}) => {
+        adminList = ['everyone'];
+        if(data) {
+          data.forEach(val => {
+            if (val.ign) adminList.push(val.ign);
+            else if (val.name) adminList.push(val.name);
+          });
+        }
       });
-    });
+    }
+    fetchAdminMentions();
+    supabase.channel('sync_admins_mentions').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchAdminMentions).subscribe();
 
     function showMentions(filter) {
       const filtered = adminList.filter(a => a.toLowerCase().includes(filter.toLowerCase()));
@@ -900,21 +1042,22 @@
     });
 
     let typingTimeout;
-    chatInput.addEventListener('input', () => {
-      typingRef.child(sessionId).set({
-        user: currentUser,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-      });
+    chatInput.addEventListener('input', async () => {
+      if(typingRef && typingRef.state === 'joined') {
+        await typingRef.track({ user: currentUser });
+      }
       clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        typingRef.child(sessionId).remove();
+      typingTimeout = setTimeout(async () => {
+        if(typingRef && typingRef.state === 'joined') {
+          await typingRef.untrack();
+        }
       }, 3000);
     });
 
     // Cleanup on disconnect
-    db.ref('.info/connected').on('value', (snap) => {
-      if (snap.val() === true) {
-        typingRef.child(sessionId).onDisconnect().remove();
+    window.addEventListener('beforeunload', () => {
+      if(typingRef && typingRef.state === 'joined') {
+        typingRef.untrack();
       }
     });
 
@@ -930,26 +1073,29 @@
         return;
       }
 
-      const fileRef = storageRef.child(`chat_images/${currentChannel}/${Date.now()}_${file.name}`);
+      const fileRefPath = `chat_images/${currentChannel}/${Date.now()}_${file.name}`;
       const btnOrig = uploadBtn.innerHTML;
       uploadBtn.innerHTML = '...';
       uploadBtn.disabled = true;
 
       try {
-        const snapshot = await fileRef.put(file);
-        const url = await snapshot.ref.getDownloadURL();
+        const { data, error } = await supabase.storage.from('lyra_storage').upload(fileRefPath, file);
+        if(error) throw error;
         
-        messagesRef.push({
+        const { data: { publicUrl } } = supabase.storage.from('lyra_storage').getPublicUrl(fileRefPath);
+        
+        supabase.from('chat_messages').insert([{
+          channel: currentChannel,
           author: currentUser,
           text: "",
-          imageUrl: url,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
+          imageurl: publicUrl,
+          avatarclass: 'admin'
+        }]).then(()=>{});
       } catch (err) {
         console.error(err);
         alert("Upload failed: " + err.message);
       } finally {
-        uploadBtn.innerHTML = '🖼️';
+        uploadBtn.innerHTML = '+';
         uploadBtn.disabled = false;
         imageUpload.value = '';
       }
@@ -967,9 +1113,6 @@
       }, 400);
     });
 
-    // Presence logic handled by firebase-config.js
-
-    // Chat Profile Click Presence
     const popup = document.getElementById('presencePopup');
     if (popup) {
       document.addEventListener('click', (e) => {
@@ -981,8 +1124,7 @@
         }
 
         if (authorName) {
-          db.ref('lyra_presence/' + authorName).once('value').then(snap => {
-            const data = snap.val();
+          supabase.from('lyra_presence').select('*').eq('id', authorName).single().then(({data}) => {
             let icon = '🔴';
             let text = 'Offline';
             let color = 'var(--gray-600)';
@@ -1018,3 +1160,6 @@
 </body>
 
 </html>
+
+
+
