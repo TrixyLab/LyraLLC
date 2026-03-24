@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LYRA - Meetings</title>
+  <script src="portal-bridge.js"></script>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -755,39 +756,14 @@
     // Role-based Navigation Access
     const userRole = localStorage.getItem('lyra_role');
     const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
-    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
-    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
-    const isManagement = isOwnerOrIT || 
-                        userRole === 'Operation Directors' || 
-                        userRole === 'Management' || 
-                        userRole === 'Game management' || 
-                        userRole === 'Director of Media' || 
-                        userRole === 'Lead Recruiter';
     
-    // Hide Management if not authorized
-    if (!isManagement) {
-      const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = 'none';
-      
-      const page = window.location.pathname.split("/").pop();
-      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
-    }
-
-    if (isOwnerOrIT) {
-      const superNav = document.getElementById('nav-super');
-      if (superNav) superNav.style.display = 'block';
-    }
-
-    // Staff Restriction: Only Overview, Comms, and Settings
-    if (userRole === 'Staff') {
-      const newsNav = document.getElementById('nav-news');
-      const ordersNav = document.getElementById('nav-orders');
-      const accessNav = document.getElementById('nav-access');
-      if (newsNav) newsNav.style.display = 'none';
-      if (ordersNav) ordersNav.style.display = 'none';
-      if (accessNav) accessNav.style.display = 'none';
+    // Portal Shell Detection & Sidebar Hiding
+    const inShell = window.self !== window.top && window.parent.LyraMeeting;
+    if (inShell) {
+      document.body.classList.add('in-shell');
+      const style = document.createElement('style');
+      style.textContent = '.sidebar { display: none !important; } .main-content { margin-left: 0 !important; width: 100% !important; }';
+      document.head.appendChild(style);
     }
 
     const startBtn = document.getElementById('startMeetBtn');
@@ -834,75 +810,92 @@
       }, 3000);
     }
 
-    let localStream;
-    let peers = {}; // {[userId]: RTCPeerConnection}
-    let roomChannel;
-    let myUserId = currentUser + '_' + Math.random().toString(36).substr(2, 9); // unique id per session
-    let myScreenUserId = myUserId + '_screen'; // independent unique id for screen casting
+    // Global Meeting Management (Shell Delegate)
+    const shell = (window.self !== window.top) ? window.parent.LyraMeeting : null;
 
-    let pfpMap = {}; // {[ign]: dataUrl}
+    if (shell) {
+      console.log("Meetings: Running in Shell mode.");
+      shell.registerCallback('onStreamAdded', (data) => {
+        addVideoStream(data.id, data.stream, false, data.name);
+      });
+      shell.registerCallback('onStreamRemoved', (id) => {
+        const w = document.getElementById('video_wrapper_' + id);
+        if (w) w.remove();
+      });
+      shell.registerCallback('onStatusChanged', (status) => {
+        if (status === 'inactive') leaveMeeting();
+      });
+      shell.registerCallback('onMuteStatus', (data) => {
+        const icon = document.getElementById('mute_icon_' + data.id);
+        if (icon) icon.style.display = data.isMuted ? 'inline' : 'none';
+      });
 
-    const meetingPresence = supabase.channel('meeting_presence');
-    let activeRoomsMap = {};
-
-    meetingPresence.on('presence', { event: 'sync' }, () => {
-      const newState = meetingPresence.presenceState();
-      activeRoomsMap = {};
-      for (const [key, stateArray] of Object.entries(newState)) {
-        stateArray.forEach(state => {
-          if (state.roomName) {
-            activeRoomsMap[state.roomName] = (activeRoomsMap[state.roomName] || 0) + 1;
-          }
+      // If already in a meeting, re-attach immediately
+      if (shell.isActive) {
+        meetContainer.style.display = 'flex';
+        setupDiv.style.display = 'none';
+        addVideoStream(shell.myUserId, shell.localStream, true, currentUser);
+        // Re-add existing peers
+        Object.keys(shell.peers).forEach(key => {
+           const peerId = key.split(':')[1];
+           // We don't have the streams handy in the object, but the next track event or a status request would fix it.
+           // Better to have the shell 'trigger' onStreamAdded for all current streams.
         });
       }
-      fetchMeetings();
-    }).subscribe();
-
-    let audioContext;
-    function monitorAudioLevel(stream, wrapper, isLocal) {
-      if (!stream || stream.getAudioTracks().length === 0) return;
-      try {
-        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') audioContext.resume();
-
-        const audioSource = audioContext.createMediaStreamSource(new MediaStream([stream.getAudioTracks()[0]]));
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.4;
-        audioSource.connect(analyser);
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        const checkVolume = () => {
-          if (!document.body.contains(wrapper)) return;
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-          const average = sum / dataArray.length;
-
-          if (average > 10) {
-            wrapper.style.border = '2px solid var(--red)';
-          } else {
-            wrapper.style.border = '2px solid transparent';
-          }
-          requestAnimationFrame(checkVolume);
-        };
-        checkVolume();
-      } catch (e) { console.error("Error monitoring audio", e); }
     }
 
+    async function startMeeting(room) {
+      if (!room) return;
+      if (preJoinStream) { preJoinStream.getTracks().forEach(t => t.stop()); preJoinStream = null; }
+      
+      const camId = document.getElementById('camSelect').value;
+      const micId = document.getElementById('micSelect').value;
 
+      if (shell) {
+        try {
+          const stream = await shell.start(room, { camId, micId });
+          meetContainer.style.display = 'flex';
+          setupDiv.style.display = 'none';
+          document.getElementById('deviceSetupModal').classList.remove('active');
+          addVideoStream(shell.myUserId, stream, true, currentUser);
+        } catch (e) { showToast("Shell failed to start meeting."); }
+      } else {
+         // Fallback to local logic (if needed, or just alert)
+         alert("Please run this portal through the Dashboard Shell for the best experience.");
+      }
+    }
 
-    const configuration = {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    };
+    function leaveMeeting() {
+      if (shell) shell.leave();
+      document.getElementById('video-grid').innerHTML = '';
+      meetContainer.style.display = 'none';
+      setupDiv.style.display = 'flex';
+    }
 
-    let deviceSetupPromise = null;
+    document.getElementById('toggleAudioBtn').addEventListener('click', (e) => {
+      if (shell) {
+        shell.isMuted = !shell.isMuted;
+        shell.localStream.getAudioTracks().forEach(t => t.enabled = !shell.isMuted);
+        e.target.textContent = shell.isMuted ? '🔇 Unmute Audio' : '🎤 Mute Audio';
+        // Broadcast mute status...
+      }
+    });
+
+    document.getElementById('toggleVideoBtn').addEventListener('click', (e) => {
+        if (shell) {
+            shell.isVideoDisabled = !shell.isVideoDisabled;
+            shell.localStream.getVideoTracks().forEach(t => t.enabled = !shell.isVideoDisabled);
+            e.target.textContent = shell.isVideoDisabled ? '📷 Enable Video' : '📷 Disable Video';
+            const v = document.getElementById('video_' + shell.myUserId);
+            const p = document.getElementById('pfp_img_' + shell.myUserId);
+            if (v && p) {
+                v.style.display = shell.isVideoDisabled ? 'none' : 'block';
+                p.style.display = shell.isVideoDisabled ? 'block' : 'none';
+            }
+        }
+    });
+
     let preJoinStream = null;
-    let isScreenSharing = false;
-    let localScreenStream = null;
 
     async function enumerateDevices() {
       const cams = document.getElementById('camSelect');
@@ -910,13 +903,19 @@
       const speakers = document.getElementById('speakerSelect');
       if (!cams || !mics || !speakers) return;
 
+      // Request permission once to unlock labels for all devices!
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        stream.getTracks().forEach(t => t.stop());
+      } catch (e) { console.warn("Enum permission denied", e); }
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       cams.innerHTML = ''; mics.innerHTML = ''; speakers.innerHTML = '';
 
       devices.forEach(device => {
         const opt = document.createElement('option');
         opt.value = device.deviceId;
-        opt.textContent = device.label || `${device.kind} (${device.deviceId.substr(0, 5)})`;
+        opt.textContent = device.label || `${device.kind} (Hardware Hidden)`;
         if (device.kind === 'videoinput') cams.appendChild(opt);
         else if (device.kind === 'audioinput') mics.appendChild(opt);
         else if (device.kind === 'audiooutput') speakers.appendChild(opt);
@@ -965,266 +964,6 @@
         requestAnimationFrame(tick);
       };
       tick();
-    }
-
-    async function startMeeting(room) {
-      if (!room) return;
-      
-      // Stop pre-join preview
-      if (preJoinStream) {
-        preJoinStream.getTracks().forEach(t => t.stop());
-        preJoinStream = null;
-      }
-
-      window.currentRoomName = room;
-      meetContainer.style.display = 'flex';
-      setupDiv.style.display = 'none';
-      document.getElementById('deviceSetupModal').classList.remove('active');
-
-      meetingPresence.track({ roomName: room, user: currentUser }).then(() => { });
-
-      supabase.from('lyra_meetings').insert([{
-        roomName: room,
-        host: currentUser
-      }]).then(() => { });
-
-      // Get Local Media using selected devices
-      const camId = document.getElementById('camSelect').value;
-      const micId = document.getElementById('micSelect').value;
-      const speakerId = document.getElementById('speakerSelect').value;
-
-      // Save preferences if checked
-      if (document.getElementById('rememberDevices').checked) {
-        localStorage.setItem('lyra_cam_id', camId);
-        localStorage.setItem('lyra_mic_id', micId);
-        localStorage.setItem('lyra_speaker_id', speakerId);
-      }
-
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-          video: { deviceId: camId ? { exact: camId } : undefined }, 
-          audio: { deviceId: micId ? { exact: micId } : undefined } 
-        });
-
-        // Set output device if supported
-        if (speakerId && typeof HTMLVideoElement.prototype.setSinkId !== 'undefined') {
-          // We'll apply this to future remote videos too
-          window.selectedSpeakerId = speakerId;
-        }
-
-        addVideoStream(myUserId, localStream, true, currentUser);
-      } catch (err) {
-        console.error("Failed to get local media", err);
-        showToast("Access Denied: Check camera/mic permissions.");
-        setupDiv.style.display = 'flex';
-        meetContainer.style.display = 'none';
-        return;
-      }
-
-      // Join Supabase Channel for signaling
-      roomChannel = supabase.channel('webrtc_room_' + room);
-
-      roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
-        const { sender, target, type, data, senderName } = payload.payload;
-        // Identify which of our local identities the message is for
-        const myTargetId = (target === myScreenUserId) ? myScreenUserId : myUserId;
-        
-        if (target && target !== myUserId && target !== myScreenUserId) return;
-        if (sender === myUserId || sender === myScreenUserId) return;
-
-        if (type === 'peer_joined') {
-          console.log("Peer joined:", sender);
-          // 1. Always create a primary connection to the new peer
-          createPeerConnection(sender, senderName, true, myUserId);
-          
-          // 2. If WE are sharing screen, also initiate a connection from our screen-bot to them
-          if (isScreenSharing) {
-            createPeerConnection(sender, senderName, true, myScreenUserId);
-          }
-
-          // Send current status to the new peer
-          const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
-          if (audioTrack) {
-            roomChannel.send({
-              type: 'broadcast',
-              event: 'webrtc_signaling',
-              payload: { sender: myUserId, senderName: currentUser, target: sender, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
-            });
-          }
-        } else if (type === 'offer') {
-          handleOffer(sender, senderName, data, myTargetId);
-        } else if (type === 'answer') {
-          handleAnswer(sender, data, myTargetId);
-        } else if (type === 'ice_candidate') {
-          handleIceCandidate(sender, data, myTargetId);
-        } else if (type === 'peer_left') {
-          // Remove all peer connections associated with this remote sender
-          Object.keys(peers).forEach(key => {
-            if (key.endsWith(':' + sender)) removePeer(key);
-          });
-        } else if (type === 'mute_status') {
-          const icon = document.getElementById('mute_icon_' + sender);
-          if (icon) icon.style.display = data.isMuted ? 'inline' : 'none';
-        } else if (type === 'camera_status') {
-          const pfp = document.getElementById('pfp_img_' + sender);
-          const vid = document.getElementById('video_' + sender);
-          if (pfp && vid) {
-            pfp.style.display = data.videoDisabled ? 'block' : 'none';
-            vid.style.display = data.videoDisabled ? 'none' : 'block';
-          }
-        } else if (type === 'request_status') {
-          if (roomChannel) {
-            const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
-            const videoTrack = localStream ? localStream.getVideoTracks()[0] : null;
-            roomChannel.send({
-              type: 'broadcast',
-              event: 'webrtc_signaling',
-              payload: { 
-                sender: myUserId, 
-                senderName: currentUser, 
-                target: sender, 
-                type: 'camera_status', 
-                data: { videoDisabled: videoTrack ? !videoTrack.enabled : true } 
-              }
-            });
-            roomChannel.send({
-              type: 'broadcast',
-              event: 'webrtc_signaling',
-              payload: { 
-                sender: myUserId, 
-                senderName: currentUser, 
-                target: sender, 
-                type: 'mute_status', 
-                data: { isMuted: audioTrack ? !audioTrack.enabled : true } 
-              }
-            });
-          }
-        }
-      });
-
-      roomChannel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Announce presence
-          roomChannel.send({
-            type: 'broadcast',
-            event: 'webrtc_signaling',
-            payload: { sender: myUserId, senderName: currentUser, type: 'peer_joined' }
-          });
-          // Also broadcast current mute status
-          const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
-          if (audioTrack) {
-            setTimeout(() => {
-              roomChannel.send({
-                type: 'broadcast',
-                event: 'webrtc_signaling',
-                payload: { sender: myUserId, senderName: currentUser, type: 'mute_status', data: { isMuted: !audioTrack.enabled } }
-              });
-            }, 500);
-          }
-        }
-      });
-    }
-
-    function createPeerConnection(peerId, peerName, isInitiator, targetId = myUserId) {
-      const peerKey = `${targetId}:${peerId}`;
-      if (peers[peerKey]) return peers[peerKey];
-      const pc = new RTCPeerConnection(configuration);
-      peers[peerKey] = pc;
-
-      // Inject the correct tracks based on the target identity requesting the connection!
-      if (targetId === myScreenUserId && typeof localScreenStream !== 'undefined' && localScreenStream) {
-        localScreenStream.getTracks().forEach(track => pc.addTrack(track, localScreenStream));
-      } else if (targetId === myUserId && localStream) {
-        // If we are connecting TO a screen share, we don't necessarily NEED to send our camera
-        // to that specific bot, but for mesh consistency we can.
-        // HOWEVER, to save bandwidth, we skip sending our camera TO other screen-bots.
-        if (!peerId.endsWith('_screen')) {
-           localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
-        }
-      }
-
-      // Handle remote tracks
-      pc.ontrack = (event) => {
-        addVideoStream(peerId, event.streams[0], false, peerName);
-        // Request their current camera/mute status if we just joined (and it's a primary connection)
-        if (!isInitiator && !peerId.endsWith('_screen')) {
-           setTimeout(() => {
-             if (roomChannel) {
-               roomChannel.send({
-                 type: 'broadcast',
-                 event: 'webrtc_signaling',
-                 payload: { sender: targetId, senderName: currentUser, target: peerId, type: 'request_status' }
-               });
-             }
-           }, 1000);
-        }
-      };
-
-      // Handle ICE candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate) {
-          roomChannel.send({
-            type: 'broadcast',
-            event: 'webrtc_signaling',
-            payload: { sender: targetId, target: peerId, type: 'ice_candidate', data: event.candidate }
-          });
-        }
-      };
-
-      pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-          removePeer(peerKey);
-        }
-      };
-
-      if (isInitiator) {
-        pc.createOffer().then(offer => {
-          pc.setLocalDescription(offer);
-          roomChannel.send({
-            type: 'broadcast',
-            event: 'webrtc_signaling',
-            payload: { 
-              sender: targetId, 
-              target: peerId, 
-              type: 'offer', 
-              data: offer, 
-              senderName: currentUser + (targetId === myScreenUserId ? ' (Screen)' : '') 
-            }
-          });
-        });
-      }
-
-      return pc;
-    }
-
-    async function handleOffer(peerId, peerName, offer, targetId = myUserId) {
-      const pc = createPeerConnection(peerId, peerName, false, targetId);
-      await pc.setRemoteDescription(new RTCSessionDescription(offer));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      roomChannel.send({
-        type: 'broadcast',
-        event: 'webrtc_signaling',
-        payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
-      });
-    }
-
-    async function handleAnswer(peerId, answer, targetId = myUserId) {
-      const peerKey = `${targetId}:${peerId}`;
-      const pc = peers[peerKey];
-      if (pc) {
-        await pc.setRemoteDescription(new RTCSessionDescription(answer));
-      }
-    }
-
-    async function handleIceCandidate(peerId, candidate, targetId = myUserId) {
-      const peerKey = `${targetId}:${peerId}`;
-      const pc = peers[peerKey];
-      if (pc && candidate) {
-        try {
-          await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (e) { console.error('Error adding received ice candidate', e); }
-      }
     }
 
     function addVideoStream(id, stream, isLocal = false, peerName = '') {
@@ -1371,7 +1110,8 @@
     }
 
     function leaveMeeting() {
-      meetingPresence.untrack().then(() => { });
+      // untrack handled by shell if active
+      if (!shell) meetingPresence.untrack().then(() => { });
       cancelOutgoingCall();
       if (roomChannel) {
         roomChannel.send({

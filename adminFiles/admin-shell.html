@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LYRA - Administrative Portal</title>
+    <!-- Use same fonts as modules -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
+    <style>
+        :root {
+            --red: #E8002D; --red-dark: #a80020;
+            --green: #00E85D; --green-dark: #00a843;
+            --white: #FFFFFF; --black: #000000;
+            --gray-200: #CCCCCC; --gray-400: #888888; --gray-600: #555555;
+            --gray-800: #1A1A1A; --gray-900: #0D0D0D;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Barlow', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* PERSISTENT SIDEBAR */
+        .sidebar {
+            width: 280px;
+            background: var(--gray-900);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            height: 100vh;
+            z-index: 100;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .sidebar::-webkit-scrollbar { display: none; }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 0.12em;
+            color: var(--white);
+            text-decoration: none;
+            margin-bottom: 2rem;
+        }
+        .brand-logo img { height: 2rem; width: auto; }
+        .brand-logo span { color: var(--red); }
+
+        /* IN-CALL INDICATOR */
+        #globalCallIndicator {
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem;
+            background: rgba(0, 232, 93, 0.1);
+            border: 1px solid rgba(0, 232, 93, 0.2);
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(0, 232, 93, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 232, 93, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 232, 93, 0); }
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; background: var(--green); border-radius: 50%;
+        }
+        .call-text {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700; font-size: 0.8rem; color: var(--green);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        .nav-menu { list-style: none; flex: 1; }
+        .nav-menu li { margin-bottom: 0.5rem; }
+        .nav-menu a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-600);
+            text-decoration: none;
+            padding: 1rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .nav-menu a:hover { color: var(--white); background: rgba(255, 255, 255, 0.03); }
+        .nav-menu a.active {
+            color: var(--white);
+            background: rgba(232, 0, 45, 0.1);
+            border-left: 3px solid var(--red);
+            padding-left: calc(1rem - 3px);
+        }
+
+        /* NAV DROPDOWN */
+        .nav-dropdown-trigger { cursor: pointer; }
+        .nav-dropdown-trigger .chevron { margin-left: auto; transition: transform 0.3s ease; opacity: 0.5; }
+        .nav-dropdown.open .nav-dropdown-trigger .chevron { transform: rotate(180deg); opacity: 1; }
+        .nav-dropdown-menu {
+            list-style: none; padding: 0; margin: 0; max-height: 0; overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(0, 0, 0, 0.15); border-radius: 4px; margin-top: 2px;
+        }
+        .nav-dropdown.open > .nav-dropdown-menu { max-height: 1000px; padding-bottom: 0.5rem; }
+        .nav-dropdown-menu li a { font-size: 0.85rem !important; padding: 0.8rem 1rem 0.8rem 3.2rem !important; }
+
+        /* CONTENT IFRAME */
+        .portal-main {
+            flex: 1;
+            height: 100vh;
+            background: var(--black);
+            position: relative;
+        }
+        #portal-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+        }
+
+        .logout-btn {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 700; font-size: 0.9rem; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--white); text-decoration: none;
+            display: flex; align-items: center; gap: 0.5rem; padding: 1rem; transition: color 0.2s;
+        }
+        .logout-btn:hover { color: var(--red); }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <a href="../index.html" class="brand-logo">
+            <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
+            <div><span>L</span>YRA</div>
+        </a>
+
+        <!-- Status Pill -->
+        <div id="globalCallIndicator">
+            <div class="pulse-dot"></div>
+            <span class="call-text">Persistent Session Active</span>
+        </div>
+
+        <ul class="nav-menu">
+            <li><a href="admin-overview.html" class="nav-link active" data-page="admin-overview.html">Overview</a></li>
+            <li class="nav-dropdown">
+                <a href="#" class="nav-dropdown-trigger">Management</a>
+                <ul class="nav-dropdown-menu">
+                    <li><a href="admin-dashboard.html" class="nav-link" data-page="admin-dashboard.html">Recruitment</a></li>
+                    <li><a href="admin-roster.html" class="nav-link" data-page="admin-roster.html">Master Control</a></li>
+                </ul>
+            </li>
+            <li class="nav-dropdown">
+                <a href="#" class="nav-dropdown-trigger">Communications</a>
+                <ul class="nav-dropdown-menu">
+                    <li><a href="admin-chat.html" class="nav-link" data-page="admin-chat.html">Management Chat</a></li>
+                    <li><a href="admin-dms.html" class="nav-link" data-page="admin-dms.html">Direct Messages</a></li>
+                    <li><a href="admin-meetings.html" class="nav-link" data-page="admin-meetings.html">Meetings</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <a href="#" id="shellLogout" class="logout-btn">← Logout</a>
+    </aside>
+
+    <main class="portal-main">
+        <iframe id="portal-content" src="admin-overview.html"></iframe>
+    </main>
+
+    <!-- Supabase Core (for Global Meeting) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+
+    <!-- Global Meeting State & Logic -->
+    <script>
+        const iframe = document.getElementById('portal-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const callIndicator = document.getElementById('globalCallIndicator');
+
+        // Supabase handle for the shell
+        const currentUser = localStorage.getItem('lyra_user') || 'Admin';
+        const meetingPresence = supabase.channel('meeting_presence');
+        meetingPresence.subscribe();
+        
+        // 1. NAVIGATION LOGIC
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = link.getAttribute('data-page');
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                iframe.src = page;
+                const url = new URL(window.location);
+                url.searchParams.set('p', page);
+                window.history.pushState({}, '', url);
+            });
+        });
+
+        // 2. DROP-DOWN LOGIC
+        document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                trigger.parentElement.classList.toggle('open');
+            });
+        });
+
+        // 3. GLOBAL WEB-RTC CONTROLLER
+        window.LyraMeeting = {
+            isActive: false,
+            currentRoom: null,
+            localStream: null,
+            localScreenStream: null,
+            peers: {}, // { "localId:remoteId": pc }
+            remoteStreams: {}, // { id: { stream, name } }
+            roomChannel: null,
+            myUserId: currentUser + '_' + Math.random().toString(36).substr(2, 9),
+            myScreenUserId: '', // Set when sharing
+            isMuted: false,
+            isVideoDisabled: false,
+            isScreenSharing: false,
+            callbacks: {
+                onStreamAdded: [],
+                onStreamRemoved: [],
+                onStatusChanged: [],
+                onMuteStatus: []
+            },
+
+            registerCallback: (type, fn) => {
+                if (this.LyraMeeting.callbacks[type]) {
+                    this.LyraMeeting.callbacks[type].push(fn);
+                    // Re-sync existing streams for the new page
+                    if (type === 'onStreamAdded' && this.LyraMeeting.isActive) {
+                        Object.values(this.LyraMeeting.remoteStreams).forEach(data => fn(data));
+                    }
+                }
+            },
+
+            trigger: (type, data) => {
+                this.LyraMeeting.callbacks[type].forEach(fn => fn(data));
+            },
+
+            start: async (room, deviceConfig) => {
+                console.log("Shell: Joining room", room);
+                this.LyraMeeting.currentRoom = room;
+                this.LyraMeeting.myScreenUserId = this.LyraMeeting.myUserId + '_screen';
+                
+                try {
+                    this.LyraMeeting.localStream = await navigator.mediaDevices.getUserMedia({
+                        video: deviceConfig.camId ? { deviceId: { exact: deviceConfig.camId } } : true,
+                        audio: deviceConfig.micId ? { deviceId: { exact: deviceConfig.micId } } : true
+                    });
+                    
+                    this.LyraMeeting.isActive = true;
+                    callIndicator.style.display = 'flex';
+                    
+                    // Track Presence Globally
+                    meetingPresence.track({ roomName: room, user: currentUser }).then(() => { });
+                    
+                    // Signaling
+                    this.LyraMeeting.roomChannel = supabase.channel('webrtc_room_' + room);
+                    this.LyraMeeting.setupSignaling();
+                    this.LyraMeeting.roomChannel.subscribe();
+                    
+                    return this.LyraMeeting.localStream;
+                } catch (e) {
+                    console.error("Shell: Media access failed", e);
+                    throw e;
+                }
+            },
+
+            setupSignaling: () => {
+                const chan = this.LyraMeeting.roomChannel;
+                chan.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+                    const { sender, target, type, data, senderName } = payload.payload;
+                    const myTargetId = (target === this.LyraMeeting.myScreenUserId) ? this.LyraMeeting.myScreenUserId : this.LyraMeeting.myUserId;
+                    
+                    if (target && target !== this.LyraMeeting.myUserId && target !== this.LyraMeeting.myScreenUserId) return;
+                    if (sender === this.LyraMeeting.myUserId || sender === this.LyraMeeting.myScreenUserId) return;
+
+                    if (type === 'peer_joined') {
+                        this.LyraMeeting.createPeerConnection(sender, senderName, true, this.LyraMeeting.myUserId);
+                        if (this.LyraMeeting.isScreenSharing) this.LyraMeeting.createPeerConnection(sender, senderName, true, this.LyraMeeting.myScreenUserId);
+                    } else if (type === 'offer') {
+                        this.LyraMeeting.handleOffer(sender, senderName, data, myTargetId);
+                    } else if (type === 'answer') {
+                        this.LyraMeeting.handleAnswer(sender, data, myTargetId);
+                    } else if (type === 'ice_candidate') {
+                        this.LyraMeeting.handleIceCandidate(sender, data, myTargetId);
+                    } else if (type === 'peer_left') {
+                        Object.keys(this.LyraMeeting.peers).forEach(key => {
+                            if (key.endsWith(':' + sender)) this.LyraMeeting.removePeer(key);
+                        });
+                    } else if (type === 'mute_status') {
+                        this.LyraMeeting.trigger('onMuteStatus', { id: sender, isMuted: data.isMuted });
+                    }
+                });
+            },
+
+            createPeerConnection: (peerId, peerName, isInitiator, targetId) => {
+                const peerKey = `${targetId}:${peerId}`;
+                if (this.LyraMeeting.peers[peerKey]) return this.LyraMeeting.peers[peerKey];
+                
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                this.LyraMeeting.peers[peerKey] = pc;
+
+                if (targetId === this.LyraMeeting.myScreenUserId && this.LyraMeeting.localScreenStream) {
+                    this.LyraMeeting.localScreenStream.getTracks().forEach(t => pc.addTrack(t, this.LyraMeeting.localScreenStream));
+                } else if (this.LyraMeeting.localStream && !peerId.endsWith('_screen')) {
+                    this.LyraMeeting.localStream.getTracks().forEach(t => pc.addTrack(t, this.LyraMeeting.localStream));
+                }
+
+                pc.ontrack = (event) => {
+                    const streamData = { id: peerId, stream: event.streams[0], name: peerName };
+                    this.LyraMeeting.remoteStreams[peerId] = streamData;
+                    this.LyraMeeting.trigger('onStreamAdded', streamData);
+                };
+
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        this.LyraMeeting.roomChannel.send({
+                            type: 'broadcast', event: 'webrtc_signaling',
+                            payload: { sender: targetId, target: peerId, type: 'ice_candidate', data: event.candidate }
+                        });
+                    }
+                };
+
+                if (isInitiator) {
+                    pc.createOffer().then(offer => {
+                        pc.setLocalDescription(offer);
+                        this.LyraMeeting.roomChannel.send({
+                            type: 'broadcast', event: 'webrtc_signaling',
+                            payload: { sender: targetId, target: peerId, type: 'offer', data: offer, senderName: currentUser }
+                        });
+                    });
+                }
+                return pc;
+            },
+
+            handleOffer: async (peerId, peerName, offer, targetId) => {
+                const pc = this.LyraMeeting.createPeerConnection(peerId, peerName, false, targetId);
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                this.LyraMeeting.roomChannel.send({
+                    type: 'broadcast', event: 'webrtc_signaling',
+                    payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
+                });
+            },
+
+            handleAnswer: async (peerId, answer, targetId) => {
+                const pc = this.LyraMeeting.peers[`${targetId}:${peerId}`];
+                if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+            },
+
+            handleIceCandidate: async (peerId, candidate, targetId) => {
+                const pc = this.LyraMeeting.peers[`${targetId}:${peerId}`];
+                if (pc && candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            },
+
+            removePeer: (key) => {
+                if (this.LyraMeeting.peers[key]) {
+                    this.LyraMeeting.peers[key].close();
+                    delete this.LyraMeeting.peers[key];
+                }
+                const peerId = key.split(':')[1];
+                if (!Object.keys(this.LyraMeeting.peers).some(k => k.endsWith(':' + peerId))) {
+                    this.LyraMeeting.trigger('onStreamRemoved', peerId);
+                }
+            },
+
+            leave: () => {
+                if (this.LyraMeeting.roomChannel) {
+                    meetingPresence.untrack().then(() => { });
+                    this.LyraMeeting.roomChannel.send({
+                        type: 'broadcast', event: 'webrtc_signaling',
+                        payload: { sender: this.LyraMeeting.myUserId, type: 'peer_left' }
+                    });
+                    supabase.removeChannel(this.LyraMeeting.roomChannel);
+                }
+                Object.keys(this.LyraMeeting.peers).forEach(k => this.LyraMeeting.removePeer(k));
+                this.LyraMeeting.remoteStreams = {};
+                if (this.LyraMeeting.localStream) this.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
+                if (this.LyraMeeting.localScreenStream) this.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
+                
+                this.LyraMeeting.isActive = false;
+                this.LyraMeeting.currentRoom = null;
+                callIndicator.style.display = 'none';
+                this.LyraMeeting.trigger('onStatusChanged', 'inactive');
+            }
+        };
+
+        // 4. CROSS-FRAME COMMUNICATION
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'NAVIGATE') {
+                const page = e.data.page;
+                console.log("Shell: Received NAVIGATE to", page);
+                // Find matching link and click it (or simulate)
+                const link = Array.from(navLinks).find(l => l.getAttribute('data-page') === page);
+                if (link) {
+                    link.click();
+                } else {
+                    // Manual update if no nav link matches (e.g. direct links)
+                    iframe.src = page;
+                    navLinks.forEach(l => l.classList.remove('active'));
+                }
+            }
+        });
+
+        // Handle logout
+        document.getElementById('shellLogout').addEventListener('click', (e) => {
+            e.preventDefault();
+            this.LyraMeeting.leave();
+            localStorage.removeItem('lyra_user');
+            window.location.href = '../index.html';
+        });
+
+        // Initial Load from URL
+        const params = new URLSearchParams(window.location.search);
+        const startPage = params.get('p') || 'admin-overview.html';
+        iframe.src = startPage;
+        navLinks.forEach(l => {
+            if(l.getAttribute('data-page') === startPage) {
+                l.classList.add('active');
+                const d = l.closest('.nav-dropdown'); if(d) d.classList.add('open');
+            }
+        });
+    </script>
+</body>
+</html>
