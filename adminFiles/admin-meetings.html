@@ -317,6 +317,136 @@
     input[type="text"]:focus {
       border-color: var(--red);
     }
+
+    /* PREMIUM MODAL SYSTEM */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-content {
+      background: rgba(20, 20, 20, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 3rem;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+    .modal-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--red);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    .dev-preview-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      border-radius: 4px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #preJoinPreview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    .mic-test-bar-container {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+    #micTestBar {
+      height: 100%;
+      width: 0%;
+      background: var(--red);
+      border-radius: 2px;
+      transition: width 0.1s ease;
+    }
+    .dev-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .dev-select-group {
+      text-align: left;
+    }
+    .dev-select-group label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+    .dev-select {
+      width: 100%;
+      padding: 0.8rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      transition: border 0.2s;
+    }
+    .dev-select:focus {
+      border-color: var(--red);
+    }
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--gray-400);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .remember-wrap input {
+      accent-color: var(--red);
+      cursor: pointer;
+    }
   </style>
   <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
   <link rel="stylesheet" href="../animations.css">
@@ -535,6 +665,61 @@
 
   </main>
 
+  <!-- DEVICE SETUP MODAL (PRE-JOIN) -->
+  <div id="deviceSetupModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">DEVICE SETTINGS</div>
+      <div class="modal-subtitle">Ready to join the meeting?</div>
+
+      <div class="dev-preview-box">
+        <video id="preJoinPreview" autoplay playsinline muted></video>
+        <div class="mic-test-bar-container">
+          <div id="micTestBar"></div>
+        </div>
+      </div>
+
+      <div class="dev-controls">
+        <div class="dev-select-group">
+          <label>Camera Input</label>
+          <select id="camSelect" class="dev-select"></select>
+        </div>
+        <div class="dev-select-group">
+          <label>Microphone Input</label>
+          <select id="micSelect" class="dev-select"></select>
+        </div>
+        <div class="dev-select-group">
+          <label>Audio Output (Headset)</label>
+          <select id="speakerSelect" class="dev-select"></select>
+        </div>
+      </div>
+
+      <label class="remember-wrap">
+        <input type="checkbox" id="rememberDevices" checked>
+        <span>Remember my preferences</span>
+      </label>
+
+      <div style="display: flex; gap: 1rem;">
+        <button id="cancelJoinBtn" class="btn" style="background: rgba(255,255,255,0.05); flex: 1;">Cancel</button>
+        <button id="finalJoinBtn" class="btn" style="flex: 2;">Join Meeting</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN SHARE PERMISSION MODAL -->
+  <div id="screenShareNotify" class="modal-overlay">
+    <div class="modal-content" style="max-width: 450px; padding: 2.5rem;">
+      <div class="modal-title" style="font-size: 2rem;">SCREEN SHARE</div>
+      <div class="modal-subtitle">Permissions Required</div>
+      <p style="color: var(--gray-400); font-family: 'Barlow', sans-serif; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+        You are about to start a screen session. Please select the specific screen or application window you wish to share with the team.
+      </p>
+      <div style="display: flex; gap: 1rem;">
+        <button id="cancelScreenBtn" class="btn" style="background: rgba(255,255,255,0.05); flex: 1;">Back</button>
+        <button id="confirmScreenBtn" class="btn" style="flex: 2;">Start Sharing</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Supabase Core -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase-config.js"></script>
@@ -714,27 +899,123 @@
       ]
     };
 
+    let deviceSetupPromise = null;
+    let preJoinStream = null;
+    let isScreenSharing = false;
+    let localScreenStream = null;
+
+    async function enumerateDevices() {
+      const cams = document.getElementById('camSelect');
+      const mics = document.getElementById('micSelect');
+      const speakers = document.getElementById('speakerSelect');
+      if (!cams || !mics || !speakers) return;
+
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      cams.innerHTML = ''; mics.innerHTML = ''; speakers.innerHTML = '';
+
+      devices.forEach(device => {
+        const opt = document.createElement('option');
+        opt.value = device.deviceId;
+        opt.textContent = device.label || `${device.kind} (${device.deviceId.substr(0, 5)})`;
+        if (device.kind === 'videoinput') cams.appendChild(opt);
+        else if (device.kind === 'audioinput') mics.appendChild(opt);
+        else if (device.kind === 'audiooutput') speakers.appendChild(opt);
+      });
+
+      // Load saved prefs
+      if (localStorage.getItem('lyra_cam_id')) cams.value = localStorage.getItem('lyra_cam_id');
+      if (localStorage.getItem('lyra_mic_id')) mics.value = localStorage.getItem('lyra_mic_id');
+      if (localStorage.getItem('lyra_speaker_id')) speakers.value = localStorage.getItem('lyra_speaker_id');
+    }
+
+    async function updatePreJoinPreview() {
+      if (preJoinStream) {
+        preJoinStream.getTracks().forEach(t => t.stop());
+      }
+      const camId = document.getElementById('camSelect').value;
+      const micId = document.getElementById('micSelect').value;
+
+      try {
+        preJoinStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: camId ? { exact: camId } : undefined },
+          audio: { deviceId: micId ? { exact: micId } : undefined }
+        });
+        document.getElementById('preJoinPreview').srcObject = preJoinStream;
+        monitorPreJoinMic(preJoinStream);
+      } catch (e) { console.error("Preview failed", e); }
+    }
+
+    function monitorPreJoinMic(stream) {
+      if (!stream || stream.getAudioTracks().length === 0) return;
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioContext.createMediaStreamSource(stream);
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const bar = document.getElementById('micTestBar');
+
+      const tick = () => {
+        if (!preJoinStream) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+        if (bar) bar.style.width = Math.min(100, avg * 2) + '%';
+        requestAnimationFrame(tick);
+      };
+      tick();
+    }
+
     async function startMeeting(room) {
       if (!room) return;
+      
+      // Stop pre-join preview
+      if (preJoinStream) {
+        preJoinStream.getTracks().forEach(t => t.stop());
+        preJoinStream = null;
+      }
+
       window.currentRoomName = room;
       meetContainer.style.display = 'flex';
       setupDiv.style.display = 'none';
+      document.getElementById('deviceSetupModal').classList.remove('active');
 
       meetingPresence.track({ roomName: room, user: currentUser }).then(() => { });
 
-      const adminCallSelect = document.getElementById('inMeetAdminToCall');
       supabase.from('lyra_meetings').insert([{
         roomName: room,
         host: currentUser
       }]).then(() => { });
 
-      // Get Local Media
+      // Get Local Media using selected devices
+      const camId = document.getElementById('camSelect').value;
+      const micId = document.getElementById('micSelect').value;
+      const speakerId = document.getElementById('speakerSelect').value;
+
+      // Save preferences if checked
+      if (document.getElementById('rememberDevices').checked) {
+        localStorage.setItem('lyra_cam_id', camId);
+        localStorage.setItem('lyra_mic_id', micId);
+        localStorage.setItem('lyra_speaker_id', speakerId);
+      }
+
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { deviceId: camId ? { exact: camId } : undefined }, 
+          audio: { deviceId: micId ? { exact: micId } : undefined } 
+        });
+
+        // Set output device if supported
+        if (speakerId && typeof HTMLVideoElement.prototype.setSinkId !== 'undefined') {
+          // We'll apply this to future remote videos too
+          window.selectedSpeakerId = speakerId;
+        }
+
         addVideoStream(myUserId, localStream, true, currentUser);
       } catch (err) {
         console.error("Failed to get local media", err);
-        alert("Could not access camera/microphone.");
+        showToast("Access Denied: Check camera/mic permissions.");
         setupDiv.style.display = 'flex';
         meetContainer.style.display = 'none';
         return;
@@ -1009,6 +1290,13 @@
           video.style.display = 'none';
           pfpImg.style.display = 'block';
         }
+      } else {
+        // Apply selected speaker if set
+        if (window.selectedSpeakerId && typeof video.setSinkId !== 'undefined') {
+          video.setSinkId(window.selectedSpeakerId).catch(err => {
+            console.error("Failed to set sinkId", err);
+          });
+        }
       }
 
       const label = document.createElement('div');
@@ -1154,35 +1442,40 @@
       }
     });
 
-    let isScreenSharing = false;
-    let localScreenStream = null;
-
-    document.getElementById('toggleScreenShareBtn').addEventListener('click', async (e) => {
+    document.getElementById('toggleScreenShareBtn').addEventListener('click', (e) => {
       if (!isScreenSharing) {
-        try {
-          localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-          const screenVideoTrack = localScreenStream.getVideoTracks()[0];
-          screenVideoTrack.onended = () => { stopScreenSharing(); };
-
-          // Render self view of screen as an independent video square
-          addVideoStream(myScreenUserId, localScreenStream, true, currentUser + " (Screen)");
-
-          // Broadcast that our screen bot joined the meeting!
-          roomChannel.send({
-            type: 'broadcast',
-            event: 'webrtc_signaling',
-            payload: { sender: myScreenUserId, senderName: currentUser + ' (Screen)', type: 'peer_joined' }
-          });
-
-          isScreenSharing = true;
-          e.target.textContent = '❌ Stop Sharing';
-          e.target.style.background = 'var(--red)';
-        } catch (err) {
-          console.error("Screen sharing failed", err);
-          showToast('Screen sharing failed or cancelled.');
-        }
+        document.getElementById('screenShareNotify').classList.add('active');
       } else {
         stopScreenSharing();
+      }
+    });
+
+    document.getElementById('cancelScreenBtn').addEventListener('click', () => {
+      document.getElementById('screenShareNotify').classList.remove('active');
+    });
+
+    document.getElementById('confirmScreenBtn').addEventListener('click', async () => {
+      document.getElementById('screenShareNotify').classList.remove('active');
+      try {
+        localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+        const screenVideoTrack = localScreenStream.getVideoTracks()[0];
+        screenVideoTrack.onended = () => { stopScreenSharing(); };
+
+        addVideoStream(myScreenUserId, localScreenStream, true, currentUser + " (Screen)");
+
+        roomChannel.send({
+          type: 'broadcast',
+          event: 'webrtc_signaling',
+          payload: { sender: myScreenUserId, senderName: currentUser + ' (Screen)', type: 'peer_joined' }
+        });
+
+        isScreenSharing = true;
+        const btn = document.getElementById('toggleScreenShareBtn');
+        btn.textContent = '❌ Stop Sharing';
+        btn.style.background = 'var(--red)';
+      } catch (err) {
+        console.error("Screen sharing failed", err);
+        showToast('Screen sharing failed or cancelled.');
       }
     });
 
@@ -1235,16 +1528,35 @@
 
     document.getElementById('leaveMeetBtn').addEventListener('click', leaveMeeting);
 
-    startBtn.addEventListener('click', () => {
+    startBtn.addEventListener('click', async () => {
       let room = roomInput.value.trim();
       if (!room) {
         room = 'LYRA-Meeting-' + Math.random().toString(36).substring(7);
       } else {
-        // Sanitize room name
         room = room.replace(/[^a-zA-Z0-9-]/g, '-');
       }
-      startMeeting(room);
+      
+      // Show Device Setup Popup first
+      window.pendingRoom = room;
+      document.getElementById('deviceSetupModal').classList.add('active');
+      await enumerateDevices();
+      updatePreJoinPreview();
     });
+
+    document.getElementById('cancelJoinBtn').addEventListener('click', () => {
+      document.getElementById('deviceSetupModal').classList.remove('active');
+      if (preJoinStream) {
+        preJoinStream.getTracks().forEach(t => t.stop());
+        preJoinStream = null;
+      }
+    });
+
+    document.getElementById('finalJoinBtn').addEventListener('click', () => {
+      startMeeting(window.pendingRoom);
+    });
+
+    document.getElementById('camSelect').addEventListener('change', updatePreJoinPreview);
+    document.getElementById('micSelect').addEventListener('change', updatePreJoinPreview);
 
     const historyList = document.getElementById('history-list');
 
