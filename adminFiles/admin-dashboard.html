@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Admin Dashboard</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --red: #E8002D;
+      --red-dark: #a80020;
+      --green: #00E85D;
+      --green-dark: #00a843;
+      --white: #FFFFFF;
+      --black: #000000;
+      --gray-200: #CCCCCC;
+      --gray-600: #555555;
+      --gray-800: #1A1A1A;
+      --gray-900: #0D0D0D;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      transition: transform 0.3s ease, text-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    p:hover,
+    h1:hover,
+    h2:hover,
+    h3:hover,
+    h4:hover,
+    h5:hover,
+    h6:hover {
+      transform: translateY(-2px);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+      color: var(--white);
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--gray-900);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      position: fixed;
+      height: 100vh;
+      z-index: 100;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.12em;
+      color: var(--white);
+      text-decoration: none;
+      margin-bottom: 3rem;
+    }
+
+    .brand-logo img {
+      height: 2rem;
+      width: auto;
+    }
+
+    .brand-logo span {
+      color: var(--red);
+    }
+
+    .nav-menu {
+      list-style: none;
+      flex: 1;
+    }
+
+    .nav-menu li {
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-600);
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+
+    .nav-menu a:hover {
+      color: var(--white);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-menu a.active {
+      color: var(--white);
+      background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red);
+      padding-left: calc(1rem - 3px);
+    }
+
+    .logout-btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--white);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--red);
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 3rem 4rem;
+      background: var(--black);
+      position: relative;
+    }
+
+    .main-bg {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(232, 0, 45, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 3rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 2rem;
+    }
+
+    .header-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+    }
+
+    .header-subtitle {
+      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--red);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .stat-box {
+      background: var(--gray-900);
+      padding: 1rem 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: right;
+    }
+
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* APPLICATIONS LIST */
+    .apps-container {
+      position: relative;
+      z-index: 10;
+    }
+
+    .app-card {
+      background: var(--gray-900);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .app-card:hover {
+      border-color: rgba(232, 0, 45, 0.3);
+      background: rgba(26, 26, 26, 0.9);
+    }
+
+    .app-info {
+      flex: 1;
+    }
+
+    .app-role {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--red);
+      background: rgba(232, 0, 45, 0.1);
+      padding: 0.25rem 0.75rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .app-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--white);
+      margin-bottom: 0.5rem;
+    }
+
+    .app-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-200);
+      margin-bottom: 1rem;
+    }
+
+    .app-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .app-reason {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--gray-600);
+      max-width: 80%;
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+      padding-left: 1rem;
+    }
+
+    .app-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      min-width: 140px;
+    }
+
+    .btn {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-accept {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .btn-accept:hover {
+      background: var(--green);
+      color: var(--black);
+    }
+
+    .btn-decline,
+    .btn-remove {
+      background: transparent;
+      color: var(--gray-200);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-decline:hover,
+    .btn-remove:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(232, 0, 45, 0.05);
+    }
+
+    @media (max-width: 900px) {
+      .app-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+      }
+
+      .app-reason {
+        max-width: 100%;
+        border-left: none;
+        padding-left: 0;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .app-actions {
+        flex-direction: row;
+      }
+
+      .btn {
+        flex: 1;
+      }
+    }
+  </style>
+  <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
+  <link rel="stylesheet" href="../animations.css">
+  <link rel="stylesheet" href="../responsive.css">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="../index.html" class="brand-logo">
+      <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
+      <div><span>L</span>YRA</div>
+    </a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus"
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
+        Status</label>
+      <select id="adminStatus" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label
+        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
+        Presence</label>
+      <select id="presenceList" class="form-input"
+        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li><a href="admin-dashboard.html" class="active">Applications</a></li>
+      <li><a href="admin-roster.html">Management</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-meetings.html">Meetings</a></li>
+      <li><a href="admin-reviews.html">Performance Reviews</a></li>
+      <li><a href="admin-access.html">Admin Access</a></li>
+      <li><a href="admin-news.html">News & Content</a></li>
+      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li><a href="admin-settings.html">Settings</a></li>
+    </ul>
+
+    <a href="#" id="logoutBtn" class="logout-btn">
+      ← Logout
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="main-bg"></div>
+
+    <div class="header">
+      <div>
+        <p class="header-subtitle">Admin Portal</p>
+        <h1 class="header-title">Pending Applications</h1>
+      </div>
+      <div class="stats-container">
+        <div class="stat-box">
+          <p class="stat-number" id="pendingCount">3</p>
+          <p class="stat-label">Pending</p>
+        </div>
+        <div class="stat-box">
+          <p class="stat-number">89</p>
+          <p class="stat-label">Reviewed</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="apps-container" id="apps-container">
+    </div>
+
+    <!-- ACTIVE MEMBERS SECTION -->
+    <div class="header" style="margin-top: 5rem;">
+      <div>
+        <p class="header-subtitle">Management</p>
+        <h1 class="header-title">Active Organization Members</h1>
+      </div>
+    </div>
+    <div class="apps-container" id="activeMembersContainer"></div>
+
+  </main>
+
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
+
+  <script>
+    function fetchApps() {
+      supabase.from('lyra_applications').select('*').order('timestamp', { ascending: false }).then(({data}) => {
+      const appsContainer = document.getElementById('apps-container');
+      const pendingCount = document.getElementById('pendingCount');
+      appsContainer.style.opacity = '0';
+      appsContainer.style.transform = 'translateY(10px)';
+      appsContainer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+
+        setTimeout(() => {
+          appsContainer.innerHTML = '';
+          if (!data || data.length === 0) {
+            if (pendingCount) pendingCount.innerText = '0';
+            appsContainer.innerHTML = '<div class="app-card" style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;"><p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No pending applications in the database.</p></div>';
+            appsContainer.style.opacity = '1';
+            appsContainer.style.transform = 'translateY(0)';
+            return;
+          }
+
+          let pCount = 0;
+          data.forEach((app) => {
+            if (app.rolevalue === 'adminAccess') return;
+            pCount++;
+
+            const card = document.createElement('div');
+          card.className = 'app-card animate-slide-in';
+          card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
+            <h2 class="app-name">${app.name} "${app.ign}"</h2>
+            <div class="app-meta" style="margin-bottom:0.5rem;">
+              <span>✉️ ${app.email}</span>
+              <span>📱 ${app.discord}</span>
+              <span>⚔️ ${app.role}</span>
+            </div>
+            ${app.gamerole ? `<div style="margin-bottom:0.3rem;font-size:0.9rem;color:var(--gray-200);"><strong>Role:</strong> ${app.gamerole}</div>` : ''}
+            ${app.sociallink ? `<div style="margin-bottom:0.3rem;font-size:0.9rem;color:var(--gray-200);"><strong>Socials:</strong> <a href="${app.sociallink}" style="color:var(--red);" target="_blank" rel="noopener noreferrer">View Channel</a></div>` : ''}
+            ${app.tracker ? `<div style="margin-bottom:0.3rem;font-size:0.9rem;color:var(--gray-200);"><strong>Tracker:</strong> <a href="${app.tracker}" style="color:var(--red);" target="_blank" rel="noopener noreferrer">View Profile</a></div>` : ''}
+            ${app.experience ? `<div style="margin-bottom:1rem;font-size:0.9rem;color:var(--gray-200);"><strong>Experience:</strong><br/>${app.experience}</div>` : ''}
+            <p class="app-reason" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:1rem; margin-top:0.5rem;"><strong>Why LYRA?</strong><br/>"${app.reason}"</p>
+          </div>
+          <div class="app-actions">
+            <button class="btn btn-accept" data-id="${app.id}" data-email="${app.email}" data-name="${app.name}" data-ign="${app.ign}">Accept</button>
+            <button class="btn btn-decline" data-id="${app.id}">Decline</button>
+          </div>
+        `;
+          appsContainer.appendChild(card);
+        });
+          
+        if (pendingCount) pendingCount.innerText = pCount;
+
+        setTimeout(() => {
+          appsContainer.style.opacity = '1';
+          appsContainer.style.transform = 'translateY(0)';
+        }, 50);
+      }, 200);
+      });
+    }
+    fetchApps();
+    supabase.channel('sync_apps_dash').on('postgres_changes', {event:'*', schema:'public', table:'lyra_applications'}, fetchApps).subscribe();
+
+    document.addEventListener('click', function (e) {
+      if (e.target.classList.contains('btn-accept')) {
+        const id = e.target.getAttribute('data-id');
+        if (id) {
+          supabase.from('lyra_applications').select('*').eq('id', id).single().then(({data: appData}) => {
+            if (appData) {
+              supabase.from('lyra_roster').insert([{
+                game: appData.rolevalue,
+                name: appData.name,
+                ign: appData.ign || '',
+                rawrole: appData.role,
+                customrole: appData.gamerole || 'Member',
+                country: '🇺🇸',
+                sociallink: appData.sociallink || '',
+                discord: appData.discord
+              }]).then(()=>{});
+              supabase.from('lyra_applications').delete().eq('id', id).then(()=>{});
+            }
+          });
+        }
+        const card = e.target.closest('.app-card');
+        card.style.opacity = '0.5';
+        card.style.pointerEvents = 'none';
+        e.target.innerText = 'Accepted';
+        e.target.style.background = 'var(--green)';
+        e.target.style.color = 'var(--black)';
+      }
+      else if (e.target.classList.contains('btn-decline')) {
+        const id = e.target.getAttribute('data-id');
+        if (id) supabase.from('lyra_applications').delete().eq('id', id).then(()=>{});
+      }
+      else if (e.target.classList.contains('btn-remove')) {
+        const card = e.target.closest('.app-card');
+        card.style.opacity = '0.3';
+        card.style.pointerEvents = 'none';
+        e.target.innerText = 'Removed';
+        e.target.style.color = 'var(--red)';
+        e.target.style.borderColor = 'var(--red)';
+      }
+    });
+
+    // --- ACTIVE MEMBERS SYNC ---
+    const activeMembersContainer = document.getElementById('activeMembersContainer');
+    let allAdmins = [];
+    let allRoster = [];
+
+    function renderActiveMembers() {
+      if (!activeMembersContainer) return;
+      activeMembersContainer.innerHTML = '';
+
+      const members = [
+        ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
+        ...allRoster.map(r => ({ ...r, orgType: 'roster' }))
+      ];
+      members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+      members.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        const isAppAdmin = m.orgType === 'admin';
+        const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
+
+        card.innerHTML = `
+          <div class="app-info">
+            <span class="app-role" style="background:${isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; color:var(--white);">${roleBadgeText}</span>
+            <h2 class="app-name">${m.name} "${m.ign || ''}"</h2>
+            <div class="app-meta">
+              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customrole || 'Member')}</span>
+              <span>📱 ${m.discord || 'Not Linked'}</span>
+            </div>
+          </div>
+          <div class="app-actions">
+            <a href="${isAppAdmin ? 'admin-access.html' : 'admin-roster.html'}" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">View</a>
+          </div>
+        `;
+        activeMembersContainer.appendChild(card);
+      });
+    }
+
+    function fetchAdmins() {
+      supabase.from('lyra_approved_admins').select('*').then(({data}) => {
+        allAdmins = data || [];
+        renderActiveMembers();
+      });
+    }
+    fetchAdmins();
+    supabase.channel('sync_admins_dash').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchAdmins).subscribe();
+
+    function fetchRosters() {
+      supabase.from('lyra_roster').select('*').then(({data}) => {
+        allRoster = data || [];
+        renderActiveMembers();
+      });
+    }
+    fetchRosters();
+    supabase.channel('sync_rosters_dash').on('postgres_changes', {event:'*', schema:'public', table:'lyra_roster'}, fetchRosters).subscribe();
+
+
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('lyra_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+  <script src="../animations.js"></script>
+  <script src="../responsive.js"></script>
+</body>
+
+
