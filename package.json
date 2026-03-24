@@ -22,5 +22,8 @@
       "target": "nsis",
       "icon": "LyraEsportsLogo.png"
     }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.0"
   }
 }

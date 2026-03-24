@@ -330,18 +330,22 @@
       width: 1px;
       transform: translateX(-50%);
     }
+
     @media (max-width: 600px) {
       body {
         overflow: auto;
         padding: 4rem 1rem;
         display: block;
       }
+
       .login-wrapper {
         margin: 0 auto;
       }
+
       .login-box {
         padding: 2.5rem 1.5rem;
       }
+
       .back-home {
         position: fixed;
         background: var(--gray-900);
@@ -350,7 +354,7 @@
         left: 0;
         right: 0;
         width: 100%;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         z-index: 1000;
       }
     }
@@ -382,8 +386,9 @@
         <p class="brand-subtitle">Agent Portal Access</p>
       </div>
 
-      <div id="revokedMessage" style="display:none; background:rgba(232,0,45,0.1); border:1px solid var(--red); color:var(--red); padding:1rem; margin-bottom:1.5rem; font-size:0.9rem; text-align:center; font-family:'Barlow', sans-serif;">
-        <strong>ACCESS REVOKED</strong><br/>Your session was terminated.
+      <div id="revokedMessage"
+        style="display:none; background:rgba(232,0,45,0.1); border:1px solid var(--red); color:var(--red); padding:1rem; margin-bottom:1.5rem; font-size:0.9rem; text-align:center; font-family:'Barlow', sans-serif;">
+        <strong>ACCESS REVOKED</strong><br />Your session was terminated.
       </div>
 
       <form action="adminFiles/admin-dashboard.html" method="GET">
@@ -418,15 +423,14 @@
     </div>
   </div>
 
-  <!-- Firebase Core + Database -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
 
   <script>
     // Check for revoked session
     if (new URLSearchParams(window.location.search).get('revoked') === 'true') {
-        document.getElementById('revokedMessage').style.display = 'block';
+      document.getElementById('revokedMessage').style.display = 'block';
     }
 
     document.querySelector('form').addEventListener('submit', function (e) {
@@ -446,16 +450,15 @@
         return;
       }
 
-      db.ref('lyra_approved_admins').once('value').then((snapshot) => {
-        const approvedAdmins = [];
-        snapshot.forEach(child => {
-          approvedAdmins.push(child.val());
-        });
-        
+      supabase.from('lyra_approved_admins').select('*').then(({ data, error }) => {
+        if (error) {
+          console.error(error);
+          return alert("Database connection failed.");
+        }
+
+        const approvedAdmins = data || [];
         const adminMatch = approvedAdmins.find(admin => {
-          return typeof admin === 'string' 
-            ? admin === username.toLowerCase() 
-            : admin.ign.toLowerCase() === username.toLowerCase();
+          return admin.ign.toLowerCase() === username.toLowerCase() || (admin.name && admin.name.toLowerCase() === username.toLowerCase());
         });
 
         if (adminMatch) {
@@ -475,9 +478,6 @@
         } else {
           alert('Username not found in Approved Admins list. Please request access.');
         }
-      }).catch(err => {
-        console.error(err);
-        alert("Database connection failed.");
       });
     });
   </script>

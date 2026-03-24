@@ -441,10 +441,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     </div>
   </div>
 
-  <!-- Firebase Core + Database -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
 
   <script>
     document.getElementById('role').addEventListener('change', function(e) {
@@ -505,20 +504,20 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         ign: document.getElementById('ign').value,
         discord: document.getElementById('discord').value,
         role: roleSelect.options[roleSelect.selectedIndex].text,
-        roleValue: roleSelect.value,
-        gameRole: document.getElementById('gameRole').value || document.getElementById('managementRole').value || document.getElementById('contentPlatform').value || '',
-        socialLink: document.getElementById('contentLink').value || '',
+        rolevalue: roleSelect.value,
+        gamerole: document.getElementById('gameRole').value || document.getElementById('managementRole').value || document.getElementById('contentPlatform').value || '',
+        sociallink: document.getElementById('contentLink').value || '',
         tracker: document.getElementById('tracker').value || '',
         experience: document.getElementById('experience').value || document.getElementById('managementExperience').value || '',
-        reason: document.getElementById('reason').value,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
+        reason: document.getElementById('reason').value
       };
 
-      db.ref('lyra_applications').push(app).then(() => {
+      supabase.from('lyra_applications').insert([app]).then(({error}) => {
+        if (error) {
+          console.error(error);
+          return alert("Failed to submit. Please ensure database connection is active.");
+        }
         window.location.href = 'pending.html';
-      }).catch(err => {
-        console.error(err);
-        alert("Failed to submit. Please ensure database connection is active.");
       });
     });
   </script>
