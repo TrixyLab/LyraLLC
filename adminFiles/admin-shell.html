@@ -717,9 +717,11 @@
                     };
 
                     try {
+                        console.log("Shell: Requesting getUserMedia...");
                         window.LyraMeeting.localStream = await withTimeout(navigator.mediaDevices.getUserMedia({ video: vConstraint, audio: aConstraint }), 30000);
+                        console.log("Shell: getUserMedia success.");
                     } catch (err) {
-                        console.warn("Shell: Media access failed, joining as listener only.", err);
+                        console.error("Shell: Media access failed.", err);
                         window.LyraMeeting.localStream = null;
                     }
 

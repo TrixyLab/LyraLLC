@@ -917,7 +917,11 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+
     <script>
+        const currentUser = localStorage.getItem('lyra_user');
         // Safe Shell Detection
         let shell = null;
         try {
@@ -1254,7 +1258,8 @@
                 updateParticipants();
             } catch (e) {
                 joinBtn.innerText = "RETRY UPLINK"; joinBtn.disabled = false;
-                alert("Connection failed. Check permissions.");
+                console.error("Uplink Error:", e);
+                alert("Connection failed: " + e.message + "\n\nCheck browser permissions for Camera/Mic.");
             }
         };
 
