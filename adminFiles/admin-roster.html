@@ -63,163 +63,10 @@
       display: flex;
     }
 
-    /* SIDEBAR */
-    .sidebar {
-      width: 280px;
-      background: var(--gray-900);
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
-      display: flex;
-      flex-direction: column;
-      padding: 2rem;
-      position: fixed;
-      height: 100vh;
-      z-index: 100;
-      overflow-y: auto;
-      scrollbar-width: none;
-    }
-    .sidebar::-webkit-scrollbar { display: none; }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2rem;
-      letter-spacing: 0.12em;
-      color: var(--white);
-      text-decoration: none;
-      margin-bottom: 3rem;
-    }
-
-    .brand-logo img {
-      height: 2rem;
-      width: auto;
-    }
-
-    .brand-logo span {
-      color: var(--red);
-    }
-
-    .nav-menu {
-      list-style: none;
-      flex: 1;
-    }
-
-    .nav-menu li {
-      margin-bottom: 0.5rem;
-    }
-
-    .nav-menu a {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 600;
-      font-size: 1rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--gray-600);
-      text-decoration: none;
-      padding: 1rem;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    .nav-menu a:hover {
-      color: var(--white);
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .nav-menu a.active {
-      color: var(--white);
-      background: rgba(232, 0, 45, 0.1);
-      border-left: 3px solid var(--red);
-      padding-left: calc(1rem - 3px);
-    }
-
-    /* NAV DROPDOWN */
-    .nav-dropdown {
-      position: relative;
-    }
-    .nav-dropdown-trigger {
-      cursor: pointer;
-    }
-    .nav-dropdown-trigger .chevron {
-      margin-left: auto;
-      transition: transform 0.3s ease;
-      opacity: 0.5;
-    }
-    .nav-dropdown.open .nav-dropdown-trigger .chevron {
-      transform: rotate(180deg);
-      opacity: 1;
-    }
-    .nav-dropdown-menu {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 4px;
-      margin-top: 2px;
-    }
-    .nav-dropdown.open > .nav-dropdown-menu {
-      max-height: 1000px;
-      padding-bottom: 0.5rem;
-    }
-    /* Nested Indentation */
-    .nav-dropdown-menu .nav-dropdown-trigger {
-      padding-left: 2rem !important;
-      font-size: 0.85rem !important;
-    }
-    .nav-dropdown-menu .nav-dropdown-menu a {
-      padding-left: 3.5rem !important;
-    }
-    .nav-dropdown-menu .nav-dropdown-menu .nav-dropdown-menu a {
-      padding-left: 4.5rem !important;
-    }
-    .nav-dropdown-menu li {
-      margin-bottom: 0 !important;
-    }
-    .nav-dropdown-menu li a {
-      font-size: 0.85rem !important;
-      padding: 0.8rem 1rem 0.8rem 3.2rem !important;
-      color: var(--gray-600);
-      border-left: none !important;
-    }
-    .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active {
-      color: var(--white) !important;
-      background: rgba(255, 255, 255, 0.03) !important;
-    }
-    .nav-dropdown-menu li a.active {
-      color: var(--red) !important;
-      font-weight: 700;
-    }
-
-    .logout-btn {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--white);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 1rem;
-      transition: color 0.2s;
-    }
-
-    .logout-btn:hover {
-      color: var(--red);
-    }
-
     /* MAIN CONTENT */
     .main-content {
       flex: 1;
-      margin-left: 280px;
+      width: 100%;
       padding: 3rem 4rem;
       background: var(--black);
       position: relative;
@@ -445,153 +292,6 @@
 
 <body>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <a href="../index.html" class="brand-logo">
-      <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
-      <div><span>L</span>YRA</div>
-    </a>
-
-    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
-      <label for="adminStatus"
-        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your
-        Status</label>
-      <select id="adminStatus" class="form-input"
-        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
-        <option value="online">🟢 Online</option>
-        <option value="away">🟡 Away</option>
-        <option value="dnd">🔴 Do Not Disturb</option>
-      </select>
-    </div>
-
-    <div class="admin-presence-list" style="margin-bottom: 2rem;">
-      <label
-        style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team
-        Presence</label>
-      <select id="presenceList" class="form-input"
-        style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
-        <option value="" disabled selected>View Team Online</option>
-      </select>
-    </div>
-
-    <ul class="nav-menu">
-      <li><a href="admin-overview.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span>Overview</span></a></li>
-      <li class="nav-dropdown" id="nav-management">
-        <a href="#" class="nav-dropdown-trigger">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-          <span>Management</span>
-          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </a>
-        <ul class="nav-dropdown-menu">
-          <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
-          <li><a href="admin-roster.html" class="active">Master Control</a></li>
-          <li><a href="admin-reviews.html">Performance Reviews</a></li>
-          <li><a href="admin-updates.html">Daily Updates</a></li>
-          <li><a href="admin-scheduling.html">Availability</a></li>
-          <li><a href="admin-schedule-events.html">Schedule</a></li>
-        </ul>
-      </li>
-      <li class="nav-dropdown" id="nav-comms">
-        <a href="#" class="nav-dropdown-trigger">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          <span>Communications</span>
-          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </a>
-        <ul class="nav-dropdown-menu">
-          <li><a href="admin-chat.html">Management Chat</a></li>
-          <li><a href="admin-dms.html">Direct Messages</a></li>
-          <li><a href="admin-meetings.html">Meetings</a></li>
-        </ul>
-      </li>
-      <li class="nav-dropdown" id="nav-teams">
-        <a href="#" class="nav-dropdown-trigger">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          <span>Teams</span>
-          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </a>
-        <ul class="nav-dropdown-menu">
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>Valorant</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=val&reg=na"># val-na</a></li>
-              <li><a href="admin-team-chat.html?team=val&reg=eu"># val-eu</a></li>
-              <li><a href="admin-team-chat.html?team=val&reg=oce"># val-oce</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>Overwatch 2</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=ow2&reg=na"># ow2-na</a></li>
-              <li><a href="admin-team-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>League of Legends</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=lol&reg=na"># lol-na</a></li>
-              <li><a href="admin-team-chat.html?team=lol&reg=eu"># lol-eu</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>Apex Legends</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=apex&reg=na"># apex-na</a></li>
-              <li><a href="admin-team-chat.html?team=apex&reg=eu"># apex-eu</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>Halo</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=halo&reg=na"># halo-na</a></li>
-              <li><a href="admin-team-chat.html?team=halo&reg=eu"># halo-eu</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>The Finals</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=tf&reg=na"># finals-na</a></li>
-              <li><a href="admin-team-chat.html?team=tf&reg=eu"># finals-eu</a></li>
-            </ul>
-          </li>
-          <li class="nav-dropdown">
-            <a href="#" class="nav-dropdown-trigger">
-              <span>Rocket League</span>
-              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </a>
-            <ul class="nav-dropdown-menu">
-              <li><a href="admin-team-chat.html?team=rl&reg=na"># rl-na</a></li>
-              <li><a href="admin-team-chat.html?team=rl&reg=eu"># rl-eu</a></li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <li id="nav-access"><a href="admin-access.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span>Admin Access</span></a></li>
-      <li id="nav-news"><a href="admin-news.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l4 4v10a2 2 0 0 1-2 2z"></path><polyline points="14 3 14 8 19 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>News & Content</span></a></li>
-      <li id="nav-orders"><a href="admin-orders.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>Store Orders</span></a></li>
-      <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg><span>Owner Console</span></a></li>
-      <li><a href="admin-settings.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>Settings</span></a></li>
-    </ul>
-    <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
-  </aside>
-
   <!-- MAIN CONTENT -->
   <main class="main-content">
     <div class="main-bg"></div>
@@ -599,7 +299,7 @@
     <div class="header">
       <div>
         <p class="header-subtitle">Admin Portal</p>
-        <h1 class="header-title">Master Control</h1>
+        <h1 class="header-title">Roster Management</h1>
       </div>
       <div>
         <button class="btn btn-primary" style="padding: 1rem 2rem;">+ Add Player</button>
@@ -930,55 +630,6 @@
       }]).then(()=>{});
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', function (e) {
-      e.preventDefault();
-      localStorage.removeItem('lyra_user');
-      window.location.href = 'index.html';
-    });
-
-    // Nav Dropdown Toggle
-    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
-      trigger.addEventListener('click', (e) => {
-        e.preventDefault();
-        trigger.parentElement.classList.toggle('open');
-      });
-    });
-
-    // Auto-expand dropdown if child is active
-    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
-      const page = window.location.pathname.split("/").pop();
-      if (link.getAttribute('href') === page) {
-        link.classList.add('active');
-        const parent = link.closest('.nav-dropdown');
-        if (parent) {
-          parent.classList.add('open');
-          parent.querySelector('.nav-dropdown-trigger').classList.add('active');
-        }
-      }
-    });
-    // Role-based Navigation Access
-    const userRole = localStorage.getItem('lyra_role');
-    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
-    const role = (userRole || '').toLowerCase();
-    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
-    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
-    const isManagement = isOwnerOrIT || 
-                        role.includes('management') || 
-                        role.includes('operation directors') || 
-                        role.includes('director') || 
-                        role.includes('recruiter');
-    
-    // Hide Management if not authorized
-    if (!isManagement) {
-      const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = 'none';
-      const pagePath = window.location.pathname.split("/").pop();
-      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(pagePath)) window.location.href = 'admin-overview.html';
-    }
-
-    // Role-based Navigation Access
     const applyVisibility = () => {
       const uRole = (localStorage.getItem('lyra_role') || 'staff').toLowerCase();
       const uUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
@@ -996,33 +647,13 @@
       // BLOCK STAFF FROM ROSTER
       if (!isManagement && !isSim) {
           window.location.href = 'admin-overview.html';
-          return;
       }
-
-      const mgmtNav = document.getElementById('nav-management');
-      if (mgmtNav) mgmtNav.style.display = isManagement ? 'block' : 'none';
-
-      const superNav = document.getElementById('nav-super');
-      if (superNav) superNav.style.display = isOwnerOrIT ? 'block' : 'none';
-
-      const versaNav = document.getElementById('nav-versa-master');
-      if (versaNav) {
-          versaNav.style.display = (uUser === 'versa' && !isSim) ? 'block' : 'none';
-      }
-
-      const newsNav = document.getElementById('nav-news');
-      const ordersNav = document.getElementById('nav-orders');
-      if (newsNav) newsNav.style.display = isManagement ? 'block' : 'none';
-      if (ordersNav) ordersNav.style.display = isManagement ? 'block' : 'none';
     };
     applyVisibility();
-
-
   </script>
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>
 </body>
-
 </html>
 
 

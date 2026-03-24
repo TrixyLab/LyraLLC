@@ -15,47 +15,44 @@
     `;
     document.head.appendChild(immediateStyle);
 
+    const isIframe = window.self !== window.top;
     let inShell = false;
     try {
-        inShell = window.self !== window.top && window.parent && window.parent.LyraMeeting;
+        inShell = isIframe && window.parent && window.parent.LyraMeeting;
     } catch (e) {
+        // Cross-origin access blocked, but we're still in an iframe!
         console.warn("Portal Bridge: Direct parent access blocked (Cross-Origin). Navigation will use fallback mode.");
     }
 
-    if (inShell) {
-        // Intercept local links to stay within the shell
+    // INTERCEPT LINKS - If we are in any iframe, we should try to tell the parent to navigate.
+    if (isIframe) {
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
             if (link && link.href && !link.classList.contains('no-shell')) {
-                const url = new URL(link.href);
-                const targetPage = url.pathname.split('/').pop();
-                if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html')) {
-                    e.preventDefault();
-                    // Tell parent to navigate
-                    window.parent.postMessage({ type: 'NAVIGATE', page: targetPage + url.search }, '*');
-                }
+                const url = new Object();
+                try {
+                  const parsed = new URL(link.href);
+                  const targetPage = parsed.pathname.split('/').pop();
+                  if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html')) {
+                      e.preventDefault();
+                      // Tell parent to navigate (Origin '*' is safer for multi-context work)
+                      window.parent.postMessage({ type: 'NAVIGATE', page: targetPage + parsed.search }, '*');
+                  }
+                } catch(e) {}
             }
         });
+        
+        if (inShell) console.log("Portal Bridge: Shell integration active.");
+    }
 
-        console.log("Portal Bridge: Shell integration active.");
-    } else if (!window.location.pathname.includes('admin-shell.html')) {
-        // AUTO-WRAP INTO SHELL - ONLY if we are truly at the top level.
-        // If we are in an iframe but inShell is false, we are already wrapped 
-        // but can't access parent properties (e.g. origin null).
-        if (window.self === window.top) {
-            const page = window.location.pathname.split('/').pop();
-            if (page.startsWith('admin-')) {
-                window.location.href = 'admin-shell.html?p=' + page + window.location.search;
-            }
-        } else {
-            console.log("Portal Bridge: Already in an iframe, skipping auto-wrap.");
-            // We're likely in a shell but couldn't verify it via property access.
-            // Hide the immediate style to reveal the page content correctly.
-            const bridgeStyle = document.getElementById('portal-bridge-immediate');
-            if (bridgeStyle) bridgeStyle.remove();
+    if (!isIframe && !window.location.pathname.includes('admin-shell.html')) {
+        // AUTO-WRAP INTO SHELL - ONLY if we are at the top level and it's an admin page.
+        const page = window.location.pathname.split('/').pop();
+        if (page.startsWith('admin-')) {
+            window.location.href = 'admin-shell.html?p=' + page + window.location.search;
         }
     } else {
-        // Running standalone (not in shell, not an admin page) - restore sidebar
+        // Restore sidebar if we are standalone or in an iframe (shell takes care of its own)
         const bridgeStyle = document.getElementById('portal-bridge-immediate');
         if (bridgeStyle) bridgeStyle.remove();
     }

@@ -510,40 +510,60 @@
         .logout-btn:hover {
             color: var(--red);
         }
-        #activeCallBar {
+        #shell-audio-pool { display: none; }
+
+        /* GUEST LOBBY */
+        #guestLobby {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(13, 13, 13, 0.95);
-            border: 1px solid var(--red);
-            border-radius: 8px;
-            padding: 12px 20px;
+            inset: 0;
+            background: #000;
+            z-index: 9999999;
             display: none;
             align-items: center;
-            gap: 15px;
-            z-index: 999999;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(232,0,45,0.3);
-            font-family: 'Barlow Condensed', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            backdrop-filter: blur(10px);
-            animation: slideInRight 0.4s ease-out;
+            justify-content: center;
+            flex-direction: column;
+            padding: 2rem;
+            text-align: center;
         }
-        @keyframes slideInRight {
-            from { transform: translateX(120%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+        .guest-card {
+            background: var(--gray-900);
+            border: 1px solid var(--red);
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(232,0,45,0.2);
         }
-        #activeCallBar .pulse-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; box-shadow: 0 0 10px var(--red); animation: pulse 2s infinite; }
-        #activeCallBar .info { display: flex; flex-direction: column; }
-        #activeCallBar .room { font-weight: 700; color: var(--white); font-size: 14px; }
-        #activeCallBar .status { font-size: 10px; color: var(--gray-400); }
-        #activeCallBar .btn-group { display: flex; gap: 8px; }
-        #activeCallBar button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; text-transform: uppercase; font-weight: 700; transition: all 0.2s; }
-        #activeCallBar button.primary { background: var(--red); border-color: var(--red); }
-        #activeCallBar button:hover { background: rgba(255,255,255,0.2); }
-        #activeCallBar button.primary:hover { background: #ff1a43; }
+        .guest-input {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--gray-600);
+            padding: 1rem;
+            color: white;
+            font-family: 'Barlow', sans-serif;
+            margin: 2rem 0;
+            outline: none;
+            font-size: 1.1rem;
+        }
+        .guest-input:focus { border-color: var(--red); }
+        .guest-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .guest-btn:hover { background: #ff1a43; }
 
-        #shell-audio-pool { display: none; }
+        /* GUEST MODE OVERRIDES */
+        body.is-guest .sidebar,
+        body.is-guest .header { display: none !important; }
+        body.is-guest .main-content { margin-left: 0 !important; width: 100vw !important; height: 100vh !important; }
+        body.is-guest iframe { border: none !important; }
     </style>
     <!-- Supabase Core (Required early for Shell State - only one instance needed) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -552,6 +572,16 @@
     <script>
         // CORE SHELL STATE
         const updateSessionState = () => {
+            const params = new URLSearchParams(window.location.search);
+            const isGuestMode = params.get('guest') === 'true';
+
+            if (isGuestMode) {
+                document.body.classList.add('is-guest');
+                window.currentUser = null;
+                window.userRole = 'Guest';
+                return;
+            }
+
             try {
                 window.currentUser = localStorage.getItem('lyra_user');
                 window.userRole = localStorage.getItem('lyra_role');
@@ -567,9 +597,9 @@
         };
         updateSessionState();
 
-        // SYNC DISPLAY NAME: Ensure we use the real IGN from the database
+        // SYNC IDENTITY: Ensure we use the real IGN from the database
         const syncIdentity = () => {
-            if (window.currentUser === 'Operative') return;
+            if (window.userRole === 'Guest' || window.currentUser === 'Operative') return;
             const client = window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
             if (!client) return;
             
@@ -601,20 +631,27 @@
             upsertMeeting: async (room) => {
                 window.LyraMeeting.isActive = true;
                 window.LyraMeeting.currentRoom = room;
-                const bar = document.getElementById('activeCallBar');
+                
                 const barRoom = document.getElementById('barRoomName');
-                if (bar) bar.style.display = 'flex';
-                if (barRoom) barRoom.innerText = room;
+                if (barRoom) barRoom.innerText = `IN MEETING: ${room}`;
+
+                // Update visibility based on current page
+                const isMeetingPage = iframe.src.includes('admin-meetings.html');
+                const bar = document.getElementById('activeCallBar');
+                if (bar) bar.style.display = isMeetingPage ? 'none' : 'flex';
 
                 const client = window.supabase || supabase;
                 if (!client) return;
                 try {
-                    return await client.from('lyra_meetings').upsert({
+                    const res = await client.from('lyra_meetings').upsert({
                         room_name: room,
                         creator_ign: window.currentUser || 'Operative',
                         is_active: true,
                         last_activity: new Date().toISOString()
                     }, { onConflict: 'room_name' });
+                    
+                    window.LyraMeeting.startHeartbeat(room);
+                    return res;
                 } catch (e) { console.error("Shell: Lobby Upsert Error", e); }
             },
 
@@ -680,7 +717,7 @@
                     };
 
                     try {
-                        window.LyraMeeting.localStream = await withTimeout(navigator.mediaDevices.getUserMedia({ video: vConstraint, audio: aConstraint }), 10000);
+                        window.LyraMeeting.localStream = await withTimeout(navigator.mediaDevices.getUserMedia({ video: vConstraint, audio: aConstraint }), 30000);
                     } catch (err) {
                         console.warn("Shell: Media access failed, joining as listener only.", err);
                         window.LyraMeeting.localStream = null;
@@ -899,27 +936,6 @@
                 return window.LyraMeeting.isVideoDisabled;
             },
 
-            getIdentity: () => {
-                return { ign: window.currentUser || 'Operative', role: window.userRole || 'Staff' };
-            },
-
-            // PERSISTENCE BRIDGE
-            upsertMeeting: async (room) => {
-                const client = window.supabase || supabase;
-                if (!client) return;
-                try {
-                    const res = await client.from('lyra_meetings').upsert({
-                        room_name: room,
-                        creator_ign: window.currentUser || 'Operative',
-                        is_active: true,
-                        last_activity: new Date().toISOString()
-                    }, { onConflict: 'room_name' });
-                    
-                    window.LyraMeeting.startHeartbeat(room);
-                    return res;
-                } catch (e) { console.error("Shell: Lobby Upsert Error", e); }
-            },
-
             heartbeatInterval: null,
             startHeartbeat: (room) => {
                 if (window.LyraMeeting.heartbeatInterval) clearInterval(window.LyraMeeting.heartbeatInterval);
@@ -943,17 +959,6 @@
                     clearInterval(window.LyraMeeting.heartbeatInterval);
                     window.LyraMeeting.heartbeatInterval = null;
                 }
-            },
-
-            onLobbyUpdate: (callback) => {
-                const client = window.supabase || supabase;
-                if (!client) return;
-                client.channel('lobby_persistence_updates')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
-                        console.log("Shell: Received lobby table update.");
-                        callback(payload);
-                    })
-                    .subscribe();
             },
 
             toggleScreenShare: async (config = {}) => {
@@ -1070,40 +1075,58 @@
         };
 
         // SHELL BAR ACTIONS
-        document.getElementById('barReturn').onclick = () => {
-            if (!window.LyraMeeting.currentRoom) return;
-            const room = window.LyraMeeting.currentRoom;
-            const page = 'admin-meetings.html?room=' + encodeURIComponent(room);
-            iframe.src = page;
-            syncActiveState('admin-meetings.html');
+        const barReturn = document.getElementById('barReturn') || document.getElementById('barBack');
+        const barLeave = document.getElementById('barLeave') || document.getElementById('barEnd');
 
-            const url = new URL(window.location);
-            url.searchParams.set('p', 'admin-meetings.html');
-            url.searchParams.set('room', room);
-            window.history.pushState({}, '', url);
-        };
-        document.getElementById('barEnd').onclick = () => {
-            if (confirm("End current meeting call?")) {
-                window.LyraMeeting.leave();
-                if (iframe.src.includes('admin-meetings.html')) {
-                    iframe.src = 'admin-meetings.html';
+        if (barReturn) {
+            barReturn.onclick = () => {
+                if (!window.LyraMeeting.currentRoom) return;
+                const room = window.LyraMeeting.currentRoom;
+                const page = 'admin-meetings.html?room=' + encodeURIComponent(room);
+                iframe.src = page;
+                syncActiveState('admin-meetings.html');
+
+                const url = new URL(window.location);
+                url.searchParams.set('p', 'admin-meetings.html');
+                url.searchParams.set('room', room);
+                window.history.pushState({}, '', url);
+            };
+        }
+        if (barLeave) {
+            barLeave.onclick = () => {
+                if (confirm("End current meeting call?")) {
+                    window.LyraMeeting.leave();
+                    if (iframe.src.includes('admin-meetings.html')) {
+                        iframe.src = 'admin-meetings.html';
+                    }
                 }
-            }
-        };
+            };
+        }
     </script>
 </head>
 
 <body>
     <div id="shell-audio-pool"></div>
+    <div id="guestLobby">
+        <div class="guest-card">
+            <h1 style="font-family:Bebas Neue; font-size:2.5rem; letter-spacing:2px; color:var(--red);">SECURE MEETING ACCESS</h1>
+            <p style="font-size:0.9rem; color:var(--gray-200); margin-top:0.5rem; text-transform:uppercase; letter-spacing:1px;">You have been invited to a private session.</p>
+            <input type="text" id="guestName" class="guest-input" placeholder="Enter your nickname..." maxlength="20">
+            <button id="joinGuestBtn" class="guest-btn">JOIN SESSION</button>
+            <p style="font-size:0.7rem; color:var(--gray-600); margin-top:1.5rem;">By joining, you agree to follow the LYRA terms of service.</p>
+        </div>
+    </div>
+
+    <!-- Active Call HUD -->
     <div id="activeCallBar">
         <div class="pulse-dot"></div>
         <div class="info">
-            <span class="room" id="barRoomName">OFF-OPS</span>
-            <span class="status">MEETING IN PROGRESS</span>
+            <span id="barRoomName" class="room">IN MEETING: ...</span>
+            <span class="status">CONNECTED TO SECURE NODE</span>
         </div>
         <div class="btn-group">
-            <button id="barReturn" class="primary">RETURN</button>
-            <button id="barEnd">END CALL</button>
+            <button id="barReturn">RETURN</button>
+            <button id="barLeave" class="primary">LEAVE</button>
         </div>
     </div>
 
@@ -1172,12 +1195,12 @@
                     </svg>
                 </a>
                 <ul class="nav-dropdown-menu">
-                    <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
-                    <li><a href="admin-roster.html">Master Control</a></li>
-                    <li><a href="admin-reviews.html">Performance Reviews</a></li>
-                    <li><a href="admin-updates.html">Daily Updates</a></li>
-                    <li><a href="admin-scheduling.html">Availability</a></li>
-                    <li><a href="admin-schedule-events.html">Schedule</a></li>
+                    <li><a href="admin-dashboard.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg><span>Pending Recruitment</span></a></li>
+                    <li><a href="admin-roster.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span>Roster Management</span></a></li>
+                    <li><a href="admin-reviews.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>Performance Reviews</span></a></li>
+                    <li><a href="admin-updates.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg><span>Daily Updates</span></a></li>
+                    <li><a href="admin-scheduling.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>Availability</span></a></li>
+                    <li><a href="admin-schedule-events.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Schedule</span></a></li>
                 </ul>
             </li>
 
@@ -1194,9 +1217,9 @@
                     </svg>
                 </a>
                 <ul class="nav-dropdown-menu">
-                    <li><a href="admin-chat.html">Management Chat</a></li>
-                    <li><a href="admin-dms.html">Direct Messages</a></li>
-                    <li><a href="admin-meetings.html">Meetings</a></li>
+                    <li><a href="admin-chat.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Team Chat</span></a></li>
+                    <li><a href="admin-dms.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg><span>Direct Messages</span></a></li>
+                    <li><a href="admin-meetings.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg><span>Meetings</span></a></li>
                 </ul>
             </li>
 
@@ -1372,7 +1395,23 @@
         
         iframe.src = iframeSrc;
 
-        // 1. NAVIGATION LOGIC
+        // 0. GUEST LOBBY LOGIC
+        const guestLobby = document.getElementById('guestLobby');
+        const guestNameInput = document.getElementById('guestName');
+        const joinGuestBtn = document.getElementById('joinGuestBtn');
+
+        if (window.userRole === 'Guest') {
+            guestLobby.style.display = 'flex';
+            joinGuestBtn.onclick = () => {
+                const name = guestNameInput.value.trim();
+                if (!name) return alert("Please enter a nickname to join.");
+                window.currentUser = name;
+                guestLobby.style.display = 'none';
+                log(`Shell: Guest initialized as ${name}`);
+            };
+        }
+
+        // 1. NAVIGATION & ACTIVE STATE
         function syncActiveState(page) {
             document.querySelectorAll('.sidebar a').forEach(a => {
                 const href = a.getAttribute('href');
@@ -1388,6 +1427,13 @@
                     a.classList.remove('active');
                 }
             });
+
+            // Update Global Call HUD Visibility
+            const bar = document.getElementById('activeCallBar');
+            if (bar && window.LyraMeeting) {
+                const isMeetingPage = page.includes('admin-meetings.html');
+                bar.style.display = (window.LyraMeeting.isActive && !isMeetingPage) ? 'flex' : 'none';
+            }
         }
         syncActiveState(startPage);
 

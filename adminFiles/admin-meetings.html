@@ -118,10 +118,13 @@
             padding: 20px;
         }
 
-        /* PRESENTATION MODE */
+        /* PRESENTATION MODE (Flex-based for reliability) */
         .meeting-container:has(.featured) .video-grid {
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px;
+            overflow: hidden;
         }
 
         .video-wrapper {
@@ -132,23 +135,38 @@
             border: 2px solid var(--glass-border);
             aspect-ratio: 16/9;
             transition: all 0.4s ease;
+            width: 100%;
         }
 
         .video-wrapper.featured {
-            grid-row: 1;
+            flex: 1;
             border-color: var(--red);
             box-shadow: 0 0 50px rgba(232, 0, 45, 0.2);
+            min-height: 0; /* Ensures it doesn't push others out of view */
         }
 
-        /* No-crop for screen share */
-        .video-wrapper video[data-screen="true"] {
-            object-fit: contain !important;
+        /* Participant Strip */
+        .meeting-container:has(.featured) .video-grid::after {
+            content: '';
+            display: none;
+        }
+
+        /* Group non-featured into a strip */
+        .meeting-container:has(.featured) .video-wrapper:not(.featured) {
+            height: 160px;
+            width: 284px; /* 16:9 for 160 height */
+            flex-shrink: 0;
+        }
+
+        /* Logic to make them horizontal */
+        .meeting-container:has(.featured) .video-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .meeting-container:has(.featured) .video-wrapper:not(.featured) {
-            grid-row: 2;
-            height: 180px;
-            aspect-ratio: auto;
+            margin-top: auto;
         }
 
         .video-wrapper video {
@@ -280,106 +298,79 @@
             color: var(--red);
         }
 
-        /* NEW DROPDOWN MENU */
-        .meeting-controls-dropdown {
+        /* DISCORD-STYLE FLOATING BAR */
+        .meeting-footer-trigger {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            z-index: 998;
+        }
+
+        .meeting-footer {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            opacity: 0;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            padding: 12px 30px;
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+        }
+
+        .meeting-footer-trigger:hover + .meeting-footer,
+        .meeting-footer:hover {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
         .meeting-title-tag {
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
             color: var(--accent);
-            padding: 8px 18px;
-            border-radius: 4px;
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             letter-spacing: 1px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            margin-right: 15px;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            padding-right: 15px;
+            white-space: nowrap;
         }
 
-        .dropdown-trigger {
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+        /* Tooltip Container */
+        .control-item {
+            position: relative;
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 18px;
         }
 
-        .dropdown-trigger:hover {
-            background: var(--accent);
-            color: #000;
-            border-color: var(--accent);
-        }
-
-        .dropdown-menu-content {
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 8px;
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 200px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            margin-top: 5px;
-        }
-
-        .dropdown-menu-content.open {
-            display: flex;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 8px;
-            color: #ddd;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .menu-item:hover {
-            background: rgba(255,255,255,0.05);
+        .control-item:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
             color: white;
-        }
-
-        .menu-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 14px;
-            color: var(--accent);
-        }
-
-        .menu-item.danger {
-            color: var(--red);
-        }
-
-        .menu-item.danger i {
-            color: var(--red);
-        }
-
-        .menu-item.danger:hover {
-            background: rgba(232,0,45,0.1);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            margin-bottom: 15px;
+            border: 1px solid var(--glass-border);
+            pointer-events: none;
+            opacity: 1;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* HIDE OLD CONTROL BAR IN MEETING */
@@ -392,12 +383,12 @@
         }
 
         .btn {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.03);
-            color: var(--gray-200);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ccc;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -406,9 +397,9 @@
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             color: #fff;
-            transform: translateY(-2px);
+            transform: scale(1.1);
         }
 
         .btn.active {
@@ -419,15 +410,18 @@
 
         .btn.leave {
             background: var(--red);
-            border-color: var(--red);
+            border: none;
             color: #fff;
-            width: 60px;
-            border-radius: 30px;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            margin-left: 10px;
+            box-shadow: 0 4px 15px rgba(232, 0, 45, 0.3);
         }
 
         .btn.leave:hover {
-            background: #b00020;
-            transform: scale(1.05);
+            background: #ff1a4a;
+            transform: scale(1.1) rotate(135deg);
         }
 
         svg {
@@ -604,6 +598,81 @@
             margin-bottom: 1rem;
             border: 1px solid rgba(255,255,255,0.05);
         }
+        .quality-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 180px;
+            z-index: 1000;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .quality-menu.open {
+            display: flex;
+        }
+
+        .quality-option {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .quality-option:hover {
+            background: rgba(232, 0, 45, 0.1);
+            color: white;
+        }
+
+        .quality-option.active {
+            color: var(--red);
+            font-weight: bold;
+        }
+
+        .quality-option.active::after {
+            content: '✓';
+        }
+
+        .control-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-mini {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            color: #888;
+            cursor: pointer;
+            padding: 8px;
+            transition: all 0.3s;
+            font-size: 10px;
+            border-radius: 4px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-mini:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
     </style>
 </head>
 
@@ -685,49 +754,66 @@
     </div>
 
     <div class="meeting-container">
-        <!-- TOP RIGHT MENU SYSTEM -->
-        <div id="meetingMenu" class="meeting-controls-dropdown" style="display: none;">
+        <!-- TOP RIGHT MENU SYSTEM --        <!-- DISCORD-STYLE FLOATING CONTROLS -->
+        <div class="meeting-footer-trigger"></div>
+        <footer class="meeting-footer" id="meetingMenu" style="display: none;">
             <div id="displayRoom" class="meeting-title-tag">SECURE SESSION</div>
-            
-            <div id="menuTrigger" class="dropdown-trigger">
-                <i class="fas fa-bars"></i>
-            </div>
-            
-            <div id="dropdownMenu" class="dropdown-menu-content">
-                <div class="menu-item" id="menuInvite" style="border-bottom: 2px solid var(--red); margin-bottom: 5px;">
-                    <i class="fas fa-link" style="color: var(--red);"></i>
-                    <span style="font-weight: 800; color: white;">Copy Invite Link</span>
-                </div>
-                <div class="menu-item" id="menuToggleMic">
+
+            <div class="control-item" data-tooltip="Toggle Microphone">
+                <button class="btn" id="toggleMic">
                     <i class="fas fa-microphone"></i>
-                    <span>Toggle Microphone</span>
-                </div>
-                <div class="menu-item" id="menuToggleCam">
+                </button>
+            </div>
+
+            <div class="control-item" data-tooltip="Toggle Camera">
+                <button class="btn" id="toggleCam">
                     <i class="fas fa-video"></i>
-                    <span>Toggle Camera</span>
-                </div>
-                <div class="menu-item" id="menuToggleScreen" style="border-bottom: 1px solid rgba(255,255,255,0.03);">
-                    <i class="fas fa-desktop"></i>
-                    <div style="flex:1">
-                        <div>Share Screen</div>
-                        <select id="screenQuality" style="background:transparent; border:none; color:var(--accent); font-size:10px; cursor:pointer; padding:0; outline:none; font-family:inherit;">
-                            <option value="balanced" style="background:#111">1080p Balanced</option>
-                            <option value="performance" style="background:#111">720p Performance</option>
-                            <option value="ultra" style="background:#111">1080p Ultra (60fps)</option>
-                        </select>
+                </button>
+            </div>
+
+            <div class="control-item" data-tooltip="Share Screen">
+                <div class="control-group">
+                    <button class="btn" id="toggleScreen">
+                        <i class="fas fa-desktop"></i>
+                    </button>
+                    <button class="btn-mini" id="qualityTrigger">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <div id="qualityMenu" class="quality-menu">
+                        <div class="quality-label"
+                            style="font-size:9px; color:#555; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">
+                            Broadcast Quality</div>
+                        <div class="quality-option active" data-quality="balanced">
+                            <span>Balanced (720p 30fps)</span>
+                        </div>
+                        <div class="quality-option" data-quality="performance">
+                            <span>High (1080p 30fps)</span>
+                        </div>
+                        <div class="quality-option" data-quality="ultra">
+                            <span>Ultra (1080p 60fps)</span>
+                        </div>
                     </div>
                 </div>
-                <div class="menu-item" id="menuToggleSidebar">
-                    <i class="fas fa-users"></i>
-                    <span>Participants List</span>
-                </div>
-                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 5px 0;"></div>
-                <div class="menu-item danger" onclick="location.reload()">
-                    <i class="fas fa-times-circle"></i>
-                    <span>Leave Meeting</span>
-                </div>
             </div>
-        </div>
+
+            <div class="control-item" data-tooltip="Participants">
+                <button class="btn" id="toggleSidebar">
+                    <i class="fas fa-users"></i>
+                </button>
+            </div>
+
+            <div class="control-item" data-tooltip="Invite Admins">
+                <button class="btn" id="inviteBtn">
+                    <i class="fas fa-link"></i>
+                </button>
+            </div>
+
+            <div class="control-item" data-tooltip="Leave Meeting">
+                <button class="btn leave" id="leaveBtn">
+                    <i class="fas fa-phone-slash"></i>
+                </button>
+            </div>
+        </footer>
 
         <main class="main-stage">
             <div id="videoGrid" class="video-grid"></div>
@@ -763,12 +849,29 @@
                     d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
             </svg>
         </button>
-        <button class="btn" id="toggleScreen" title="Share Screen">
-            <svg viewBox="0 0 24 24">
-                <path
-                    d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2zm0 14H3V5h18v12z" />
-            </svg>
-        </button>
+        <div class="control-group">
+            <button class="btn" id="toggleScreen" title="Share Screen">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2zm0 14H3V5h18v12z" />
+                </svg>
+            </button>
+            <button class="btn-mini" id="qualityTrigger" title="Stream Quality">
+                <i class="fas fa-chevron-up"></i>
+            </button>
+            <div id="qualityMenu" class="quality-menu">
+                <div class="quality-label" style="font-size:9px; color:#555; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-weight:700;">Broadcast Quality</div>
+                <div class="quality-option active" data-quality="balanced">
+                    <span>Balanced (720p 30fps)</span>
+                </div>
+                <div class="quality-option" data-quality="performance">
+                    <span>High (1080p 30fps)</span>
+                </div>
+                <div class="quality-option" data-quality="ultra">
+                    <span>Ultra (1080p 60fps)</span>
+                </div>
+            </div>
+        </div>
 
         <button class="btn" id="inviteBtn" title="Invite Admins">
             <svg viewBox="0 0 24 24">
@@ -959,6 +1062,14 @@
             fetchMeetings();
         };
 
+        // GUEST RESTRICTION
+        if (shell && shell.getIdentity().role === 'Guest') {
+            const leftLobby = document.querySelector('.lobby-left');
+            if (leftLobby) leftLobby.style.display = 'none';
+            const lobbyCard = document.querySelector('.lobby-card');
+            if (lobbyCard) lobbyCard.style.cssText = 'grid-template-columns: 1fr; max-width: 500px;';
+        }
+
         // SCHEDULE LOGIC
         const scheduleForm = document.getElementById('scheduleForm');
         document.getElementById('toggleScheduleForm').onclick = () => scheduleForm.style.display = 'block';
@@ -1101,13 +1212,8 @@
 
                 // IMMEDIATE UI TRANSITION
                 lobby.style.display = 'none';
-                document.getElementById('meetingMenu').style.display = 'flex'; // SHOW NEW MENU
+                document.getElementById('meetingMenu').style.display = 'flex';
                 document.getElementById('displayRoom').innerText = room;
-
-                // Auto-open sidebar on start
-                sidebar.classList.add('open');
-
-                // Track meeting in DB (via Shell Bridge to bypass cross-origin)
                 shell.upsertMeeting(room);
 
                 // Add Local Video
@@ -1152,35 +1258,8 @@
             }
         };
 
-        // DROPDOWN MENU LOGIC
-        const menuTrigger = document.getElementById('menuTrigger');
-        const dropdownMenu = document.getElementById('dropdownMenu');
-
-        menuTrigger.onclick = (e) => {
-            e.stopPropagation();
-            dropdownMenu.classList.toggle('open');
-        };
-
-        window.onclick = () => dropdownMenu.classList.remove('open');
-
-        // Link Menu Items to existing logic
-        document.getElementById('menuToggleMic').onclick = () => document.getElementById('toggleMic').click();
-        document.getElementById('menuToggleCam').onclick = () => document.getElementById('toggleCam').click();
-        document.getElementById('menuToggleScreen').onclick = () => document.getElementById('toggleScreen').click();
-        document.getElementById('menuToggleSidebar').onclick = () => document.getElementById('toggleSidebar').click();
-        document.getElementById('hideSidebar').onclick = () => sidebar.classList.remove('open');
-        document.getElementById('menuInvite').onclick = () => document.getElementById('inviteBtn').click();
-
-        // QUALITY CONFIGURATION
+        // SCREEN QUALITY STATE
         let screenQuality = { width: 1920, height: 1080, frameRate: 30 };
-        document.getElementById('screenQuality')?.addEventListener('click', e => e.stopPropagation()); // Don't close menu
-        document.getElementById('screenQuality')?.addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (val === 'performance') screenQuality = { width: 1280, height: 720, frameRate: 30 };
-            else if (val === 'balanced') screenQuality = { width: 1920, height: 1080, frameRate: 30 };
-            else if (val === 'ultra') screenQuality = { width: 1920, height: 1080, frameRate: 60 };
-            log("Link: Quality set to " + val.toUpperCase());
-        });
 
         // SPEAKER DETECTION LOGIC
         let audioCtx, analyser, dataArray;
@@ -1316,18 +1395,21 @@
         // Controls
         document.getElementById('toggleMic').onclick = () => {
             const muted = shell.toggleMic();
-            document.getElementById('toggleMic').classList.toggle('active', muted);
+            const btn = document.getElementById('toggleMic');
+            btn.classList.toggle('active', muted);
+            btn.querySelector('i').className = muted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
         };
         document.getElementById('toggleCam').onclick = () => {
             const off = shell.toggleCam();
-            document.getElementById('toggleCam').classList.toggle('active', off);
+            const btn = document.getElementById('toggleCam');
+            btn.classList.toggle('active', off);
+            btn.querySelector('i').className = off ? 'fas fa-video-slash' : 'fas fa-video';
         };
         document.getElementById('toggleScreen').onclick = async () => {
             try {
                 const stream = await shell.toggleScreenShare(screenQuality);
                 const active = !!stream;
 
-                // If we're starting local share, add it to our own grid
                 if (active) {
                     addVideoWrapper('local_screen', stream, 'Your Screen (Presenting)', false);
                 } else {
@@ -1340,30 +1422,63 @@
                 log("Screen Share Error: " + e.message);
             }
         };
-        document.getElementById('toggleSidebar').onclick = () => sidebar.classList.toggle('open');
-        document.getElementById('toggleCinema').onclick = () => {
-            videoGrid.classList.toggle('cinema');
-            document.getElementById('toggleCinema').classList.toggle('active');
+
+        // QUALITY CONFIGURATION
+        const qMenu = document.getElementById('qualityMenu');
+        const qTrigger = document.getElementById('qualityTrigger');
+        if (qTrigger) {
+            qTrigger.onclick = (e) => {
+                e.stopPropagation();
+                qMenu.classList.toggle('open');
+            };
+        }
+
+        document.querySelectorAll('.quality-option').forEach(opt => {
+            opt.onclick = (e) => {
+                e.stopPropagation();
+                const q = opt.dataset.quality;
+                if (q === 'performance') screenQuality = { width: 1280, height: 720, frameRate: 30 };
+                else if (q === 'balanced') screenQuality = { width: 1920, height: 1080, frameRate: 30 };
+                else if (q === 'ultra') screenQuality = { width: 1920, height: 1080, frameRate: 60 };
+                
+                document.querySelectorAll('.quality-option').forEach(x => x.classList.remove('active'));
+                opt.classList.add('active');
+                qMenu.classList.remove('open');
+                log("Uplink: Quality set to " + q.toUpperCase());
+            };
+        });
+
+        document.getElementById('toggleSidebar').onclick = () => {
+            sidebar.classList.toggle('open');
+            updateParticipants();
         };
+
         document.getElementById('inviteBtn').onclick = () => {
             const room = document.getElementById('displayRoom').innerText;
-            const inviteUrl = window.location.origin + window.location.pathname.replace('admin-meetings.html', 'admin-shell.html') + '?p=admin-meetings.html&room=' + encodeURIComponent(room);
+            const inviteUrl = window.location.origin + window.location.pathname.replace('admin-meetings.html', 'admin-shell.html') + '?p=admin-meetings.html&room=' + encodeURIComponent(room) + '&guest=true';
 
             navigator.clipboard.writeText(inviteUrl).then(() => {
-                const originalText = document.getElementById('inviteBtn').innerHTML;
-                document.getElementById('inviteBtn').innerHTML = '<i class="fas fa-check"></i>';
-                setTimeout(() => { document.getElementById('inviteBtn').innerHTML = originalText; }, 2000);
+                const icon = document.getElementById('inviteBtn').querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-check';
+                setTimeout(() => { icon.className = originalClass; }, 2000);
                 log("Invite Link copied to clipboard!");
             }).catch(err => {
                 alert("Invite Link: " + inviteUrl);
             });
         };
+
         document.getElementById('leaveBtn').onclick = () => {
             if (confirm("Disconnect from secure link?")) {
                 shell.leave();
                 location.reload();
             }
         };
+
+        // Close all menus on window click
+        window.addEventListener('click', () => {
+            if (qMenu) qMenu.classList.remove('open');
+        });
 
         // CONTEXT MENU LOGIC
         const ctxMenu = document.getElementById('streamContext');
