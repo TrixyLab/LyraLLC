@@ -813,7 +813,7 @@
                         });
                     } catch (err) { console.error("Shell: Screen share failed", err); return false; }
                 }
-                return window.LyraMeeting.isScreenSharing;
+                return window.LyraMeeting.isScreenSharing ? window.LyraMeeting.localScreenStream : false;
             },
 
             removePeerBySender: (senderId) => {

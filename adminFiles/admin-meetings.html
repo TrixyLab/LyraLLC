@@ -116,14 +116,9 @@
             transition: all 0.5s ease;
         }
 
-        /* CINEMA MODE */
-        .video-grid.cinema {
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr;
-        }
-
-        .video-grid.cinema .video-wrapper:not(.featured) {
-            display: none;
+        /* PRESENTATION MODE (Auto-triggered by .featured) */
+        .meeting-container:has(.featured) .video-grid {
+            grid-template-columns: 1fr 280px;
         }
 
         .video-wrapper {
@@ -133,6 +128,20 @@
             background: rgba(20, 20, 20, 0.4);
             border: 1px solid var(--glass-border);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .video-wrapper.featured {
+            grid-column: 1;
+            grid-row: 1 / span 20;
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(232, 0, 45, 0.15);
+        }
+
+        .meeting-container:has(.featured) .video-wrapper:not(.featured) {
+            grid-column: 2;
+            aspect-ratio: 16/9;
+            height: auto;
         }
 
         .video-wrapper video {
@@ -413,12 +422,17 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <span class="label-sm">Meeting Name / Room ID</span>
                         <div style="display:flex; gap:10px;">
-                            <span id="clearRoom" title="Clear Name" style="cursor:pointer; font-size:10px; color:#555; font-weight:bold;">CLEAR</span>
-                            <span id="randomizeRoom" title="Generate Name" style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold;"><i class="fas fa-magic"></i> AUTO</span>
+                            <span id="clearRoom" title="Clear Name"
+                                style="cursor:pointer; font-size:10px; color:#555; font-weight:bold;">CLEAR</span>
+                            <span id="randomizeRoom" title="Generate Name"
+                                style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold;"><i
+                                    class="fas fa-magic"></i> AUTO</span>
                         </div>
                     </div>
-                    <input type="text" id="roomName" class="form-input" placeholder="e.g. MISSION-OMEGA" value="MAIN-OPS" style="margin-bottom:0.5rem; border-color:var(--accent);">
-                    <p style="font-size:10px; color:#555; margin-bottom:1rem;">Type any name to create a new dedicated room.</p>
+                    <input type="text" id="roomName" class="form-input" placeholder="e.g. MISSION-OMEGA"
+                        value="MAIN-OPS" style="margin-bottom:0.5rem; border-color:var(--accent);">
+                    <p style="font-size:10px; color:#555; margin-bottom:1rem;">Type any name to create a new dedicated
+                        room.</p>
                 </div>
                 <div class="form-group">
                     <span class="label-sm">Camera Input</span>
@@ -432,8 +446,10 @@
 
                 <div id="liveSessions" style="margin-top: 2rem;">
                     <span class="label-sm">Active Sessions</span>
-                    <div id="sessionList" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px;">
-                        <div style="padding: 20px; text-align: center; color: #444; font-size: 11px;">Scanning for active links...</div>
+                    <div id="sessionList"
+                        style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px;">
+                        <div style="padding: 20px; text-align: center; color: #444; font-size: 11px;">Scanning for
+                            active links...</div>
                     </div>
                 </div>
             </div>
@@ -609,14 +625,14 @@
 
             // REAL-TIME SYNC FOR LOBBY
             let db = null;
-            try { db = window.parent.supabase; } catch(e) {}
+            try { db = window.parent.supabase; } catch (e) { }
             if (db) {
                 db.channel('lobby_updates')
-                  .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
-                      log("Lobby Refresh: Data change detected.");
-                      fetchMeetings();
-                  })
-                  .subscribe();
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, payload => {
+                        log("Lobby Refresh: Data change detected.");
+                        fetchMeetings();
+                    })
+                    .subscribe();
             }
         }
 
@@ -759,10 +775,11 @@
             const v = document.createElement('video'); v.srcObject = stream; v.autoplay = true; v.playsinline = true;
             if (isLocal) v.muted = true;
 
-            // Check if it's a screen share
-            if (id.includes('_screen')) {
+            // Check if it's a screen share (detect screen_ prefix from shell)
+            if (id.includes('screen') || id.includes('_screen')) {
                 v.setAttribute('data-screen', 'true');
                 w.classList.add('featured'); // Auto-focus screen shares
+                log("Presentation started: Screen detected.");
             }
 
             const o = document.createElement('div'); o.className = 'video-overlay';
@@ -804,8 +821,22 @@
             document.getElementById('toggleCam').classList.toggle('active', off);
         };
         document.getElementById('toggleScreen').onclick = async () => {
-            const active = await shell.toggleScreenShare();
-            document.getElementById('toggleScreen').classList.toggle('active', active);
+            try {
+                const stream = await shell.toggleScreenShare();
+                const active = !!stream;
+
+                // If we're starting local share, add it to our own grid
+                if (active) {
+                    addVideoWrapper('local_screen', stream, 'Your Screen (Presenting)', false);
+                } else {
+                    const el = document.getElementById('vw-local_screen');
+                    if (el) el.remove();
+                }
+
+                document.getElementById('toggleScreen').classList.toggle('active', active);
+            } catch (e) {
+                log("Screen Share Error: " + e.message);
+            }
         };
         document.getElementById('toggleSidebar').onclick = () => sidebar.classList.toggle('open');
         document.getElementById('toggleCinema').onclick = () => {
