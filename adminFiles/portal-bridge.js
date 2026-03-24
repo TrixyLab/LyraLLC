@@ -24,18 +24,22 @@
         console.warn("Portal Bridge: Direct parent access blocked (Cross-Origin). Navigation will use fallback mode.");
     }
 
-    // INTERCEPT LINKS - If we are in any iframe, we should try to tell the parent to navigate.
+    // INTERCEPT LINKS
     if (isIframe) {
         document.addEventListener('click', (e) => {
             const link = e.target.closest('a');
+            // Ignore if no link, or if link is just an anchor / internal action
             if (link && link.href && !link.classList.contains('no-shell')) {
-                const url = new Object();
+                const hrefAttr = link.getAttribute('href');
+                if (hrefAttr === '#' || hrefAttr.startsWith('javascript:')) return;
+
                 try {
                   const parsed = new URL(link.href);
                   const targetPage = parsed.pathname.split('/').pop();
+                  
+                  // Only intercept links to OTHER admin files
                   if (targetPage.includes('admin-') && !targetPage.includes('admin-shell.html')) {
                       e.preventDefault();
-                      // Tell parent to navigate (Origin '*' is safer for multi-context work)
                       window.parent.postMessage({ type: 'NAVIGATE', page: targetPage + parsed.search }, '*');
                   }
                 } catch(e) {}

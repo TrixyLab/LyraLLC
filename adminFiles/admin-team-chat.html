@@ -11,6 +11,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
     rel="stylesheet">
+  <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
   <style>
     *,
     *::before,
@@ -670,6 +671,16 @@
     });
 
     chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendBtn.click(); });
+
+    // Channel Switching Listeners
+    document.querySelectorAll('.channel-link').forEach(link => {
+      link.onclick = (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.channel-link').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        switchChannel(link.dataset.channel);
+      };
+    });
 
     switchChannel('team-' + teamParam + '-' + regParam + '-general');
   </script>

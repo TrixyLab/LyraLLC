@@ -11,6 +11,8 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Barlow+Condensed:wght@700;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
     <style>
         :root {
             --red: #E8002D;
@@ -88,8 +90,9 @@
         #previewVideo {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             transform: scaleX(-1);
+            background: #000;
         }
 
         /* MAIN VIEWPORT */
@@ -172,7 +175,8 @@
         .video-wrapper video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* Show the full camera/screen view */
+            background: #000;
         }
 
         .video-wrapper.self video:not([data-screen="true"]) {
@@ -673,6 +677,43 @@
             background: rgba(255,255,255,0.1);
         }
 
+        /* VOLUME SLIDER STYLES */
+        .volume-control {
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: 4px;
+        }
+        .volume-label {
+            font-size: 10px;
+            color: #555;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .volume-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--red);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(232,0,45,0.5);
+        }
+
     </style>
 </head>
 
@@ -911,23 +952,47 @@
             <span>Turn Off Preview</span>
         </div>
         <div style="height:1px; background:rgba(255,255,255,0.05); margin:4px 0;"></div>
+        <div class="volume-control" id="volumeControl">
+            <div class="volume-label">
+                <span>User Volume</span>
+                <span id="volVal">100%</span>
+            </div>
+            <input type="range" id="ctxVolume" class="volume-slider" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div style="height:1px; background:rgba(255,255,255,0.05); margin:4px 0;"></div>
         <div class="context-item danger" id="ctxPin">
             <i class="fas fa-thumbtack"></i>
             <span>Pin Stream</span>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../supabase-config.js"></script>
-
     <script>
         const currentUser = localStorage.getItem('lyra_user');
-        // Safe Shell Detection
+        // Safe Shell Detection with Retry
         let shell = null;
-        try {
-            shell = window.parent.LyraMeeting;
-        } catch (e) {
-            console.error("Shell Access Error:", e.message);
+        function detectShell() {
+            try {
+                if (window.parent && window.parent.LyraMeeting) {
+                    shell = window.parent.LyraMeeting;
+                    console.log("Lobby: Shell detected successfully.");
+                    return true;
+                }
+            } catch (e) {
+                console.error("Shell Access Error:", e.message);
+            }
+            return false;
+        }
+
+        if (!detectShell()) {
+            console.warn("Lobby: Shell not immediately ready. Retrying...");
+            const shellRetry = setInterval(() => {
+                if (detectShell()) {
+                    clearInterval(shellRetry);
+                    initLobby(); // Re-init now that shell is available
+                }
+            }, 500);
+            // Stop retrying after 10 seconds
+            setTimeout(() => clearInterval(shellRetry), 10000);
         }
         const joinBtn = document.getElementById('joinBtn'), lobby = document.getElementById('lobby'), previewVideo = document.getElementById('previewVideo');
         const camSelect = document.getElementById('camSelect'), micSelect = document.getElementById('micSelect'), videoGrid = document.getElementById('videoGrid');
@@ -1331,24 +1396,13 @@
                     </div>
                 `;
 
-                // Avatar Placeholder
-                const avatar = document.createElement('div');
-                avatar.className = 'avatar-placeholder';
-                avatar.innerHTML = `<div class="avatar-img-wrap" style="width:100px; height:100px; border-radius:50%; background:var(--glass); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:var(--red); font-weight:800; border:2px solid var(--red);">${name.charAt(0)}</div>`;
+                // Avatar Placeholder removed per user request for full camera view
                 
-                // Fetch Profile Picture
-                supabase.from('lyra_approved_admins').select('pfp_url').eq('ign', name).single().then(({data}) => {
-                    if (data && data.pfp_url) {
-                        avatar.innerHTML = `<img src="${data.pfp_url}" class="avatar-img">`;
-                    }
-                });
-
                 w.onclick = () => {
                     document.querySelectorAll('.video-wrapper').forEach(x => x.classList.remove('featured'));
                     w.classList.add('featured');
                 };
 
-                w.appendChild(avatar);
                 w.appendChild(v); 
                 w.appendChild(o); 
                 videoGrid.appendChild(w);
@@ -1510,6 +1564,17 @@
                 document.getElementById('ctxHide').querySelector('span').innerText = isHidden ? 'Turn On Preview' : 'Turn Off Preview';
                 document.getElementById('ctxHide').querySelector('i').className = isHidden ? 'fas fa-eye' : 'fas fa-eye-slash';
 
+                // Volume Initialization
+                const volControl = document.getElementById('volumeControl');
+                if (activeCtxId === 'local' || activeCtxId === 'local_screen') {
+                    volControl.style.display = 'none';
+                } else {
+                    volControl.style.display = 'flex';
+                    const currentVol = wrapper.getAttribute('data-local-volume') || "1";
+                    document.getElementById('ctxVolume').value = currentVol;
+                    document.getElementById('volVal').innerText = Math.round(currentVol * 100) + '%';
+                }
+
                 ctxMenu.style.top = e.clientY + 'px';
                 ctxMenu.style.left = e.clientX + 'px';
                 ctxMenu.style.display = 'block';
@@ -1544,6 +1609,20 @@
             document.querySelectorAll('.video-wrapper').forEach(x => x.classList.remove('featured'));
             wrapper.classList.add('featured');
         };
+
+        // Volume slider handler
+        document.getElementById('ctxVolume').oninput = (e) => {
+            const val = e.target.value;
+            document.getElementById('volVal').innerText = Math.round(val * 100) + '%';
+            if (activeCtxId && shell.setRemoteVolume) {
+                shell.setRemoteVolume(activeCtxId, val);
+                const wrapper = document.getElementById(`vw-${activeCtxId}`);
+                if (wrapper) wrapper.setAttribute('data-local-volume', val);
+            }
+        };
+
+        // Stop menu clicks from propagating to slider
+        document.getElementById('ctxVolume').onclick = (e) => e.stopPropagation();
 
     </script>
 </body>

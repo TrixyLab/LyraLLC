@@ -11,6 +11,7 @@
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
     <style>
         :root {
             --red: #E8002D;
@@ -622,6 +623,25 @@
             remoteStreams: {},
             roomChannel: null,
             isScreenSharing: false,
+            heartbeatInterval: null,
+            
+            startHeartbeat: (room) => {
+                window.LyraMeeting.stopHeartbeat();
+                console.log("Shell: Starting heartbeat for", room);
+                window.LyraMeeting.heartbeatInterval = setInterval(async () => {
+                    const client = window.supabase || supabase;
+                    if (!client) return;
+                    await client.from('lyra_meetings').update({ last_activity: new Date().toISOString() }).eq('room_name', room);
+                }, 30000); // Pulse every 30s
+            },
+
+            stopHeartbeat: () => {
+                if (window.LyraMeeting.heartbeatInterval) {
+                    console.log("Shell: Stopping heartbeat.");
+                    clearInterval(window.LyraMeeting.heartbeatInterval);
+                    window.LyraMeeting.heartbeatInterval = null;
+                }
+            },
 
             getIdentity: () => {
                 return { ign: window.currentUser || 'Operative', role: window.userRole || 'Staff' };
@@ -726,11 +746,14 @@
                     }
 
                     window.LyraMeeting.isActive = true;
-                    const indicator = document.getElementById('globalCallIndicator');
-                    if (indicator) indicator.style.display = 'flex';
+                    if (activeCallBar) activeCallBar.style.display = 'flex';
+                    const barRoomName = document.getElementById('barRoomName');
+                    if (barRoomName) barRoomName.innerText = 'IN MEETING: ' + room;
 
                     // Supabase Channel Setup
-                    window.LyraMeeting.roomChannel = client.channel('webrtc_room_' + room);
+                    const channelName = 'room:' + room.replace(/[^a-zA-Z0-9]/g, '_');
+                    console.log("Shell: Subscribing to channel", channelName);
+                    window.LyraMeeting.roomChannel = client.channel(channelName);
                     window.LyraMeeting.setupSignaling();
                     
                     const subTimeout = setTimeout(() => {
@@ -1008,15 +1031,26 @@
 
             fetchMeetings: async () => {
                 const client = window.supabase || supabase;
-                if (!client) return { data: [], error: { message: "Supabase Unreachable" } };
+                if (!client) {
+                    console.error("Shell: fetchMeetings called but Supabase not ready.");
+                    return { data: [], error: { message: "Supabase Unreachable" } };
+                }
                 
-                // Return meetings active in the last 2 minutes
-                const twoMinsAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-                return await client.from('lyra_meetings')
+                // Return meetings active in the last 10 minutes (increased for drift safety)
+                const windowMs = 10 * 60 * 1000;
+                const activityLimit = new Date(Date.now() - windowMs).toISOString();
+                
+                console.log("Shell: Fetching meetings since", activityLimit);
+                const { data, error } = await client.from('lyra_meetings')
                     .select('*')
-                    .eq('is_active', true)
-                    .gt('last_activity', twoMinsAgo)
+                    .or('is_active.eq.true,is_active.eq.t') // Handle both boolean formats
+                    .gt('last_activity', activityLimit)
                     .order('last_activity', { ascending: false });
+                
+                if (error) console.error("Shell: fetchMeetings error:", error);
+                else console.log(`Shell: fetchMeetings found ${data?.length || 0} active sessions.`);
+                
+                return { data, error };
             },
 
             removePeerBySender: (senderId) => {
@@ -1034,6 +1068,14 @@
                 if (window.LyraMeeting.peers[key]) {
                     window.LyraMeeting.peers[key].close();
                     delete window.LyraMeeting.peers[key];
+                }
+            },
+
+            setRemoteVolume: (id, val) => {
+                const el = window.LyraMeeting.audioElements[id];
+                if (el) {
+                    el.volume = parseFloat(val);
+                    console.log(`Shell: Volume for ${id} set to ${val}`);
                 }
             },
 
@@ -1119,16 +1161,18 @@
         </div>
     </div>
 
-    <!-- Active Call HUD -->
-    <div id="activeCallBar">
-        <div class="pulse-dot"></div>
-        <div class="info">
-            <span id="barRoomName" class="room">IN MEETING: ...</span>
-            <span class="status">CONNECTED TO SECURE NODE</span>
+    <!-- Active Call HUD (Professional Glassmorphism) -->
+    <div id="activeCallBar" style="display: none; position: fixed; top: 20px; right: 20px; background: rgba(13, 13, 13, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(232, 0, 45, 0.3); border-radius: 12px; padding: 12px 20px; z-index: 999999; display: flex; align-items: center; gap: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 15px rgba(232,0,45,0.15); font-family: 'Barlow Condensed', sans-serif; animation: slideInRight 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="pulse-dot" style="width: 10px; height: 10px; background: #00E85D; border-radius: 50%; box-shadow: 0 0 10px #00E85D; animation: pulse 2s infinite;"></div>
+            <div style="display: flex; flex-direction: column;">
+                <span id="barRoomName" style="color: var(--white); font-weight: 800; font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase;">IN MEETING: ...</span>
+                <span style="color: var(--gray-600); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">SECURE NODE CONNECTED</span>
+            </div>
         </div>
-        <div class="btn-group">
-            <button id="barReturn">RETURN</button>
-            <button id="barLeave" class="primary">LEAVE</button>
+        <div style="display: flex; gap: 10px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 15px;">
+            <button id="barReturn" style="background: rgba(255,255,255,0.05); color: var(--white); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 6px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: all 0.2s;">RETURN</button>
+            <button id="barLeave" style="background: var(--red); color: var(--white); border: none; padding: 8px 16px; border-radius: 6px; font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; box-shadow: 0 4px 10px rgba(232, 0, 45, 0.3); transition: all 0.2s;">LEAVE</button>
         </div>
     </div>
 
@@ -1383,7 +1427,7 @@
 
     <script>
         const iframe = document.getElementById('portal-content');
-        const callIndicator = document.getElementById('globalCallIndicator');
+        const activeCallBar = document.getElementById('activeCallBar');
 
         // Initial Load from URL
         const urlParams = new URLSearchParams(window.location.search);

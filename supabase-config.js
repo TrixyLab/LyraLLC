@@ -4,14 +4,38 @@
 const SUPABASE_URL = "https://gmgsauxnyhodecdocwkz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtZ3NhdXhueWhvZGVjZG9jd2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTgwODUsImV4cCI6MjA4OTg5NDA4NX0.DBGN8aVUPxQlnUR2v9qAStQ9g-gLys6D0zSbybHdPUw";
 
-// Initialize Supabase Client (assuming CDN is loaded)
-window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Global Favicon Injection
+(function() {
+    const iconUrl = 'https://gmgsauxnyhodecdocwkz.supabase.co/storage/v1/object/public/lyra_assets/LyraEsportsLogo.png';
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+    }
+    link.href = iconUrl;
+})();
+
+// Initialize Supabase Client (safe re-init)
+if (window.supabase) {
+  if (typeof window.supabase.createClient === 'function') {
+    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}
 
 // --- Global Chat Notification System ---
 (function () {
-  const currentUser = localStorage.getItem('lyra_user');
-  const userRole = localStorage.getItem('lyra_role');
-  if (!currentUser) return; // Only notify logged-in admins
+// Handle restricted environments (like file://) where localStorage might be blocked
+  let currentUser = 'Operative';
+  let userRole = 'Staff';
+  try {
+    currentUser = localStorage.getItem('lyra_user') || 'Operative';
+    userRole = localStorage.getItem('lyra_role') || 'Staff';
+  } catch (e) {
+    console.warn("Storage access restricted. Using default session state.");
+  }
+  
+  if (!currentUser || currentUser === 'Operative') return; // Only notify logged-in admins
   
   // Helper for all admin pages to check for Owner status
   window.checkLyraOwner = () => {
@@ -147,14 +171,25 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // --- Admin Presence System using Supabase Realtime ---
   const globalChannel = supabase.channel('lyra_global');
-  globalChannel.on('presence', { event: 'sync' }, () => {
+  
+  // Only run standard global listeners in the top-level window
+  const isTopLevel = window.self === window.top;
+  
+  if (isTopLevel) {
+    globalChannel.on('presence', { event: 'sync' }, () => {
     updatePresenceUI();
   }).subscribe(async (status) => {
     if (status === 'SUBSCRIBED') {
-      const savedStatus = localStorage.getItem('admin_status') || 'online';
+      let savedStatus = 'online';
+      try {
+        savedStatus = localStorage.getItem('admin_status') || 'online';
+      } catch (e) {}
       await globalChannel.track({ user: currentUser, status: savedStatus });
       // Also write to DB for persistent view (e.g. for Owner Console)
-      const userObj = JSON.parse(localStorage.getItem('lyra_user'));
+      let userObj = null;
+      try {
+        userObj = JSON.parse(localStorage.getItem('lyra_user'));
+      } catch (e) {}
       if (userObj && userObj.alias) {
         await supabase.from('lyra_roster').update({ status: savedStatus, last_active: new Date().toISOString() }).eq('alias', userObj.alias);
       }
@@ -244,21 +279,22 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
       
       triggerRedNotify(notifyText, targetUrl);
-    })
-    .subscribe();
+    }).subscribe();
+  }
 
   // --- Applications Listener ---
-  supabase.channel('global_applications')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lyra_applications' }, payload => {
-      const app = payload.new;
-      const isOnApps = window.location.pathname.includes('admin-dashboard.html') || window.location.pathname.includes('admin-access.html');
-      if (isOnApps) return;
-
-      const targetUrl = app.rolevalue === 'adminAccess' ? 'admin-access.html' : 'admin-dashboard.html';
-      showToast('New Application Received', app.name || 'Applicant', `Role: ${app.role || 'Member'}`, targetUrl);
-      triggerRedNotify(`📝 NEW APPLICATION: ${app.name.toUpperCase()}`, targetUrl);
-    })
-    .subscribe();
+  if (isTopLevel) {
+    supabase.channel('global_applications')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'lyra_applications' }, payload => {
+        const app = payload.new;
+        const isOnApps = window.location.pathname.includes('admin-dashboard.html') || window.location.pathname.includes('admin-access.html');
+        if (isOnApps) return;
+  
+        const targetUrl = app.rolevalue === 'adminAccess' ? 'admin-access.html' : 'admin-dashboard.html';
+        showToast('New Application Received', app.name || 'Applicant', `Role: ${app.role || 'Member'}`, targetUrl);
+        triggerRedNotify(`📝 NEW APPLICATION: ${app.name.toUpperCase()}`, targetUrl);
+      }).subscribe();
+  }
 
   // --- Access Guard & Role Sync ---
   const isHardcodedSuper = currentUser && (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa');
@@ -582,20 +618,20 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   initPresenceSystem();
 
-  // --- System Broadcast / Update System ---
-  supabase.channel('global_broadcasts')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_system_broadcast' }, payload => {
-      const data = payload.new || payload.old;
-      if (!data || !data.active) {
-        const existing = document.getElementById('lyra-system-update-bar');
-        if (existing) existing.remove();
-        return;
-      }
-      const lastSeen = localStorage.getItem('lyra_last_broadcast_id');
-      if (lastSeen === data.id && data.dismissible !== false) return;
-      showSystemUpdateBar(data);
-    })
-    .subscribe();
+  if (isTopLevel) {
+    supabase.channel('global_broadcasts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_system_broadcast' }, payload => {
+        const data = payload.new || payload.old;
+        if (!data || !data.active) {
+          const existing = document.getElementById('lyra-system-update-bar');
+          if (existing) existing.remove();
+          return;
+        }
+        const lastSeen = localStorage.getItem('lyra_last_broadcast_id');
+        if (lastSeen === data.id && data.dismissible !== false) return;
+        showSystemUpdateBar(data);
+      }).subscribe();
+  }
 
   // Initial fetch for active broadcast
   supabase.from('lyra_system_broadcast').select('*').eq('active', true).then(({ data }) => {
@@ -684,66 +720,67 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let activeIncomingRinger = null;
   let callPopup = null;
 
-  supabase.channel('global_calls')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + currentUser.toLowerCase() }, payload => {
-      const callData = payload.new;
-
-      // If there's no call or status is not ringing, stop ringing
-      if (!callData || callData.status !== 'ringing') {
-        if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
-        if (callPopup) { callPopup.remove(); callPopup = null; }
-        return;
-      }
-
-      // Currently ringing!
-      if (!callPopup) {
-        callPopup = document.createElement('div');
-        callPopup.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gray-900, #0D0D0D); border:2px solid var(--red, #E8002D); box-shadow:0 0 30px rgba(232,0,45,0.6); padding:20px 30px; border-radius:8px; z-index:999999; display:flex; flex-direction:column; align-items:center; gap:15px; color:white; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1s infinite;";
-        callPopup.innerHTML = `
-          <div style="font-size:1.5rem; font-weight:700;">Incoming Call</div>
-          <div style="font-size:1.1rem; color:var(--gray-200);">${callData.from_user} is inviting you to join: <strong style="color:var(--white);">${callData.roomName}</strong></div>
-          <div style="display:flex; gap:15px; margin-top:10px;">
-            <button id="acceptCallBtn" style="background:#00E85D; color:black; border:none; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Accept</button>
-            <button id="declineCallBtn" style="background:transparent; color:#E8002D; border:1px solid #E8002D; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Decline</button>
-          </div>
-        `;
-        document.body.appendChild(callPopup);
-
-        activeIncomingRinger = window.lyraJinglePlayer(true);
-
-        document.getElementById('acceptCallBtn').onclick = () => {
-          supabase.from('lyra_calls').update({ status: 'accepted' }).eq('id', currentUser.toLowerCase()).then(() => { });
+  if (isTopLevel) {
+    supabase.channel('global_calls')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + currentUser.toLowerCase() }, payload => {
+        const callData = payload.new;
+  
+        // If there's no call or status is not ringing, stop ringing
+        if (!callData || callData.status !== 'ringing') {
           if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
-          callPopup.remove();
-          callPopup = null;
-
-          if (window.location.pathname.includes('admin-meetings.html')) {
-            // If already in a meeting, cleanly leave it first.
-            const meetContainer = document.getElementById('meet-container');
-            if (meetContainer && meetContainer.style.display !== 'none' && typeof window.leaveMeeting === 'function') {
-              window.leaveMeeting();
+          if (callPopup) { callPopup.remove(); callPopup = null; }
+          return;
+        }
+  
+        // Currently ringing!
+        if (!callPopup) {
+          callPopup = document.createElement('div');
+          callPopup.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gray-900, #0D0D0D); border:2px solid var(--red, #E8002D); box-shadow:0 0 30px rgba(232,0,45,0.6); padding:20px 30px; border-radius:8px; z-index:999999; display:flex; flex-direction:column; align-items:center; gap:15px; color:white; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1s infinite;";
+          callPopup.innerHTML = `
+            <div style="font-size:1.5rem; font-weight:700;">Incoming Call</div>
+            <div style="font-size:1.1rem; color:var(--gray-200);">${callData.from_user} is inviting you to join: <strong style="color:var(--white);">${callData.roomName}</strong></div>
+            <div style="display:flex; gap:15px; margin-top:10px;">
+              <button id="acceptCallBtn" style="background:#00E85D; color:black; border:none; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Accept</button>
+              <button id="declineCallBtn" style="background:transparent; color:#E8002D; border:1px solid #E8002D; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Decline</button>
+            </div>
+          `;
+          document.body.appendChild(callPopup);
+  
+          activeIncomingRinger = window.lyraJinglePlayer(true);
+  
+          document.getElementById('acceptCallBtn').onclick = () => {
+            supabase.from('lyra_calls').update({ status: 'accepted' }).eq('id', currentUser.toLowerCase()).then(() => { });
+            if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
+            callPopup.remove();
+            callPopup = null;
+  
+            if (window.location.pathname.includes('admin-meetings.html')) {
+              // If already in a meeting, cleanly leave it first.
+              const meetContainer = document.getElementById('meet-container');
+              if (meetContainer && meetContainer.style.display !== 'none' && typeof window.leaveMeeting === 'function') {
+                window.leaveMeeting();
+              }
+              const roomInput = document.getElementById('roomName');
+              const startBtn = document.getElementById('startMeetBtn');
+              if (roomInput && startBtn) {
+                roomInput.value = callData.roomName;
+                startBtn.click();
+              }
+            } else {
+              localStorage.setItem('lyra_pending_room', callData.roomName);
+              window.location.href = 'admin-meetings.html';
             }
-            const roomInput = document.getElementById('roomName');
-            const startBtn = document.getElementById('startMeetBtn');
-            if (roomInput && startBtn) {
-              roomInput.value = callData.roomName;
-              startBtn.click();
-            }
-          } else {
-            localStorage.setItem('lyra_pending_room', callData.roomName);
-            window.location.href = 'admin-meetings.html';
-          }
-        };
-
-        document.getElementById('declineCallBtn').onclick = () => {
-          supabase.from('lyra_calls').update({ status: 'declined' }).eq('id', currentUser.toLowerCase()).then(() => { });
-          if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
-          if (callPopup) callPopup.remove();
-          callPopup = null;
-        };
-      }
-    })
-    .subscribe();
+          };
+  
+          document.getElementById('declineCallBtn').onclick = () => {
+            supabase.from('lyra_calls').update({ status: 'declined' }).eq('id', currentUser.toLowerCase()).then(() => { });
+            if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
+            if (callPopup) callPopup.remove();
+            callPopup = null;
+          };
+        }
+      }).subscribe();
+  }
 
   // Initial check for calls (in case page reloads while ringing)
   supabase.from('lyra_calls').select('*').eq('id', currentUser.toLowerCase()).then(({ data }) => {
