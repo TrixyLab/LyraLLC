@@ -377,7 +377,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           </div>
           <div class="form-group">
             <label for="tracker" class="form-label">Tracker</label>
-            <input type="url" id="tracker" class="form-input" placeholder="Link to your Tracker profile">
+            <input type="text" id="tracker" class="form-input" placeholder="Link to your Tracker profile">
           </div>
           <div class="form-group">
             <label for="experience" class="form-label">Competitive Experience</label>
@@ -419,7 +419,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           </div>
           <div class="form-group">
             <label for="contentLink" class="form-label">Link to your Channel / Socials</label>
-            <input type="url" id="contentLink" class="form-input" placeholder="https://twitch.tv/username">
+            <input type="text" id="contentLink" class="form-input" placeholder="https://twitch.tv/username">
           </div>
         </div>
 
@@ -514,8 +514,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
       supabase.from('lyra_applications').insert([app]).then(({error}) => {
         if (error) {
-          console.error(error);
-          return alert("Failed to submit. Please ensure database connection is active.");
+          console.error("Supabase Insert Error:", error);
+          return alert("Failed to submit: " + error.message + "\n\n(If it says new row violates row-level security policy, you need to disable RLS for the lyra_applications table in Supabase!)");
         }
         window.location.href = 'pending.html';
       });

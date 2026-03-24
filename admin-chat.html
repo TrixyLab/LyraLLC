@@ -617,9 +617,18 @@
     let currentChannel = 'general';
     let messagesRef = null;
     let typingRef = null;
+    
+    // Load initial channel on page load
+    switchChannel(currentChannel);
 
     // --- Channel Management ---
     function fetchCustomChannels() {
+      // Auto-upsert default channels to prevent Foreign Key constraint errors 
+      const defaultChans = ['general', 'announcements', 'finance-reports'];
+      defaultChans.forEach(ch => {
+        supabase.from('chat_channels').upsert([{ id: ch, name: ch, created_by: 'System' }]).then(()=>{});
+      });
+
       supabase.from('chat_channels').select('*').order('timestamp', { ascending: true }).then(({data}) => {
         const customChannelsContainer = document.getElementById('customChannels');
         customChannelsContainer.innerHTML = '';
@@ -633,15 +642,14 @@
             a.setAttribute('data-channel', ch.name);
 
             a.innerHTML = `
-              <span style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <span style="pointer-events: none; display:flex; justify-content:space-between; align-items:center; width:100%;">
                 <span style="padding-left: 0.8rem;"># ${ch.name}</span>
-                <button class="delete-channel-btn" data-id="${ch.name}" style="background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0;" title="Delete Channel">&times;</button>
+                <button class="delete-channel-btn" data-id="${ch.name}" style="pointer-events: auto; background:none; border:none; color:var(--gray-600); cursor:pointer; font-size:1.1rem; padding:0;" title="Delete Channel">&times;</button>
               </span>
             `;
             customChannelsContainer.appendChild(a);
           });
         }
-        if (typeof bindChannelClicks === 'function') bindChannelClicks();
       });
     }
     fetchCustomChannels();
@@ -652,34 +660,37 @@
       if (name && name.trim().length > 0) {
         const safeName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
         supabase.from('chat_channels').insert([{
+          id: safeName,
           name: safeName,
-          createdby: currentUser
+          created_by: currentUser
         }]).then(()=>{});
         switchChannel(safeName);
       }
     });
 
-    function bindChannelClicks() {
-      document.querySelectorAll('.channel-link').forEach(link => {
-        const newLink = link.cloneNode(true);
-        link.parentNode.replaceChild(newLink, link);
-        newLink.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (e.target.classList.contains('delete-channel-btn')) {
-            const chId = e.target.getAttribute('data-id');
-            if (confirm(`Delete #${chId}?`)) {
-              supabase.from('chat_channels').delete().eq('name', chId).then(()=>{});
-              supabase.from('chat_messages').delete().eq('channel', chId).then(()=>{});
-              if (currentChannel === chId) switchChannel('general');
-            }
-            return;
+    document.querySelector('.chat-channels').addEventListener('click', (e) => {
+      if (e.target.classList.contains('delete-channel-btn')) {
+        e.preventDefault();
+        const chId = e.target.getAttribute('data-id');
+        if (confirm(`Delete #${chId}?`)) {
+          supabase.from('chat_channels').delete().eq('name', chId).then(()=>{});
+          supabase.from('chat_messages').delete().eq('channel_id', chId).then(()=>{});
+          if (currentChannel === chId) {
+            switchChannel('general');
           }
-          const chId = newLink.getAttribute('data-channel');
-          if (chId && chId !== currentChannel) switchChannel(chId);
-        });
-      });
-    }
-    window.bindChannelClicks = bindChannelClicks;
+        }
+        return;
+      }
+
+      const link = e.target.closest('.channel-link');
+      if (link) {
+        e.preventDefault();
+        const chId = link.getAttribute('data-channel');
+        if (chId && chId !== currentChannel) {
+          switchChannel(chId);
+        }
+      }
+    });
 
     function linkify(text) {
       if (!text) return "";
@@ -748,7 +759,7 @@
 
       chatContainer.innerHTML = '';
       
-      supabase.from('chat_messages').select('*').eq('channel', currentChannel).order('timestamp', {ascending: true}).then(({data}) => {
+      supabase.from('chat_messages').select('*').eq('channel_id', currentChannel).order('timestamp', {ascending: true}).then(({data}) => {
         if(data) {
           data.forEach(msg => renderMessage(msg, msg.id));
         }
@@ -756,10 +767,10 @@
       });
 
       messagesRef = supabase.channel('msg_' + currentChannel)
-        .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'channel=eq.'+currentChannel}, payload => {
+        .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'chat_messages', filter: 'channel_id=eq.'+currentChannel}, payload => {
           renderMessage(payload.new, payload.new.id);
         })
-        .on('postgres_changes', {event: 'DELETE', schema: 'public', table: 'chat_messages', filter: 'channel=eq.'+currentChannel}, payload => {
+        .on('postgres_changes', {event: 'DELETE', schema: 'public', table: 'chat_messages', filter: 'channel_id=eq.'+currentChannel}, payload => {
           const el = document.querySelector(`.message[data-key="${payload.old.id}"]`);
           if (el) el.remove();
         }).subscribe();
@@ -798,12 +809,17 @@
       const timeStr = hours + ':' + minutes + ' ' + ampm;
 
       supabase.from('chat_messages').insert([{
-        channel: currentChannel,
+        channel_id: currentChannel,
         author: currentUser,
         time: timeStr,
         text: text,
         avatarclass: 'admin'
-      }]).then(()=>{});
+      }]).then(({error})=>{
+        if (error) {
+          console.error("Message Send Error:", error);
+          alert("Failed to send message: " + error.message + "\n\n(Tip: Ensure this channel actually exists in the chat_channels table. Default ones are being auto-created now!)");
+        }
+      });
 
       chatInput.value = '';
       if(typingRef && typingRef.state === 'joined') {
