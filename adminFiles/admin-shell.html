@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --red: #E8002D;
@@ -814,19 +815,39 @@
                 } else {
                     // START
                     try {
-                        window.LyraMeeting.localScreenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                        // ENABLE AUDIO CAPTURE FOR SCREEN SHARING
+                        window.LyraMeeting.localScreenStream = await navigator.mediaDevices.getDisplayMedia({ 
+                            video: true, 
+                            audio: true 
+                        });
                         window.LyraMeeting.isScreenSharing = true;
-                        window.LyraMeeting.localScreenStream.getVideoTracks()[0].onended = () => window.LyraMeeting.toggleScreenShare();
+                        
+                        // Handle stop from browser UI
+                        window.LyraMeeting.localScreenStream.getVideoTracks()[0].onended = () => {
+                            if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.toggleScreenShare();
+                        };
                         
                         // Notify others we are sharing
                         window.LyraMeeting.roomChannel.send({
                             type: 'broadcast',
                             event: 'webrtc_signaling',
-                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: window.currentUser + ' (Screen)', type: 'peer_joined' }
+                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: (window.currentUser || 'Admin') + ' (Screen)', type: 'peer_joined' }
                         });
                     } catch (err) { console.error("Shell: Screen share failed", err); return false; }
                 }
                 return window.LyraMeeting.isScreenSharing ? window.LyraMeeting.localScreenStream : false;
+            },
+
+            fetchMeetings: async () => {
+                const client = window.supabase || supabase;
+                if (!client) {
+                    console.error("Shell: Supabase client unavailable for fetch.");
+                    return { data: [], error: { message: "Supabase Unreachable" } };
+                }
+                return await client.from('lyra_meetings')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
             },
 
             removePeerBySender: (senderId) => {

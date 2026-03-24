@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Barlow+Condensed:wght@700;900&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --red: #E8002D;
@@ -802,11 +803,9 @@
         }
 
         async function fetchMeetings() {
-            let db = null;
-            try { db = window.parent.supabase; } catch (e) { }
-            if (!db) return;
+            if (!shell || !shell.fetchMeetings) return;
 
-            const { data, error } = await db.from('lyra_meetings').select('*').eq('is_active', true).order('created_at', { ascending: false });
+            const { data, error } = await shell.fetchMeetings();
 
             const list = document.getElementById('sessionList');
             if (!list) return;
