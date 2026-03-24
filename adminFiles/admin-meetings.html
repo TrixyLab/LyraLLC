@@ -440,6 +440,22 @@
     let roomChannel;
     let myUserId = currentUser + '_' + Math.random().toString(36).substr(2, 9); // unique id per session
 
+    const meetingPresence = supabase.channel('meeting_presence');
+    let activeRoomsMap = {};
+
+    meetingPresence.on('presence', { event: 'sync' }, () => {
+      const newState = meetingPresence.presenceState();
+      activeRoomsMap = {};
+      for (const [key, stateArray] of Object.entries(newState)) {
+        stateArray.forEach(state => {
+          if (state.roomName) {
+            activeRoomsMap[state.roomName] = (activeRoomsMap[state.roomName] || 0) + 1;
+          }
+        });
+      }
+      fetchMeetings();
+    }).subscribe();
+
     let audioContext;
     function monitorAudioLevel(stream, wrapper, isLocal) {
       if (!stream || stream.getAudioTracks().length === 0) return;
@@ -482,11 +498,14 @@
     };
 
     async function startMeeting(room) {
+      if (!room) return;
       window.currentRoomName = room;
-      setupDiv.style.display = 'none';
       meetContainer.style.display = 'flex';
+      setupDiv.style.display = 'none';
 
-      // Insert record to DB so others see it in history
+      meetingPresence.track({ roomName: room, user: currentUser }).then(()=>{});
+
+      const adminCallSelect = document.getElementById('inMeetAdminToCall');
       supabase.from('lyra_meetings').insert([{
         roomName: room,
         host: currentUser
@@ -734,6 +753,7 @@
     }
 
     function leaveMeeting() {
+      meetingPresence.untrack().then(()=>{});
       cancelOutgoingCall();
       if (roomChannel) {
         roomChannel.send({
@@ -832,11 +852,16 @@
 
           item.innerHTML = `
             <div>
-              <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--white);">${meet.roomName}</div>
+              <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--white); display:flex; align-items:center; gap:0.5rem;">
+                ${meet.roomName}
+                ${activeRoomsMap[meet.roomName] > 0 ? '<span style="font-family:\'Barlow\', sans-serif; font-size:0.7rem; background:rgba(0,232,93,0.2); color:var(--green); padding:0.2rem 0.5rem; border-radius:12px; font-weight:700;">ACTIVE</span>' : ''}
+              </div>
               <div style="font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; color: var(--gray-200); letter-spacing: 0.05em;">${timeString}</div>
             </div>
             <div style="display: flex; gap: 0.5rem;">
-              <button class="rejoin-btn" data-room="${meet.roomName}" style="background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s;">Rejoin</button>
+              ${activeRoomsMap[meet.roomName] > 0 
+                ? `<button class="rejoin-btn" data-room="${meet.roomName}" style="background: var(--green); color: var(--black); border: none; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: transform 0.2s;">Join Now</button>` 
+                : `<button class="rejoin-btn" data-room="${meet.roomName}" style="background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.2); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s;">Rejoin</button>`}
               <button class="delete-history-btn" data-id="${meet.id}" style="background: rgba(232, 0, 45, 0.1); color: var(--red); border: 1px solid rgba(232, 0, 45, 0.3); padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s;">Delete</button>
             </div>
           `;
