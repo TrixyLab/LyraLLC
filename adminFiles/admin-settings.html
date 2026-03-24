@@ -116,6 +116,66 @@
       padding-left: calc(1rem - 3px);
     }
 
+    /* NAV DROPDOWN */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-trigger {
+      cursor: pointer;
+    }
+    .nav-dropdown-trigger .chevron {
+      margin-left: auto;
+      transition: transform 0.3s ease;
+      opacity: 0.5;
+    }
+    .nav-dropdown.open .nav-dropdown-trigger .chevron {
+      transform: rotate(180deg);
+      opacity: 1;
+    }
+    .nav-dropdown-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .nav-dropdown.open > .nav-dropdown-menu {
+      max-height: 1000px;
+      padding-bottom: 0.5rem;
+    }
+    /* Nested Indentation */
+    .nav-dropdown-menu .nav-dropdown-trigger {
+      padding-left: 2rem !important;
+      font-size: 0.85rem !important;
+    }
+    .nav-dropdown-menu .nav-dropdown-menu a {
+      padding-left: 3.5rem !important;
+    }
+    .nav-dropdown-menu .nav-dropdown-menu .nav-dropdown-menu a {
+      padding-left: 4.5rem !important;
+    }
+    .nav-dropdown-menu li {
+      margin-bottom: 0 !important;
+    }
+    .nav-dropdown-menu li a {
+      font-size: 0.85rem !important;
+      padding: 0.8rem 1rem 0.8rem 3.2rem !important;
+      color: var(--gray-600);
+      border-left: none !important;
+    }
+    .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active {
+      color: var(--white) !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+    .nav-dropdown-menu li a.active {
+      color: var(--red) !important;
+      font-weight: 700;
+    }
+
     .logout-btn {
       font-family: 'Barlow Condensed', sans-serif;
       font-weight: 700;
@@ -191,6 +251,66 @@
       position: relative;
       z-index: 10;
     }
+
+    /* Professional Error Modal */
+    #lyra-error-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(15px);
+      z-index: 999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .error-modal-content {
+      background: var(--gray-900);
+      border: 1px solid rgba(232, 0, 45, 0.3);
+      padding: 3rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(232, 0, 45, 0.1);
+      clip-path: polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%);
+    }
+    .error-modal-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      color: var(--red);
+    }
+    .error-modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      color: var(--white);
+    }
+    .error-modal-text {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.1rem;
+      color: var(--gray-600);
+      line-height: 1.5;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .error-modal-btn {
+      background: var(--red);
+      color: white;
+      border: none;
+      padding: 1rem 3rem;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .error-modal-btn:hover {
+      background: var(--red-dark);
+      transform: scale(1.05);
+    }
   </style>
   <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
   <link rel="stylesheet" href="../animations.css">
@@ -229,16 +349,179 @@
     </div>
 
     <ul class="nav-menu">
-      <li><a href="admin-overview.html">Overview</a></li>
-      <li><a href="admin-dashboard.html">Applications</a></li>
-      <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html">Team Chat</a></li>
-      <li><a href="admin-dms.html">Direct Messages</a></li>
-      <li><a href="admin-meetings.html">Meetings</a></li>
-      <li><a href="admin-reviews.html">Performance Reviews</a></li>
-      <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="admin-news.html">News & Content</a></li>
-      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li><a href="admin-overview.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span>Overview</span></a></li>
+      <li class="nav-dropdown" id="nav-management">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Management</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
+          <li><a href="admin-roster.html">Master Control</a></li>
+          <li><a href="admin-reviews.html">Performance Reviews</a></li>
+          <li><a href="admin-updates.html">Daily Updates</a></li>
+          <li><a href="admin-scheduling.html">Availability</a></li>
+          <li><a href="admin-schedule-events.html">Schedule</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-comms">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Communications</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-chat.html">Management Chat</a></li>
+          <li><a href="admin-dms.html">Direct Messages</a></li>
+          <li><a href="admin-meetings.html">Meetings</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-teams">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Teams</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Valorant</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=val&reg=na"># val-na</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=eu"># val-eu</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=oce"># val-oce</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Overwatch 2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=ow2&reg=na"># ow2-na</a></li>
+              <li><a href="admin-team-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>League of Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=lol&reg=na"># lol-na</a></li>
+              <li><a href="admin-team-chat.html?team=lol&reg=eu"># lol-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Apex Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=apex&reg=na"># apex-na</a></li>
+              <li><a href="admin-team-chat.html?team=apex&reg=eu"># apex-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Halo</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=halo&reg=na"># halo-na</a></li>
+              <li><a href="admin-team-chat.html?team=halo&reg=eu"># halo-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>The Finals</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=tf&reg=na"># finals-na</a></li>
+              <li><a href="admin-team-chat.html?team=tf&reg=eu"># finals-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Rocket League</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=rl&reg=na"># rl-na</a></li>
+              <li><a href="admin-team-chat.html?team=rl&reg=eu"># rl-eu</a></li>
+            </ul>
+          </li>
+        </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Overwatch 2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=ow2&reg=na"># ow2-na</a></li>
+              <li><a href="admin-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>League of Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=lol&reg=na"># lol-na</a></li>
+              <li><a href="admin-chat.html?team=lol&reg=eu"># lol-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Apex Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=apex&reg=na"># apex-na</a></li>
+              <li><a href="admin-chat.html?team=apex&reg=eu"># apex-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Halo</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=halo&reg=na"># halo-na</a></li>
+              <li><a href="admin-chat.html?team=halo&reg=eu"># halo-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>The Finals</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=tf&reg=na"># finals-na</a></li>
+              <li><a href="admin-chat.html?team=tf&reg=eu"># finals-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Rocket League</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-chat.html?team=rl&reg=na"># rl-na</a></li>
+              <li><a href="admin-chat.html?team=rl&reg=eu"># rl-eu</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li id="nav-news"><a href="admin-news.html">News & Content</a></li>
+      <li id="nav-orders"><a href="admin-orders.html">Store Orders</a></li>
+      <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);">Owner Console</a></li>
       <li><a href="admin-settings.html" class="active">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
@@ -264,36 +547,50 @@
           Profile Details</h2>
 
         <div style="margin-bottom: 1rem;">
-          <label
-            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Full
-            Name</label>
-          <input type="text" id="profName"
-            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Username (In-Game Name)</label>
+          <input type="text" id="profIgn" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;" placeholder="e.g. Lyra_Admin">
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <label
-            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Email
-            Address</label>
-          <input type="email" id="profEmail"
-            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Full Name</label>
+          <input type="text" id="profName" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <label
-            style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Upload
-            Profile Picture</label>
-          <input type="file" id="profPfp" accept=".png, .jpg, .jpeg"
-            style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
-          <input type="hidden" id="profPfpData" value="">
-          <div id="pfpPreview"
-            style="margin-top:1rem; width: 60px; height: 60px; border-radius: 50%; background-position:center; background-size:cover; border: 2px solid var(--red); display:none;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Email Address</label>
+          <input type="email" id="profEmail" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Confirm Password (Required to save changes)</label>
+          <input type="password" id="confirmSavePass" style="width:100%;background:rgba(232,0,45,0.05);border:1px solid rgba(232,0,45,0.2);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;" placeholder="Enter current password">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.6rem;">Profile Picture</label>
+          <div class="file-input-wrapper" style="position:relative; overflow:hidden; display:block; margin-bottom: 1rem;">
+            <label for="profPfp" id="fileBtnLabel" style="display:block; border: 2px dashed rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: var(--gray-600); padding: 1.5rem; border-radius: 8px; font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; text-align:center; cursor:pointer; transition:all 0.2s;">
+              <span id="fileBtnText">Click or Drag to Upload PFP</span>
+            </label>
+            <input type="file" id="profPfp" accept=".png, .jpg, .jpeg" style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%;">
           </div>
+          <input type="hidden" id="profPfpData" value="">
+          <div id="pfpPreview" style="margin-top:0.5rem; width: 80px; height: 80px; border-radius: 50%; background-position:center; background-size:cover; border: 3px solid var(--red); display:none; margin-left:auto; margin-right:auto; box-shadow: 0 0 20px rgba(232,0,45,0.2);"></div>
         </div>
 
-        <button id="saveProfileBtn"
-          style="margin-top:1rem;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:var(--white);color:var(--black);border:none; transition: all 0.2s;">Save
-          Profile</button>
+        <div style="margin-bottom: 1.5rem;">
+          <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.6rem;">Profile Banner</label>
+          <div class="file-input-wrapper" style="position:relative; overflow:hidden; display:block; margin-bottom: 1rem;">
+            <label for="profBanner" id="bannerBtnLabel" style="display:block; border: 2px dashed rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: var(--gray-600); padding: 1.5rem; border-radius: 8px; font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; text-align:center; cursor:pointer; transition:all 0.2s;">
+              <span id="bannerBtnText">Click or Drag to Upload Banner</span>
+            </label>
+            <input type="file" id="profBanner" accept=".png, .jpg, .jpeg" style="position:absolute; inset:0; opacity:0; cursor:pointer; width:100%;">
+          </div>
+          <input type="hidden" id="profBannerData" value="">
+          <div id="bannerPreview" style="margin-top:0.5rem; width: 100%; height: 100px; border-radius: 8px; background-position:center; background-size:cover; border: 2px solid rgba(255,255,255,0.05); display:none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></div>
+        </div>
+
+        <button id="saveProfileBtn" style="margin-top:1rem;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:var(--white);color:var(--black);border:none; transition: all 0.2s;">Save Profile Changes</button>
       </div>
 
       <!-- Security Form -->
@@ -329,50 +626,72 @@
         <button id="saveSecurityBtn"
           style="margin-top:auto;width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:transparent;color:var(--gray-200);border:1px solid rgba(255,255,255,0.2); transition: all 0.2s;">Update
           Password</button>
-      </div>
-
-      <!-- App Updates (Public for All Admins) -->
-      <div class="app-card" style="flex-direction: column; align-items: stretch;">
-        <h2 style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--white); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">App Update Hub</h2>
+         <!-- App Update Hub (Public for All Admins) -->
+      <div class="app-card" style="flex-direction: column; align-items: stretch; background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(20px); border: 1px solid rgba(0, 232, 93, 0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.8rem; margin-bottom: 1.5rem;">
+             <h2 style="font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:0.05em;">Owner Update Control</h2>
+          <div id="statusPulse" style="width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); animation: pulse 2s infinite;"></div>
+        </div>
         
-        <div id="noUpdateMsg" style="text-align:center; padding: 1rem 0;">
-          <p style="color:var(--gray-600); font-size:0.9rem;">Checking for system updates...</p>
+        <div id="noUpdateMsg" style="text-align:center; padding: 2.5rem 0;">
+          <div style="font-size:3rem; margin-bottom:1rem; opacity:0.3;">🏢</div>
+          <p style="color:var(--gray-600); font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">System Synchronized</p>
+          <p style="color:rgba(255,255,255,0.2); font-size:0.8rem; margin-top:0.5rem;">No new builds detected at this time.</p>
         </div>
 
-        <div id="updateInfo" style="display:none; flex-direction:column; gap:1rem;">
-          <div style="background:rgba(0,232,93,0.05); border-left:3px solid var(--green); padding:1rem;">
-            <p id="latestVerText" style="color:var(--white); font-weight:700; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-size:1.1rem;">LATEST VERSION</p>
-            <p id="updateDetail" style="color:var(--gray-200); font-size:0.9rem; margin-top:0.3rem;">A new release is available with performance improvements and bug fixes.</p>
+        <div id="updateInfo" style="display:none; flex-direction:column; gap:1.5rem;">
+          <div style="background:rgba(0,232,93,0.08); padding:1.5rem; border:1px solid rgba(0,232,93,0.2); position:relative;">
+            <div style="position:absolute; top:1rem; right:1.5rem; font-family:'Barlow Condensed',sans-serif; font-weight:900; color:var(--green); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;">Priority High</div>
+            <p id="latestVerText" style="color:var(--white); font-weight:900; font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.15em; font-size:1.4rem; margin-bottom:0.5rem;">LATEST VERSION</p>
+            <div style="height:1px; background:rgba(0,232,93,0.2); margin-bottom:1rem;"></div>
+            <p style="color:var(--green); font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; font-size:0.75rem; letter-spacing:0.1em; margin-bottom:0.4rem;">What's New:</p>
+            <p id="updateDetail" style="color:var(--gray-200); font-size:0.95rem; line-height:1.6; font-family:'Barlow',sans-serif; white-space: pre-wrap;"></p>
           </div>
-          <button id="downloadNowBtn" style="width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:var(--green);color:var(--black);border:none;">Download Latest .EXE</button>
+          <button id="downloadNowBtn" style="width:100%;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:1rem;letter-spacing:0.15em;text-transform:uppercase;padding:1.2rem;cursor:pointer;clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);background:var(--green);color:var(--black);border:none; box-shadow: 0 0 30px rgba(0, 232, 59, 0.2); transition: all 0.2s;">Secure Download (.EXE)</button>
         </div>
       </div>
 
       <!-- System Broadcast (Admin Only) -->
-      <div id="broadcastCard" class="app-card" style="flex-direction: column; align-items: stretch; display:none; grid-column: 1 / -1;">
-        <h2 style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--red); border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">System Update Broadcast</h2>
+      <div id="broadcastCard" class="app-card" style="flex-direction: column; align-items: stretch; display:none; grid-column: 1 / -1; border-color: rgba(232, 0, 45, 0.2); background: rgba(232, 0, 45, 0.02);">
+        <div style="display:flex; align-items:center; gap:1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 0.8rem; margin-bottom: 2rem;">
+            <div style="width:12px; height:12px; background:var(--red); border-radius:2px; transform:rotate(45deg);"></div>
+            <h2 style="font-family:'Bebas Neue',sans-serif; font-size: 2rem; color: var(--red); margin:0;">System Broadcast Controller</h2>
+        </div>
         
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem;">
-          <div>
-            <div style="margin-bottom: 1rem;">
-              <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Broadcast Message</label>
-              <input type="text" id="broadcastMsg" placeholder="e.g. Version 1.2.0 is now live!" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+        <div style="display:grid; grid-template-columns: 1.2fr 0.8fr; gap:3rem;">
+          <div style="display:flex; flex-direction:column; gap:1.5rem;">
+            <div>
+              <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.6rem;">Broadcast Message / Changelog</label>
+              <textarea id="broadcastMsg" placeholder="e.g. Version 1.2.0 is now live! Fixed screensharing stability and added Dark Mode." style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:1rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none; min-height:120px; resize:none; font-size:0.95rem;"></textarea>
             </div>
-            <div style="margin-bottom: 1rem;">
-              <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.4rem;">Update Download URL (.exe)</label>
-              <input type="url" id="broadcastUrl" placeholder="https://example.com/lyra-setup.exe" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:0.9rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none;">
+            <div>
+              <label style="font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray-200);font-size:0.85rem;display:block;margin-bottom:0.6rem;">Deployment URL (.exe)</label>
+              <input type="url" id="broadcastUrl" placeholder="https://lyra-esports.com/downloads/lyra-setup.exe" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);padding:1rem;color:var(--white);font-family:'Barlow',sans-serif;outline:none; font-size:0.95rem;">
             </div>
           </div>
-          <div style="display:flex; flex-direction:column; justify-content:center; gap:1rem;">
-            <p style="color:var(--gray-600); font-size:0.9rem;">Triggering a broadcast will immediately alert all active admins with a persistent red banner. Proceed with caution.</p>
-            <div style="display:flex; gap:1rem;">
-              <button id="sendBroadcastBtn" style="flex:2; font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:var(--red);color:white;border:none;">Live Broadcast</button>
-              <button id="stopBroadcastBtn" style="flex:1; font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.8rem;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);background:transparent;color:var(--gray-600);border:1px solid rgba(255,255,255,0.1);">End All</button>
+          <div style="display:flex; flex-direction:column; justify-content:center; gap:1.5rem; background:rgba(255,255,255,0.03); padding:2rem; border:1px dashed rgba(255,255,255,0.1);">
+            <div style="text-align:center;">
+                <p style="color:var(--red); font-family:'Barlow Condensed',sans-serif; font-weight:900; letter-spacing:0.15em; text-transform:uppercase; font-size:0.9rem; margin-bottom:0.5rem;">⚠️ High Impact Action</p>
+                <p style="color:var(--gray-600); font-size:0.85rem; line-height:1.5;">Broadcasting will push a mandatory notification banner to all active administrative instances globally.</p>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+              <button id="sendBroadcastBtn" style="width:100%; font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.15em;text-transform:uppercase;padding:1rem;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);background:var(--red);color:white;border:none; transition:all 0.2s;">Trigger Global Update</button>
+              <button id="stopBroadcastBtn" style="width:100%; font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.6rem;cursor:pointer;background:transparent;color:var(--gray-600);border:1px solid rgba(255,255,255,0.1); transition:all 0.2s;">Kill Active Broadcasts</button>
             </div>
           </div>
         </div>
-      </div>
+      </div>     </div>
 
+    </div>
+
+    <!-- Professional Error Modal -->
+    <div id="lyra-error-modal">
+      <div class="error-modal-content">
+        <div class="error-modal-icon">⚠️</div>
+        <h3 class="error-modal-title" id="lyra-error-title">Security Alert</h3>
+        <p class="error-modal-text" id="lyra-error-text">An unexpected error has occurred.</p>
+        <button class="error-modal-btn" onclick="closeLyraError()">Acknowledge</button>
+      </div>
     </div>
   </main>
 
@@ -388,11 +707,18 @@
     let currentDbPass = null;
 
     supabase.from('lyra_approved_admins').select('*').then(({data, error}) => {
-      let found = false;
-      const isSuperAdmin = currentUser.toLowerCase() === 'admin';
-      if (isSuperAdmin) {
+      const isOwner = window.checkLyraOwner();
+      const userRole = localStorage.getItem('lyra_role');
+      const isAuthorizedForControls = isOwner || userRole === 'IT Director';
+
+      if (isAuthorizedForControls) {
         const bCard = document.getElementById('broadcastCard');
         if (bCard) bCard.style.display = 'flex';
+        // Show owner console/updates logic
+      } else {
+        // Hide update control sections for non-authorized users
+        const updateHub = document.querySelector('.app-card[style*="background: rgba(20, 20, 20, 0.4)"]');
+        if (updateHub) updateHub.style.display = 'none';
       }
 
       if (data) {
@@ -401,6 +727,7 @@
             userNodeId = val.id;
             currentDbPass = val.password;
 
+            document.getElementById('profIgn').value = val.ign || '';
             document.getElementById('profName').value = val.name || '';
             document.getElementById('profEmail').value = val.email || '';
 
@@ -410,13 +737,14 @@
               preview.style.display = 'block';
               preview.style.backgroundImage = `url('${val.pfp}')`;
             }
-            found = true;
+            if (val.banner) {
+              document.getElementById('profBannerData').value = val.banner;
+              const bPreview = document.getElementById('bannerPreview');
+              bPreview.style.display = 'block';
+              bPreview.style.backgroundImage = `url('${val.banner}')`;
+            }
           }
         });
-      }
-      if (!found && !isSuperAdmin) {
-        alert("Account sync error. Please log in again.");
-        window.location.href = 'login.html';
       }
     });
 
@@ -515,6 +843,44 @@
             const preview = document.getElementById('pfpPreview');
             preview.style.display = 'block';
             preview.style.backgroundImage = `url('${dataUrl}')`;
+            document.getElementById('fileBtnText').innerText = 'PFP Selected';
+            document.getElementById('fileBtnLabel').style.borderColor = 'var(--red)';
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('profBanner').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = new Image();
+          img.onload = function () {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let width = img.width;
+            let height = img.height;
+            
+            // Resize for banner (e.g. max width 800 while maintaining aspect)
+            if (width > 800) {
+              height *= 800 / width;
+              width = 800;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+
+            document.getElementById('profBannerData').value = dataUrl;
+            const preview = document.getElementById('bannerPreview');
+            preview.style.display = 'block';
+            preview.style.backgroundImage = `url('${dataUrl}')`;
+            document.getElementById('bannerBtnText').innerText = 'Banner Selected';
+            document.getElementById('bannerBtnLabel').style.borderColor = 'var(--red)';
           };
           img.src = event.target.result;
         };
@@ -525,25 +891,70 @@
     document.getElementById('saveProfileBtn').addEventListener('click', () => {
       if (!userNodeId) return;
       const btn = document.getElementById('saveProfileBtn');
+      const newIgn = document.getElementById('profIgn').value.trim();
       const newName = document.getElementById('profName').value.trim();
       const newEmail = document.getElementById('profEmail').value.trim();
       const newPfp = document.getElementById('profPfpData').value;
+      const newBanner = document.getElementById('profBannerData').value;
+      const confirmPass = document.getElementById('confirmSavePass').value;
+
+      if (!confirmPass) {
+        alert("Please enter your current password to confirm changes.");
+        return;
+      }
+
+      if (confirmPass !== currentDbPass) {
+        alert("Incorrect password. Verification failed.");
+        return;
+      }
 
       btn.innerText = 'SAVING...';
 
       supabase.from('lyra_approved_admins').update({
+        ign: newIgn,
         name: newName,
         email: newEmail,
-        pfp: newPfp
-      }).eq('id', userNodeId).then(() => {
-        btn.innerText = 'SAVED ✓';
-        btn.style.background = 'var(--green)';
+        pfp: newPfp,
+        banner: newBanner
+      }).eq('id', userNodeId).then(({error}) => {
+        if (error) {
+          console.error("Profile Save Error:", error);
+          
+          let friendlyMsg = error.message;
+          let title = "System Sync Alert";
+          
+          if (error.message.includes('banner')) {
+            title = "Database Sync Required";
+            friendlyMsg = "The profile banner system requires a one-time database schema update. Please contact the IT Director to synchronize the structure.";
+          }
+          
+          showLyraError(title, friendlyMsg);
+          
+          btn.innerText = 'SAVE FAILED';
+          btn.style.background = 'var(--red)';
+        } else {
+          // Update session if IGN changed
+          localStorage.setItem('lyra_user', newIgn);
+          btn.innerText = 'SAVED ✓';
+          btn.style.background = 'var(--green)';
+          document.getElementById('confirmSavePass').value = '';
+        }
         setTimeout(() => {
-          btn.innerText = 'Save Profile';
+          btn.innerText = 'Save Profile Changes';
           btn.style.background = 'var(--white)';
         }, 3000);
       });
     });
+
+    // Error Modal Helpers
+    function showLyraError(title, message) {
+      document.getElementById('lyra-error-title').innerText = title;
+      document.getElementById('lyra-error-text').innerText = message;
+      document.getElementById('lyra-error-modal').style.display = 'flex';
+    }
+    function closeLyraError() {
+      document.getElementById('lyra-error-modal').style.display = 'none';
+    }
 
     document.getElementById('saveSecurityBtn').addEventListener('click', () => {
       if (!userNodeId) return;
@@ -595,6 +1006,64 @@
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+
+    // Nav Dropdown Toggle
+    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        trigger.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Auto-expand dropdown if child is active
+    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+      const page = window.location.pathname.split("/").pop();
+      if (link.getAttribute('href') === page) {
+        link.classList.add('active');
+        const parent = link.closest('.nav-dropdown');
+        if (parent) {
+          parent.classList.add('open');
+          parent.querySelector('.nav-dropdown-trigger').classList.add('active');
+        }
+      }
+    });
+    // Role-based Navigation Access
+    const userRole = localStorage.getItem('lyra_role');
+    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
+    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isManagement = isOwnerOrIT || 
+                        userRole === 'Operation Directors' || 
+                        userRole === 'Management' || 
+                        userRole === 'Game management' || 
+                        userRole === 'Director of Media' || 
+                        userRole === 'Lead Recruiter';
+    
+    // Hide Management if not authorized
+    if (!isManagement) {
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = 'none';
+      
+      const page = window.location.pathname.split("/").pop();
+      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
+      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
+    }
+
+    if (isOwnerOrIT) {
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = 'block';
+    }
+
+    // Staff Restriction: Only Overview, Comms, and Settings
+    if (userRole === 'Staff') {
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      const accessNav = document.getElementById('nav-access');
+      if (newsNav) newsNav.style.display = 'none';
+      if (ordersNav) ordersNav.style.display = 'none';
+      if (accessNav) accessNav.style.display = 'none';
+    }
   </script>
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>

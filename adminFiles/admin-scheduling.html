@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LYRA - News & Content Management</title>
+  <title>LYRA - Weekly Scheduling</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
@@ -52,11 +52,37 @@
     .nav-dropdown-menu li a { font-size: 0.85rem !important; padding: 0.8rem 1rem 0.8rem 3.2rem !important; color: var(--gray-600); border-left: none !important; }
     .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active { color: var(--white) !important; background: rgba(255, 255, 255, 0.03) !important; }
     .nav-dropdown-menu li a.active { color: var(--red) !important; font-weight: 700; }
+    
     .logout-btn { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 1rem; transition: color 0.2s; }
     .logout-btn:hover { color: var(--red); }
-    .main-content { flex: 1; margin-left: 280px; padding: 3rem 4rem; background: var(--black); position: relative; display: flex; align-items: center; justify-content: center; text-align: center; }
-    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; letter-spacing: 0.03em; margin-bottom: 1rem; }
-    .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1.2rem; }
+
+    .main-content { flex: 1; margin-left: 280px; padding: 3rem 4rem; background: var(--black); position: relative; display: block; overflow-y: auto; }
+    .header-section { margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-end; }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; letter-spacing: 0.03em; margin-top: 0.5rem; }
+    .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1rem; }
+
+    /* SCHEDULING FORM */
+    .schedule-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 2rem; margin-bottom: 3rem; }
+    .guide-box { background: rgba(232, 0, 45, 0.05); border: 1px solid rgba(232, 0, 45, 0.2); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid var(--red); }
+    .guide-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--white); }
+    .guide-text { font-size: 0.9rem; color: var(--gray-200); line-height: 1.6; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-600); margin-bottom: 0.5rem; }
+    .form-input, .form-textarea { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; padding: 0.8rem; color: var(--white); font-family: 'Barlow', sans-serif; transition: border-color 0.2s; }
+    .form-input:focus, .form-textarea:focus { border-color: var(--red); outline: none; }
+    
+    .day-group { background: rgba(0, 0, 0, 0.2); padding: 1rem; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .day-label { color: var(--red); font-weight: 800; font-size: 0.8rem; margin-bottom: 0.5rem; display: block; }
+    
+    .submit-btn { width: 100%; background: var(--red); color: var(--white); border: none; padding: 1.2rem; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; transition: background 0.2s; }
+    .submit-btn:hover { background: var(--red-dark); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .past-submissions { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+    .submission-item { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 1.5rem; }
+    .sub-meta { font-size: 0.8rem; color: var(--gray-600); margin-bottom: 1rem; display: flex; justify-content: space-between; }
   </style>
   <link rel="stylesheet" href="../responsive.css">
 </head>
@@ -188,21 +214,130 @@
           </li>
         </ul>
       </li>
-      <li id="nav-news"><a href="admin-news.html" class="active">News & Content</a></li>
+      <li id="nav-news"><a href="admin-news.html">News & Content</a></li>
       <li id="nav-orders"><a href="admin-orders.html">Store Orders</a></li>
       <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);">Owner Console</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
   </aside>
+
   <main class="main-content">
-    <div>
-      <p class="header-subtitle">Management</p>
-      <h1 class="header-title">News & Content Control</h1>
-      <p style="color: var(--gray-600); font-size: 1.2rem;">This module is currently under development.<br>Check back soon for content scheduling and news management.</p>
+    <div class="header-section">
+      <div>
+        <p class="header-subtitle">Management</p>
+        <h1 class="header-title">Weekly Availability</h1>
+      </div>
+      <div id="sundayNotice" style="display: none; background: rgba(0, 232, 93, 0.1); color: #00E85D; border: 1px solid rgba(0, 232, 93, 0.2); padding: 0.6rem 1.2rem; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase;">
+        Sunday Submission Window Active
+      </div>
+    </div>
+
+    <section class="scheduling-container">
+      <div class="sched-card">
+        <h3>Submit Your Availability</h3>
+        <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">Please list your expected hours or "N/A" for each day. This is required every Sunday for the following week.</p>
+      </div>
+
+    <!-- SUBMISSION FORM -->
+    <section class="schedule-card" id="submissionSection">
+      <div class="guide-box">
+        <h3 class="guide-title">Weekly Availability Submission</h3>
+        <p class="guide-text">Every Sunday, please fill out your availability for the upcoming week. This information is critical for higher management to coordinate scrims, meetings, and regional support.</p>
+      </div>
+
+      <form id="scheduleForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Role / Game Division</label>
+            <input type="text" id="schedRole" class="form-input" placeholder="e.g. Valorant Manager" required>
+          </div>
+        </div>
+        <!-- ... (Rest of the form) ... -->
+
+
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
+          <div class="day-group">
+            <span class="day-label">Monday</span>
+            <input type="text" id="mon" class="form-input" placeholder="e.g. 5pm-10pm">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Tuesday</span>
+            <input type="text" id="tue" class="form-input" placeholder="Available">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Wednesday</span>
+            <input type="text" id="wed" class="form-input" placeholder="Available">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Thursday</span>
+            <input type="text" id="thu" class="form-input" placeholder="Available">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Friday</span>
+            <input type="text" id="fri" class="form-input" placeholder="Available">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Saturday</span>
+            <input type="text" id="sat" class="form-input" placeholder="Available">
+          </div>
+          <div class="day-group">
+            <span class="day-label">Sunday</span>
+            <input type="text" id="sun" class="form-input" placeholder="Available">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Additional Notes / OOO</label>
+          <textarea id="schedNotes" class="form-textarea" placeholder="Any specific time zones or upcoming absences..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Submit Weekly Schedule</button>
+      </form>
+    </section>
+
+    <div class="header-section" style="margin-top: 4rem;">
+      <div>
+        <h2 class="header-title" style="font-size: 2rem;">Recent Submissions</h2>
+      </div>
+    </div>
+    <div class="past-submissions" id="submissionsList">
+      <div class="empty-state" style="color: var(--gray-600); font-style: italic;">Loading past schedules...</div>
+    </div>
+
+    <!-- MANAGEMENT OVERVIEW (Hidden by default) -->
+    <div id="managementTableSection" style="display: none; margin-top: 5rem;">
+      <div class="header-section">
+        <div>
+          <p class="header-subtitle">Higher Management</p>
+          <h2 class="header-title" style="font-size: 2rem;">Fleet Availability Overview</h2>
+        </div>
+      </div>
+      <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; overflow-x: auto; scrollbar-width: thin;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 900px;">
+          <thead>
+
+            <tr style="background: rgba(232, 0, 45, 0.1); border-bottom: 2px solid var(--red);">
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Manager</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Role</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Mon</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Tue</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Wed</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Thu</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Fri</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Sat</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Sun</th>
+              <th style="padding: 1rem; text-align: left; font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase;">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="managementTableBody">
+            <!-- Data populated via JS -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
-  <!-- Supabase Core -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase-config.js"></script>
 
@@ -217,19 +352,151 @@
       });
     });
 
+    // Sunday Notice Logic
+    const now = new Date();
+    if (now.getDay() === 0) {
+      document.getElementById('sundayNotice').style.display = 'block';
+    }
+
+    // Nav Dropdown Toggle
+    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        trigger.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Auto-expand dropdown if child is active
+    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+      const page = window.location.pathname.split("/").pop();
+      if (link.getAttribute('href') === page) {
+        link.classList.add('active');
+        const parent = link.closest('.nav-dropdown');
+        if (parent) {
+          parent.classList.add('open');
+          parent.querySelector('.nav-dropdown-trigger').classList.add('active');
+        }
+      }
+    });
+
+    // Role-based view logic
+    const username = localStorage.getItem('lyra_user');
+    const localUserRole = localStorage.getItem('lyra_role');
+    const isHigherManagement = localUserRole === 'Owner' || 
+                               localUserRole === 'Game management' || 
+                               localUserRole === 'Operation Directors' ||
+                               localUserRole === 'IT Director';
+
+    if (isHigherManagement) {
+      document.getElementById('managementTableSection').style.display = 'block';
+    }
+
+    const form = document.getElementById('scheduleForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Populate role if available in user object
+    if (localUserRole) {
+      document.getElementById('schedRole').value = localUserRole;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!username) return alert('Session expired.');
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Submitting...';
+
+      const payload = {
+        author: username,
+        role: document.getElementById('schedRole').value,
+        mon: document.getElementById('mon').value || 'N/A',
+        tue: document.getElementById('tue').value || 'N/A',
+        wed: document.getElementById('wed').value || 'N/A',
+        thu: document.getElementById('thu').value || 'N/A',
+        fri: document.getElementById('fri').value || 'N/A',
+        sat: document.getElementById('sat').value || 'N/A',
+        sun: document.getElementById('sun').value || 'N/A',
+        notes: document.getElementById('schedNotes').value
+      };
+
+      try {
+        const { error } = await supabase.from('lyra_scheduling').insert([payload]);
+        if (error) throw error;
+        alert('Weekly schedule submitted successfully!');
+        form.reset();
+        fetchSchedules();
+      } catch (err) {
+        console.error(err);
+        alert('Error submitting schedule: ' + (err.message || 'Unknown Error') + '\n\nNote: If this is an RLS error, please ensure you have disabled Row Level Security for lyra_scheduling in the Supabase Dashboard.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Submit Weekly Schedule';
+      }
+    });
+
+    async function fetchSchedules() {
+      const { data, error } = await supabase.from('lyra_scheduling').select('*').order('timestamp', { ascending: false });
+      const container = document.getElementById('submissionsList');
+      const tableBody = document.getElementById('managementTableBody');
+      
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<div class="empty-state">No past submissions found.</div>';
+        return;
+      }
+
+      // Populate Grid/Cards for everyone (Recent History)
+      container.innerHTML = data.slice(0, 10).map(item => `
+        <div class="submission-item">
+          <div class="sub-meta">
+            <span style="color: var(--white); font-weight: 700;">${item.author}</span>
+            <span>${new Date(item.timestamp).toLocaleDateString()}</span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--red); font-weight: 800; text-transform: uppercase; margin-bottom: 1rem;">${item.role}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+            <div style="color: var(--gray-600);">Mon: <span style="color: var(--white);">${item.mon}</span></div>
+            <div style="color: var(--gray-600);">Tue: <span style="color: var(--white);">${item.tue}</span></div>
+            <div style="color: var(--gray-600);">Wed: <span style="color: var(--white);">${item.wed}</span></div>
+            <div style="color: var(--gray-600);">Thu: <span style="color: var(--white);">${item.thu}</span></div>
+            <div style="color: var(--gray-600);">Fri: <span style="color: var(--white);">${item.fri}</span></div>
+            <div style="color: var(--gray-600);">Sat: <span style="color: var(--white);">${item.sat}</span></div>
+            <div style="color: var(--gray-600);">Sun: <span style="color: var(--white);">${item.sun}</span></div>
+          </div>
+          ${item.notes ? `<div style="margin-top: 1rem; font-size: 0.8rem; color: var(--gray-600); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">${item.notes}</div>` : ''}
+        </div>
+      `).join('');
+
+      // Populate Master Table for Higher Management
+      if (isHigherManagement) {
+        tableBody.innerHTML = data.map(item => `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 1rem; color: var(--white); font-weight: 700;">${item.author}</td>
+            <td style="padding: 1rem; color: var(--red); font-weight: 800; font-family: 'Barlow Condensed'; font-size: 0.75rem;">${item.role}</td>
+            <td style="padding: 1rem;">${item.mon}</td>
+            <td style="padding: 1rem;">${item.tue}</td>
+            <td style="padding: 1rem;">${item.wed}</td>
+            <td style="padding: 1rem;">${item.thu}</td>
+            <td style="padding: 1rem;">${item.fri}</td>
+            <td style="padding: 1rem;">${item.sat}</td>
+            <td style="padding: 1rem;">${item.sun}</td>
+            <td style="padding: 1rem; font-size: 0.7rem; color: var(--gray-600); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.notes || '-'}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    fetchSchedules();
 
     // Role-based Navigation Access
-    const userRole = localStorage.getItem('lyra_role');
     const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
     const isSimulation = localStorage.getItem('lyra_view_as') !== null;
     const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isOwnerOrIT = localUserRole === 'Owner' || localUserRole === 'IT Director' || isHardcodedSuper;
     const isManagement = isOwnerOrIT || 
-                        userRole === 'Operation Directors' || 
-                        userRole === 'Management' || 
-                        userRole === 'Game management' || 
-                        userRole === 'Director of Media' || 
-                        userRole === 'Lead Recruiter';
+                        localUserRole === 'Operation Directors' || 
+                        localUserRole === 'Management' || 
+                        localUserRole === 'Game management' || 
+                        localUserRole === 'Director of Media' || 
+                        localUserRole === 'Lead Recruiter';
     
     // Hide Management if not authorized
     if (!isManagement) {
@@ -247,19 +514,6 @@
     }
 
     // Staff Restriction: Only Overview, Comms, and Settings
-    if (userRole === 'Staff') {
-      const newsNav = document.getElementById('nav-news');
-      const ordersNav = document.getElementById('nav-orders');
-      const accessNav = document.getElementById('nav-access');
-      if (newsNav) newsNav.style.display = 'none';
-      if (ordersNav) ordersNav.style.display = 'none';
-      if (accessNav) accessNav.style.display = 'none';
-      
-      // Redirect if staff reaches restricted page
-      const page = window.location.pathname.split("/").pop();
-      const restrictedPages = ['admin-news.html', 'admin-orders.html', 'admin-reviews.html', 'admin-roster.html', 'admin-access.html', 'admin-super-panel.html'];
-      if (restrictedPages.includes(page)) window.location.href = 'admin-overview.html';
-    }
     // Admin Presence & Status Synchronization
     const adminStatus = document.getElementById('adminStatus');
     const presenceList = document.getElementById('presenceList');
@@ -296,7 +550,3 @@
   <script src="../responsive.js"></script>
 </body>
 </html>
-
-
-
-

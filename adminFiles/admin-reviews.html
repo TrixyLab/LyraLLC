@@ -49,8 +49,59 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     }
     .nav-menu a:hover { color: var(--white); background: rgba(255, 255, 255, 0.03); }
     .nav-menu a.active {
-      color: var(--white); background: rgba(232, 0, 45, 0.1);
-      border-left: 3px solid var(--red); padding-left: calc(1rem - 3px);
+      color: var(--white);
+      background: rgba(232, 0, 45, 0.1);
+      border-left: 3px solid var(--red);
+      padding-left: calc(1rem - 3px);
+    }
+
+    /* NAV DROPDOWN */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-trigger {
+      cursor: pointer;
+    }
+    .nav-dropdown-trigger .chevron {
+      margin-left: auto;
+      transition: transform 0.3s ease;
+      opacity: 0.5;
+    }
+    .nav-dropdown.open .nav-dropdown-trigger .chevron {
+      transform: rotate(180deg);
+      opacity: 1;
+    }
+    .nav-dropdown-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .nav-dropdown.open .nav-dropdown-menu {
+      max-height: 400px;
+      padding-bottom: 0.5rem;
+    }
+    .nav-dropdown-menu li {
+      margin-bottom: 0 !important;
+    }
+    .nav-dropdown-menu li a {
+      font-size: 0.85rem !important;
+      padding: 0.8rem 1rem 0.8rem 3.2rem !important;
+      color: var(--gray-600);
+      border-left: none !important;
+    }
+    .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active {
+      color: var(--white) !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+    .nav-dropdown-menu li a.active {
+      color: var(--red) !important;
+      font-weight: 700;
     }
     .logout-btn {
       font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem;
@@ -188,15 +239,116 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
 
     <ul class="nav-menu">
       <li><a href="admin-overview.html">Overview</a></li>
-      <li><a href="admin-dashboard.html">Applications</a></li>
-      <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html">Team Chat</a></li>
-      <li><a href="admin-dms.html">Direct Messages</a></li>
-      <li><a href="admin-meetings.html">Meetings</a></li>
-      <li><a href="admin-reviews.html" class="active">Performance Reviews</a></li>
-      <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="admin-news.html">News & Content</a></li>
-      <li><a href="admin-orders.html">Store Orders</a></li>
+      <li class="nav-dropdown" id="nav-management">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Management</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
+          <li><a href="admin-roster.html">Master Control</a></li>
+          <li><a href="admin-reviews.html">Performance Reviews</a></li>
+          <li><a href="admin-updates.html">Daily Updates</a></li>
+          <li><a href="admin-scheduling.html">Availability</a></li>
+          <li><a href="admin-schedule-events.html">Schedule</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-comms">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Communications</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-chat.html">Management Chat</a></li>
+          <li><a href="admin-dms.html">Direct Messages</a></li>
+          <li><a href="admin-meetings.html">Meetings</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-teams">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Teams</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Valorant</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=val&reg=na"># val-na</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=eu"># val-eu</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=oce"># val-oce</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Overwatch 2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=ow2&reg=na"># ow2-na</a></li>
+              <li><a href="admin-team-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>League of Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=lol&reg=na"># lol-na</a></li>
+              <li><a href="admin-team-chat.html?team=lol&reg=eu"># lol-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Apex Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=apex&reg=na"># apex-na</a></li>
+              <li><a href="admin-team-chat.html?team=apex&reg=eu"># apex-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Halo</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=halo&reg=na"># halo-na</a></li>
+              <li><a href="admin-team-chat.html?team=halo&reg=eu"># halo-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>The Finals</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=tf&reg=na"># finals-na</a></li>
+              <li><a href="admin-team-chat.html?team=tf&reg=eu"># finals-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Rocket League</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=rl&reg=na"># rl-na</a></li>
+              <li><a href="admin-team-chat.html?team=rl&reg=eu"># rl-eu</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li id="nav-news"><a href="admin-news.html">News & Content</a></li>
+      <li id="nav-orders"><a href="admin-orders.html">Store Orders</a></li>
+      <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);">Owner Console</a></li>
       <li><a href="admin-settings.html">Settings</a></li>
     </ul>
     <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
@@ -444,6 +596,87 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+
+    // Nav Dropdown Toggle
+    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        trigger.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Auto-expand dropdown if child is active
+    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+      const page = window.location.pathname.split("/").pop();
+      if (link.getAttribute('href') === page) {
+        link.classList.add('active');
+        const parent = link.closest('.nav-dropdown');
+        if (parent) {
+          parent.classList.add('open');
+          parent.querySelector('.nav-dropdown-trigger').classList.add('active');
+        }
+      }
+    });
+    // Role-based Navigation Access
+    const userRole = localStorage.getItem('lyra_role');
+    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
+    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isManagement = isOwnerOrIT || 
+                        userRole === 'Operation Directors' || 
+                        userRole === 'Management' || 
+                        userRole === 'Game management' || 
+                        userRole === 'Director of Media' || 
+                        userRole === 'Lead Recruiter';
+    
+    // Hide Management if not authorized
+    if (!isManagement) {
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = 'none';
+      
+      const page = window.location.pathname.split("/").pop();
+      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
+      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
+    }
+
+    if (isOwnerOrIT) {
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = 'block';
+    }
+
+    // Admin Presence & Status Synchronization
+    const adminStatus = document.getElementById('adminStatus');
+    const presenceList = document.getElementById('presenceList');
+    
+    if (adminStatus && presenceList) {
+      const savedStatus = localStorage.getItem('admin_status') || 'online';
+      adminStatus.value = savedStatus;
+
+      adminStatus.addEventListener('change', async (e) => {
+        const newStatus = e.target.value;
+        localStorage.setItem('admin_status', newStatus);
+        const user = JSON.parse(localStorage.getItem('lyra_user'));
+        if (user && user.alias) {
+          await supabase.from('lyra_roster').update({ status: newStatus, last_active: new Date().toISOString() }).eq('alias', user.alias);
+        }
+      });
+
+      async function updateTeamPresence() {
+        const { data } = await supabase.from('lyra_roster').select('alias, status').neq('status', 'offline');
+        if (data) {
+          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+          data.forEach(member => {
+            const option = document.createElement('option');
+            const icon = member.status === 'online' ? '🟢' : (member.status === 'away' ? '🟡' : '🔴');
+            option.textContent = `${icon} ${member.alias}`;
+            presenceList.appendChild(option);
+          });
+        }
+      }
+      updateTeamPresence();
+      setInterval(updateTeamPresence, 30000);
+    }
   </script>
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>

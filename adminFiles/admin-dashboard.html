@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LYRA - Admin Dashboard</title>
+  <title>LYRA - Pending Recruitment</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -137,6 +137,66 @@
       background: rgba(232, 0, 45, 0.1);
       border-left: 3px solid var(--red);
       padding-left: calc(1rem - 3px);
+    }
+
+    /* NAV DROPDOWN */
+    .nav-dropdown {
+      position: relative;
+    }
+    .nav-dropdown-trigger {
+      cursor: pointer;
+    }
+    .nav-dropdown-trigger .chevron {
+      margin-left: auto;
+      transition: transform 0.3s ease;
+      opacity: 0.5;
+    }
+    .nav-dropdown.open .nav-dropdown-trigger .chevron {
+      transform: rotate(180deg);
+      opacity: 1;
+    }
+    .nav-dropdown-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .nav-dropdown.open > .nav-dropdown-menu {
+      max-height: 1000px;
+      padding-bottom: 0.5rem;
+    }
+    /* Nested Indentation */
+    .nav-dropdown-menu .nav-dropdown-trigger {
+      padding-left: 2rem !important;
+      font-size: 0.85rem !important;
+    }
+    .nav-dropdown-menu .nav-dropdown-menu a {
+      padding-left: 3.5rem !important;
+    }
+    .nav-dropdown-menu .nav-dropdown-menu .nav-dropdown-menu a {
+      padding-left: 4.5rem !important;
+    }
+    .nav-dropdown-menu li {
+      margin-bottom: 0 !important;
+    }
+    .nav-dropdown-menu li a {
+      font-size: 0.85rem !important;
+      padding: 0.8rem 1rem 0.8rem 3.2rem !important;
+      color: var(--gray-600);
+      border-left: none !important;
+    }
+    .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active {
+      color: var(--white) !important;
+      background: rgba(255, 255, 255, 0.03) !important;
+    }
+    .nav-dropdown-menu li a.active {
+      color: var(--red) !important;
+      font-weight: 700;
     }
 
     .logout-btn {
@@ -408,17 +468,118 @@
     </div>
 
     <ul class="nav-menu">
-      <li><a href="admin-overview.html">Overview</a></li>
-      <li><a href="admin-dashboard.html" class="active">Applications</a></li>
-      <li><a href="admin-roster.html">Management</a></li>
-      <li><a href="admin-chat.html">Team Chat</a></li>
-      <li><a href="admin-dms.html">Direct Messages</a></li>
-      <li><a href="admin-meetings.html">Meetings</a></li>
-      <li><a href="admin-reviews.html">Performance Reviews</a></li>
-      <li><a href="admin-access.html">Admin Access</a></li>
-      <li><a href="admin-news.html">News & Content</a></li>
-      <li><a href="admin-orders.html">Store Orders</a></li>
-      <li><a href="admin-settings.html">Settings</a></li>
+      <li><a href="admin-overview.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span>Overview</span></a></li>
+      <li class="nav-dropdown" id="nav-management">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Management</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
+          <li><a href="admin-roster.html">Master Control</a></li>
+          <li><a href="admin-reviews.html">Performance Reviews</a></li>
+          <li><a href="admin-updates.html">Daily Updates</a></li>
+          <li><a href="admin-scheduling.html">Availability</a></li>
+          <li><a href="admin-schedule-events.html">Schedule</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-comms">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Communications</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-chat.html">Management Chat</a></li>
+          <li><a href="admin-dms.html">Direct Messages</a></li>
+          <li><a href="admin-meetings.html">Meetings</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-teams">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Teams</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Valorant</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=val&reg=na"># val-na</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=eu"># val-eu</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=oce"># val-oce</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Overwatch 2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=ow2&reg=na"># ow2-na</a></li>
+              <li><a href="admin-team-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>League of Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=lol&reg=na"># lol-na</a></li>
+              <li><a href="admin-team-chat.html?team=lol&reg=eu"># lol-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Apex Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=apex&reg=na"># apex-na</a></li>
+              <li><a href="admin-team-chat.html?team=apex&reg=eu"># apex-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Halo</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=halo&reg=na"># halo-na</a></li>
+              <li><a href="admin-team-chat.html?team=halo&reg=eu"># halo-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>The Finals</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=tf&reg=na"># finals-na</a></li>
+              <li><a href="admin-team-chat.html?team=tf&reg=eu"># finals-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Rocket League</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=rl&reg=na"># rl-na</a></li>
+              <li><a href="admin-team-chat.html?team=rl&reg=eu"># rl-eu</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li id="nav-news"><a href="admin-news.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l4 4v10a2 2 0 0 1-2 2z"></path><polyline points="14 3 14 8 19 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span>News & Content</span></a></li>
+      <li id="nav-orders"><a href="admin-orders.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>Store Orders</span></a></li>
+      <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg><span>Owner Console</span></a></li>
+      <li><a href="admin-settings.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg><span>Settings</span></a></li>
     </ul>
 
     <a href="#" id="logoutBtn" class="logout-btn">
@@ -433,7 +594,7 @@
     <div class="header">
       <div>
         <p class="header-subtitle">Admin Portal</p>
-        <h1 class="header-title">Pending Applications</h1>
+        <h1 class="header-title">Pending Recruitment</h1>
       </div>
       <div class="stats-container">
         <div class="stat-box">
@@ -450,14 +611,6 @@
     <div class="apps-container" id="apps-container">
     </div>
 
-    <!-- ACTIVE MEMBERS SECTION -->
-    <div class="header" style="margin-top: 5rem;">
-      <div>
-        <p class="header-subtitle">Management</p>
-        <h1 class="header-title">Active Organization Members</h1>
-      </div>
-    </div>
-    <div class="apps-container" id="activeMembersContainer"></div>
 
   </main>
 
@@ -467,6 +620,9 @@
 
   <script>
     function fetchApps() {
+      const currentUser = localStorage.getItem('lyra_user');
+      const isOwner = currentUser && (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa');
+
       supabase.from('lyra_applications').select('*').order('timestamp', { ascending: false }).then(({data}) => {
       const appsContainer = document.getElementById('apps-container');
       const pendingCount = document.getElementById('pendingCount');
@@ -486,14 +642,13 @@
 
           let pCount = 0;
           data.forEach((app) => {
-            if (app.rolevalue === 'adminAccess') return;
             pCount++;
 
             const card = document.createElement('div');
           card.className = 'app-card animate-slide-in';
           card.innerHTML = `
           <div class="app-info">
-            <span class="app-role" style="background:var(--red);color:var(--white);">NEW APPLICATION RECIEVED</span>
+            <span class="app-role" style="background:var(--red);color:var(--white);">${(app.role || 'Application').toUpperCase()}</span>
             <h2 class="app-name">${app.name} "${app.ign}"</h2>
             <div class="app-meta" style="margin-bottom:0.5rem;">
               <span>✉️ ${app.email}</span>
@@ -507,8 +662,11 @@
             <p class="app-reason" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:1rem; margin-top:0.5rem;"><strong>Why LYRA?</strong><br/>"${app.reason}"</p>
           </div>
           <div class="app-actions">
-            <button class="btn btn-accept" data-id="${app.id}" data-email="${app.email}" data-name="${app.name}" data-ign="${app.ign}">Accept</button>
-            <button class="btn btn-decline" data-id="${app.id}">Decline</button>
+            ${isOwner ? 
+              `<button class="btn btn-accept" data-id="${app.id}" data-email="${app.email}" data-name="${app.name}" data-ign="${app.ign}">Accept</button>
+               <button class="btn btn-decline" data-id="${app.id}">Decline</button>` :
+              `<span style="color:var(--gray-600); font-size:0.8rem; font-family:'Barlow Condensed', sans-serif; text-align:center;">OWNER ONLY</span>`
+            }
           </div>
         `;
           appsContainer.appendChild(card);
@@ -530,98 +688,84 @@
       if (e.target.classList.contains('btn-accept')) {
         const id = e.target.getAttribute('data-id');
         if (id) {
-          supabase.from('lyra_applications').select('*').eq('id', id).single().then(({data: appData}) => {
-            if (appData) {
-              supabase.from('lyra_roster').insert([{
-                game: appData.rolevalue,
-                name: appData.name,
-                ign: appData.ign || '',
-                rawrole: appData.role,
-                customrole: appData.gamerole || 'Member',
-                country: '🇺🇸',
-                sociallink: appData.sociallink || '',
-                discord: appData.discord
-              }]).then(()=>{});
+          supabase.from('lyra_applications').select('*').eq('id', id).single().then(({data: app}) => {
+            if (app) {
+              // Roster Mapping Automation (v4 Standard)
+              const roleVal = (app.rolevalue || '').toLowerCase().trim();
+              const isManagement = roleVal === 'management';
+              const isCoach = roleVal === 'coach';
+              
+              let finalGame = 'Personnel';
+              let finalCustomRole = app.role || 'Staff';
+
+              if (isManagement) {
+                finalGame = 'management';
+                finalCustomRole = app.gamerole || 'Management';
+              } else if (isCoach) {
+                finalGame = 'coach';
+                finalCustomRole = `Coach (${app.gamerole || 'General'})`;
+              } else {
+                // Map "the finals", "tf", etc. to "thefinals"
+                if (roleVal.includes('finals') || roleVal === 'tf') {
+                  finalGame = 'thefinals';
+                } else {
+                  finalGame = roleVal || 'Personnel';
+                }
+                finalCustomRole = app.gamerole || 'Player';
+              }
+
+              const rawRole = (isManagement || roleVal === 'director' || roleVal === 'it') ? 'Management' : 'Staff';
+
+              // 1. Insert into Security table (Admins)
+              supabase.from('lyra_approved_admins').upsert([{
+                name: app.name,
+                ign: app.ign,
+                email: app.email,
+                discord: app.discord,
+                password: 'Pending'
+              }], { onConflict: 'ign' }).then(()=>{});
+
+              // 2. Insert into Roster table (Metadata) - Note: Manual resolution since 'ign' is not a unique PK in schema
+              supabase.from('lyra_roster').select('id').eq('ign', app.ign).then(({data: existing}) => {
+                const rosterData = {
+                  name: app.name,
+                  ign: app.ign,
+                  email: app.email,
+                  discord: app.discord,
+                  game: finalGame,
+                  rawRole: rawRole,
+                  customRole: finalCustomRole,
+                  country: '🇺🇸'
+                };
+
+                if (existing && existing.length > 0) {
+                  supabase.from('lyra_roster').update(rosterData).eq('ign', app.ign).then(()=>{});
+                } else {
+                  supabase.from('lyra_roster').insert([rosterData]).then(()=>{});
+                }
+              });
+
+              // 3. Remove application
               supabase.from('lyra_applications').delete().eq('id', id).then(()=>{});
             }
           });
         }
         const card = e.target.closest('.app-card');
-        card.style.opacity = '0.5';
-        card.style.pointerEvents = 'none';
-        e.target.innerText = 'Accepted';
-        e.target.style.background = 'var(--green)';
-        e.target.style.color = 'var(--black)';
+        if (card) {
+          card.style.opacity = '0.5';
+          card.style.pointerEvents = 'none';
+          e.target.innerText = 'Accepted';
+          e.target.style.background = 'var(--green)';
+          e.target.style.color = 'var(--black)';
+        }
       }
       else if (e.target.classList.contains('btn-decline')) {
         const id = e.target.getAttribute('data-id');
         if (id) supabase.from('lyra_applications').delete().eq('id', id).then(()=>{});
       }
-      else if (e.target.classList.contains('btn-remove')) {
-        const card = e.target.closest('.app-card');
-        card.style.opacity = '0.3';
-        card.style.pointerEvents = 'none';
-        e.target.innerText = 'Removed';
-        e.target.style.color = 'var(--red)';
-        e.target.style.borderColor = 'var(--red)';
-      }
     });
 
-    // --- ACTIVE MEMBERS SYNC ---
-    const activeMembersContainer = document.getElementById('activeMembersContainer');
-    let allAdmins = [];
-    let allRoster = [];
-
-    function renderActiveMembers() {
-      if (!activeMembersContainer) return;
-      activeMembersContainer.innerHTML = '';
-
-      const members = [
-        ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
-        ...allRoster.map(r => ({ ...r, orgType: 'roster' }))
-      ];
-      members.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-      members.forEach(m => {
-        const card = document.createElement('div');
-        card.className = 'app-card';
-        const isAppAdmin = m.orgType === 'admin';
-        const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
-
-        card.innerHTML = `
-          <div class="app-info">
-            <span class="app-role" style="background:${isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)'}; color:var(--white);">${roleBadgeText}</span>
-            <h2 class="app-name">${m.name} "${m.ign || ''}"</h2>
-            <div class="app-meta">
-              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customrole || 'Member')}</span>
-              <span>📱 ${m.discord || 'Not Linked'}</span>
-            </div>
-          </div>
-          <div class="app-actions">
-            <a href="${isAppAdmin ? 'admin-access.html' : 'admin-roster.html'}" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">View</a>
-          </div>
-        `;
-        activeMembersContainer.appendChild(card);
-      });
-    }
-
-    function fetchAdmins() {
-      supabase.from('lyra_approved_admins').select('*').then(({data}) => {
-        allAdmins = data || [];
-        renderActiveMembers();
-      });
-    }
-    fetchAdmins();
-    supabase.channel('sync_admins_dash').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchAdmins).subscribe();
-
-    function fetchRosters() {
-      supabase.from('lyra_roster').select('*').then(({data}) => {
-        allRoster = data || [];
-        renderActiveMembers();
-      });
-    }
-    fetchRosters();
-    supabase.channel('sync_rosters_dash').on('postgres_changes', {event:'*', schema:'public', table:'lyra_roster'}, fetchRosters).subscribe();
+    // --- LOGOUT ---
 
 
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -629,6 +773,92 @@
       localStorage.removeItem('lyra_user');
       window.location.href = 'index.html';
     });
+    // Nav Dropdown Toggle
+    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        trigger.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Auto-expand dropdown if child is active
+    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+      const page = window.location.pathname.split("/").pop();
+      if (link.getAttribute('href') === page) {
+        link.classList.add('active');
+        const parent = link.closest('.nav-dropdown');
+        parent.classList.add('open');
+        parent.querySelector('.nav-dropdown-trigger').classList.add('active');
+      }
+    });
+    // Role-based Navigation Access
+    const userRole = localStorage.getItem('lyra_role');
+    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
+    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isManagement = isOwnerOrIT || 
+                        userRole === 'Operation Directors' || 
+                        userRole === 'Management' || 
+                        userRole === 'Game management' || 
+                        userRole === 'Director of Media' || 
+                        userRole === 'Lead Recruiter';
+    
+    // Hide Management if not authorized
+    if (!isManagement) {
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = 'none';
+      
+      const page = window.location.pathname.split("/").pop();
+      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
+      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
+    }
+
+    if (isOwnerOrIT) {
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = 'block';
+    }
+
+    // Staff Restriction: Only Overview, Comms, and Settings
+    if (userRole === 'Staff') {
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      if (newsNav) newsNav.style.display = 'none';
+      if (ordersNav) ordersNav.style.display = 'none';
+    }
+
+    // Admin Presence & Status Synchronization
+    const adminStatus = document.getElementById('adminStatus');
+    const presenceList = document.getElementById('presenceList');
+    
+    if (adminStatus && presenceList) {
+      const savedStatus = localStorage.getItem('admin_status') || 'online';
+      adminStatus.value = savedStatus;
+
+      adminStatus.addEventListener('change', async (e) => {
+        const newStatus = e.target.value;
+        localStorage.setItem('admin_status', newStatus);
+        const user = JSON.parse(localStorage.getItem('lyra_user'));
+        if (user && user.alias) {
+          await supabase.from('lyra_roster').update({ status: newStatus, last_active: new Date().toISOString() }).eq('alias', user.alias);
+        }
+      });
+
+      async function updateTeamPresence() {
+        const { data } = await supabase.from('lyra_roster').select('alias, status').neq('status', 'offline');
+        if (data) {
+          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+          data.forEach(member => {
+            const option = document.createElement('option');
+            const icon = member.status === 'online' ? '🟢' : (member.status === 'away' ? '🟡' : '🔴');
+            option.textContent = `${icon} ${member.alias}`;
+            presenceList.appendChild(option);
+          });
+        }
+      }
+      updateTeamPresence();
+      setInterval(updateTeamPresence, 30000);
+    }
   </script>
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>

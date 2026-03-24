@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYRA - Daily Reports & Updates</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #E8002D; --red-dark: #a80020;
+      --white: #FFFFFF; --black: #000000;
+      --gray-200: #CCCCCC; --gray-600: #555555;
+      --gray-800: #1A1A1A; --gray-900: #0D0D0D;
+    }
+    body { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; }
+    .sidebar { width: 280px; background: var(--gray-900); border-right: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; padding: 2rem; position: fixed; height: 100vh; z-index: 100; overflow-y: auto; scrollbar-width: none; }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .brand-logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.12em; color: var(--white); text-decoration: none; margin-bottom: 3rem; }
+    .brand-logo img { height: 2rem; width: auto; }
+    .brand-logo span { color: var(--red); }
+    .nav-menu { list-style: none; flex: 1; }
+    .nav-menu li { margin-bottom: 0.5rem; }
+    .nav-menu a { display: flex; align-items: center; gap: 1rem; font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600); text-decoration: none; padding: 1rem; border-radius: 4px; transition: all 0.2s; }
+    .nav-menu a:hover { color: var(--white); background: rgba(255, 255, 255, 0.03); }
+    .nav-menu a.active { color: var(--white); background: rgba(232, 0, 45, 0.1); border-left: 3px solid var(--red); padding-left: calc(1rem - 3px); }
+
+    /* NAV DROPDOWN */
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-trigger { cursor: pointer; }
+    .nav-dropdown-trigger .chevron { margin-left: auto; transition: transform 0.3s ease; opacity: 0.5; }
+    .nav-dropdown.open .nav-dropdown-trigger .chevron { transform: rotate(180deg); opacity: 1; }
+    .nav-dropdown-menu { list-style: none; padding: 0; margin: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(0, 0, 0, 0.15); border-radius: 4px; margin-top: 2px; }
+    .nav-dropdown.open .nav-dropdown-menu {
+      max-height: 400px;
+      padding-bottom: 0.5rem;
+    }
+    .nav-dropdown-menu li { margin-bottom: 0 !important; }
+    .nav-dropdown-menu li a { font-size: 0.85rem !important; padding: 0.8rem 1rem 0.8rem 3.2rem !important; color: var(--gray-600); border-left: none !important; }
+    .nav-dropdown-menu li a:hover, .nav-dropdown-menu li a.active { color: var(--white) !important; background: rgba(255, 255, 255, 0.03) !important; }
+    .nav-dropdown-menu li a.active { color: var(--red) !important; font-weight: 700; }
+    .logout-btn { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--white); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; padding: 1rem; transition: color 0.2s; }
+    .logout-btn:hover { color: var(--red); }
+    .main-content { flex: 1; margin-left: 280px; padding: 3rem 4rem; background: var(--black); position: relative; display: block; overflow-y: auto; }
+    .header-section { margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-end; }
+    .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; letter-spacing: 0.03em; margin-top: 0.5rem; }
+    .header-subtitle { font-family: 'Barlow Condensed', sans-serif; color: var(--red); font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1rem; }
+    
+    .updates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .update-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 1.5rem; transition: transform 0.2s, border-color 0.2s; }
+    .update-card:hover { transform: translateY(-4px); border-color: rgba(232, 0, 45, 0.3); }
+    .card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1rem; }
+    .card-icon { width: 40px; height: 40px; background: rgba(232, 0, 45, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--red); }
+    .card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .list-item:last-child { border-bottom: none; }
+    .item-info { display: flex; flex-direction: column; }
+    .item-name { font-weight: 600; font-size: 0.95rem; }
+    .item-meta { font-size: 0.8rem; color: var(--gray-600); }
+    .item-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; font-weight: 700; }
+    .status-pending { background: rgba(255, 193, 7, 0.1); color: #FFC107; }
+    .status-active { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+    .empty-state { color: var(--gray-600); font-style: italic; padding: 2rem 0; text-align: center; font-size: 0.9rem; }
+    
+    .refresh-btn { background: rgba(232, 0, 45, 0.1); color: var(--red); border: 1px solid rgba(232, 0, 45, 0.2); padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; }
+    .refresh-btn:hover { background: var(--red); color: var(--white); }
+
+    /* REPORTING SECTION */
+    .report-selection { margin-bottom: 3rem; background: rgba(232, 0, 45, 0.05); border: 1px solid rgba(232, 0, 45, 0.2); border-radius: 12px; padding: 2rem; }
+    .guide-box { background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; border-left: 4px solid var(--red); }
+    .guide-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 1rem; color: var(--white); display: flex; align-items: center; gap: 0.5rem; }
+    .guide-text { font-size: 0.9rem; color: var(--gray-200); line-height: 1.6; }
+    .guide-example { margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 4px; border: 1px dashed rgba(255, 255, 255, 0.1); }
+    .example-tag { font-weight: 700; color: var(--red); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 0.3rem; display: block; }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-600); margin-bottom: 0.5rem; }
+    .form-input, .form-textarea { width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 4px; padding: 0.8rem; color: var(--white); font-family: 'Barlow', sans-serif; transition: border-color 0.2s; }
+    .form-input:focus, .form-textarea:focus { border-color: var(--red); outline: none; }
+    .form-textarea { min-height: 120px; resize: vertical; }
+    
+    .submit-btn { width: 100%; background: var(--red); color: var(--white); border: none; padding: 1rem; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; transition: background 0.2s; margin-top: 1rem; }
+    .submit-btn:hover { background: var(--red-dark); }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+  <link rel="stylesheet" href="../responsive.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="../index.html" class="brand-logo"><img src="../LyraEsportsLogo.png" alt="Lyra Logo"><div><span>L</span>YRA</div></a>
+
+    <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
+      <label for="adminStatus" style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
+      <select id="adminStatus" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="online">🟢 Online</option>
+        <option value="away">🟡 Away</option>
+        <option value="dnd">🔴 Do Not Disturb</option>
+      </select>
+    </div>
+
+    <div class="admin-presence-list" style="margin-bottom: 2rem;">
+      <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
+      <select id="presenceList" class="form-input" style="width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; border-radius: 4px; outline: none; cursor: pointer;">
+        <option value="" disabled selected>View Team Online</option>
+      </select>
+    </div>
+    <ul class="nav-menu">
+      <li><a href="admin-overview.html">Overview</a></li>
+      <li class="nav-dropdown" id="nav-management">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span>Management</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-dashboard.html">Pending Recruitment</a></li>
+          <li><a href="admin-roster.html">Master Control</a></li>
+          <li><a href="admin-reviews.html">Performance Reviews</a></li>
+          <li><a href="admin-updates.html">Daily Updates</a></li>
+          <li><a href="admin-scheduling.html">Availability</a></li>
+          <li><a href="admin-schedule-events.html">Schedule</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-comms">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>Communications</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li><a href="admin-chat.html">Management Chat</a></li>
+          <li><a href="admin-dms.html">Direct Messages</a></li>
+          <li><a href="admin-meetings.html">Meetings</a></li>
+        </ul>
+      </li>
+      <li class="nav-dropdown" id="nav-teams">
+        <a href="#" class="nav-dropdown-trigger">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Teams</span>
+          <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </a>
+        <ul class="nav-dropdown-menu">
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Valorant</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=val&reg=na"># val-na</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=eu"># val-eu</a></li>
+              <li><a href="admin-team-chat.html?team=val&reg=oce"># val-oce</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Overwatch 2</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=ow2&reg=na"># ow2-na</a></li>
+              <li><a href="admin-team-chat.html?team=ow2&reg=eu"># ow2-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>League of Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=lol&reg=na"># lol-na</a></li>
+              <li><a href="admin-team-chat.html?team=lol&reg=eu"># lol-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Apex Legends</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=apex&reg=na"># apex-na</a></li>
+              <li><a href="admin-team-chat.html?team=apex&reg=eu"># apex-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Halo</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=halo&reg=na"># halo-na</a></li>
+              <li><a href="admin-team-chat.html?team=halo&reg=eu"># halo-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>The Finals</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=tf&reg=na"># finals-na</a></li>
+              <li><a href="admin-team-chat.html?team=tf&reg=eu"># finals-eu</a></li>
+            </ul>
+          </li>
+          <li class="nav-dropdown">
+            <a href="#" class="nav-dropdown-trigger">
+              <span>Rocket League</span>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="admin-team-chat.html?team=rl&reg=na"># rl-na</a></li>
+              <li><a href="admin-team-chat.html?team=rl&reg=eu"># rl-eu</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li id="nav-news"><a href="admin-news.html">News & Content</a></li>
+      <li id="nav-orders"><a href="admin-orders.html">Store Orders</a></li>
+      <li id="nav-super" style="display: none;"><a href="admin-super-panel.html" style="color: var(--red); border-color: rgba(232, 0, 45, 0.2);">Owner Console</a></li>
+      <li><a href="admin-settings.html">Settings</a></li>
+    </ul>
+    <a href="#" id="logoutBtn" class="logout-btn">← Logout</a>
+  </aside>
+
+  <main class="main-content">
+    <div class="header-section">
+      <div>
+        <p class="header-subtitle">Management</p>
+        <h1 class="header-title">Daily Updates & Reports</h1>
+      </div>
+      <button class="refresh-btn" id="refreshBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- POST UPDATE SECTION -->
+    <section class="report-selection">
+      <div class="guide-box">
+        <div class="guide-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          How to use daily updates
+        </div>
+        <p class="guide-text">Describe in high detail what you have accomplished today. This is required every day for accountability and transparency across the organization.</p>
+        
+        <div class="updates-grid" style="grid-template-columns: 1fr 1fr; margin-top: 1.5rem; gap: 1rem;">
+          <div class="guide-example">
+            <span class="example-tag">Game Managers</span>
+            <p class="guide-text" style="font-size: 0.8rem;">Detailed sentence explaining scrims, meetings, issues, or concerns with your team.</p>
+            <p class="guide-text" style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.5rem; font-style: italic;">
+              "Valorant NA Team 1 completed 3 scrims, won 2/3. Needs work on comms. 3 interviews completed, 1 recruited."
+            </p>
+          </div>
+          <div class="guide-example">
+            <span class="example-tag">Management / Directors</span>
+            <p class="guide-text" style="font-size: 0.8rem;">Detailed explanation of strategic tasks, recruitment, or operations. If nothing completed, type N/A.</p>
+            <p class="guide-text" style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.5rem; font-style: italic;">
+              "Interviewed 2 for management, recruited GFX Manager, started recruiting for Rocket League."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form id="dailyReportForm">
+        <div class="updates-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Your Management Role</label>
+            <select id="reportRole" class="form-input" required>
+              <option value="" disabled selected>Select Role</option>
+              <option value="Owner">Owner</option>
+              <option value="Game management">Game management</option>
+              <option value="IT Director">IT Director</option>
+              <option value="Production Management">Production Management</option>
+              <option value="Operation Directors">Operation Directors</option>
+              <option value="Management">Management</option>
+              <option value="Game Manager">Game Manager</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title / Game (e.g. Valorant NA T1)</label>
+            <input type="text" id="reportTitle" class="form-input" placeholder="Enter title or N/A">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Accomplishments & Detailed Description</label>
+          <textarea id="reportContent" class="form-textarea" placeholder="Describe your day in detail..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn" id="submitReportBtn">Submit Daily Report</button>
+      </form>
+    </section>
+
+    <div class="updates-grid">
+      <!-- Applications Card -->
+      <div class="update-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+          </div>
+          <span class="card-title">New Applications</span>
+        </div>
+        <div id="appsList">
+          <div class="empty-state">Loading applications...</div>
+        </div>
+      </div>
+
+      <!-- Roster Card -->
+      <div class="update-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <span class="card-title">Recent Roster Adds</span>
+        </div>
+        <div id="rosterList">
+          <div class="empty-state">Loading roster changes...</div>
+        </div>
+      </div>
+
+      <!-- Meetings Card -->
+      <div class="update-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </div>
+          <span class="card-title">Active Meetings</span>
+        </div>
+        <div id="meetingsList">
+          <div class="empty-state">Loading meetings...</div>
+        </div>
+      </div>
+
+      <!-- Broadcast Card -->
+      <div class="update-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <span class="card-title">System Broadcasts</span>
+        </div>
+        <div id="broadcastsList">
+          <div class="empty-state">Loading broadcasts...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
+
+  <script>
+    document.getElementById('logoutBtn').addEventListener('click', function(e) { e.preventDefault(); localStorage.removeItem('lyra_user'); window.location.href = 'index.html'; });
+
+    // Nav Dropdown Toggle
+    document.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        trigger.parentElement.classList.toggle('open');
+      });
+    });
+
+    // Auto-expand dropdown if child is active
+    document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+      const page = window.location.pathname.split("/").pop();
+      if (link.getAttribute('href') === page) {
+        link.classList.add('active');
+        const parent = link.closest('.nav-dropdown');
+        if (parent) {
+          parent.classList.add('open');
+          parent.querySelector('.nav-dropdown-trigger').classList.add('active');
+        }
+      }
+    });
+
+    async function fetchUpdates() {
+      try {
+        // Fetch Apps
+        const { data: apps } = await supabase.from('lyra_applications').select('*').order('timestamp', { ascending: false }).limit(5);
+        renderList('appsList', apps, (item) => `
+          <div class="list-item">
+            <div class="item-info">
+              <span class="item-name">${item.name} (${item.ign})</span>
+              <span class="item-meta">${item.role} • ${new Date(item.timestamp).toLocaleDateString()}</span>
+            </div>
+            <span class="item-status status-pending">${item.status}</span>
+          </div>
+        `);
+
+        // Fetch Roster
+        const { data: roster } = await supabase.from('lyra_roster').select('*').order('timestamp', { ascending: false }).limit(5);
+        renderList('rosterList', roster, (item) => `
+          <div class="list-item">
+            <div class="item-info">
+              <span class="item-name">${item.name} (${item.ign})</span>
+              <span class="item-meta">${item.rawRole} • ${item.game}</span>
+            </div>
+            <span class="item-status status-active">Member</span>
+          </div>
+        `);
+
+        // Fetch Meetings
+        const { data: meetings } = await supabase.from('lyra_meetings').select('*').order('timestamp', { ascending: false }).limit(5);
+        renderList('meetingsList', meetings, (item) => `
+          <div class="list-item">
+            <div class="item-info">
+              <span class="item-name">${item.roomName}</span>
+              <span class="item-meta">Hosted by ${item.host}</span>
+            </div>
+            <span class="item-status status-active">LIVE</span>
+          </div>
+        `);
+
+        // Fetch Broadcasts
+        const { data: broadcasts } = await supabase.from('lyra_system_broadcast').select('*').eq('active', true);
+        renderList('broadcastsList', broadcasts, (item) => `
+          <div class="list-item">
+            <div class="item-info">
+              <span class="item-name">${item.message}</span>
+              <span class="item-meta">${item.url || 'No Link'}</span>
+            </div>
+          </div>
+        `, 'No active broadcasts.');
+
+      } catch (error) {
+        console.error('Error fetching updates:', error);
+      }
+    }
+
+    function renderList(targetId, data, templateFn, emptyMsg = 'No recent activity.') {
+      const container = document.getElementById(targetId);
+      if (!data || data.length === 0) {
+        container.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
+        return;
+      }
+      container.innerHTML = data.map(templateFn).join('');
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', fetchUpdates);
+    
+    // REPORT SUBMISSION LOGIC
+    const reportForm = document.getElementById('dailyReportForm');
+    const submitBtn = document.getElementById('submitReportBtn');
+
+    reportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = localStorage.getItem('lyra_user');
+      if (!username) {
+        alert('You must be logged in to submit a report.');
+        return;
+      }
+
+      const role = document.getElementById('reportRole').value;
+      const title = document.getElementById('reportTitle').value || 'N/A';
+      const content = document.getElementById('reportContent').value;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Submitting...';
+
+      try {
+        const { error } = await supabase.from('lyra_daily_reports').insert([{
+          author: username,
+          role: role,
+          title: title,
+          content: content
+        }]);
+
+        if (error) throw error;
+
+        // Success
+        alert('Daily report submitted successfully!');
+        reportForm.reset();
+        fetchUpdates(); // Refresh lists to show if needed (though we don't list reports here yet)
+      } catch (err) {
+        console.error('Error submitting report:', err);
+        alert('Failed to submit report: ' + (err.message || 'Unknown Error') + '\n\nNote: If this is an RLS error, please ensure you have disabled Row Level Security for lyra_daily_reports in the Supabase Dashboard.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Submit Daily Report';
+      }
+    });
+
+    // Initial fetch
+    fetchUpdates();
+
+    // Subscribe to changes
+    supabase.channel('public:lyra_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_applications' }, fetchUpdates)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_roster' }, fetchUpdates)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_meetings' }, fetchUpdates)
+      .subscribe();
+
+    // Role-based Navigation Access
+    const userRole = localStorage.getItem('lyra_role');
+    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
+    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isManagement = isOwnerOrIT || 
+                        userRole === 'Operation Directors' || 
+                        userRole === 'Management' || 
+                        userRole === 'Game management' || 
+                        userRole === 'Director of Media' || 
+                        userRole === 'Lead Recruiter';
+    
+    // Hide Management if not authorized
+    if (!isManagement) {
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = 'none';
+      
+      const page = window.location.pathname.split("/").pop();
+      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
+      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
+    }
+
+    if (isOwnerOrIT) {
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = 'block';
+    }
+
+    // Admin Presence & Status Synchronization
+    const adminStatus = document.getElementById('adminStatus');
+    const presenceList = document.getElementById('presenceList');
+    
+    if (adminStatus && presenceList) {
+      const savedStatus = localStorage.getItem('admin_status') || 'online';
+      adminStatus.value = savedStatus;
+
+      adminStatus.addEventListener('change', async (e) => {
+        const newStatus = e.target.value;
+        localStorage.setItem('admin_status', newStatus);
+        const user = JSON.parse(localStorage.getItem('lyra_user'));
+        if (user && user.alias) {
+          await supabase.from('lyra_roster').update({ status: newStatus, last_active: new Date().toISOString() }).eq('alias', user.alias);
+        }
+      });
+
+      async function updateTeamPresence() {
+        const { data } = await supabase.from('lyra_roster').select('alias, status').neq('status', 'offline');
+        if (data) {
+          presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+          data.forEach(member => {
+            const option = document.createElement('option');
+            const icon = member.status === 'online' ? '🟢' : (member.status === 'away' ? '🟡' : '🔴');
+            option.textContent = `${icon} ${member.alias}`;
+            presenceList.appendChild(option);
+          });
+        }
+      }
+      updateTeamPresence();
+      setInterval(updateTeamPresence, 30000);
+    }
+  </script>
+  <script src="../responsive.js"></script>
+</body>
+</html>
