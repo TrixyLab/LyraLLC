@@ -1328,16 +1328,19 @@
                 });
 
                 // Listen for speaking updates from others
-                if (shell.roomChannel) {
-                    shell.roomChannel.on('broadcast', { event: 'speaking_update' }, ({ payload }) => {
+                if (shell && shell.roomChannel) {
+                    shell.roomChannel.on('broadcast', { event: 'speaking_update' }, (res) => {
+                        const payload = res && res.payload ? res.payload : {};
                         const { id, isSpeaking } = payload;
+                        if (!id) return;
                         const el = document.getElementById(`vw-${id}`);
                         if (el) el.classList.toggle('speaking', isSpeaking);
                     });
-                    shell.roomChannel.on('broadcast', { event: 'webrtc_signaling' }, ({ payload }) => {
+                    shell.roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (res) => {
+                        const payload = res && res.payload ? res.payload : {};
                         if (payload.type === 'mute_status') {
                             const micIcon = document.getElementById(`mic-${payload.sender}`);
-                            if (micIcon) micIcon.classList.toggle('muted', payload.data.isMuted);
+                            if (micIcon) micIcon.classList.toggle('muted', payload.data ? payload.data.isMuted : false);
                         }
                     });
                 }

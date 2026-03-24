@@ -723,6 +723,13 @@
                 window.LyraMeeting.currentRoom = room;
                 window.LyraMeeting.myScreenUserId = window.LyraMeeting.myUserId + '_screen';
                 
+                // PROACTIVE CLEANUP: Remove any existing channel with this name to avoid CHANNEL_ERROR
+                const client = window.supabase || supabase;
+                if (client && window.LyraMeeting.roomChannel) {
+                    client.removeChannel(window.LyraMeeting.roomChannel);
+                    window.LyraMeeting.roomChannel = null;
+                }
+
                 try {
                     // Ensure supabase is reachable
                     const client = window.supabase || supabase;
@@ -780,16 +787,25 @@
                     if (barRoomName) barRoomName.innerText = 'IN MEETING: ' + room;
 
                     // Supabase Channel Setup
-                    const channelName = 'room:' + room.replace(/[^a-zA-Z0-9]/g, '_');
+                    const channelName = 'room:' + (room || 'MAIN').replace(/[^a-zA-Z0-9]/g, '_');
                     console.log("Shell: Subscribing to channel", channelName);
+                    
+                    // Safe Channel Cleanup
+                    try {
+                        const channels = client.getChannels ? client.getChannels() : [];
+                        const existing = channels.find(c => c.topic === `realtime:${channelName}`);
+                        if (existing) client.removeChannel(existing);
+                    } catch(e) { console.warn("Shell: Channel cleanup skipped", e); }
+
                     window.LyraMeeting.roomChannel = client.channel(channelName);
                     window.LyraMeeting.setupSignaling();
                     
                     const subTimeout = setTimeout(() => {
-                        console.error("Shell: Signaling subscription timed out.");
-                        alert("Signaling Error: Connection to Supabase timed out. Check your network.");
-                        // We still try to return the stream so at least they can see themselves
-                    }, 15000);
+                        if (window.LyraMeeting.isActive) {
+                            console.error("Shell: Signaling subscription timed out.");
+                            alert("Signaling Error: Connection to Supabase timed out. \n\nThis usually happens on slow networks or if a firewall blocks WebSockets. Please refresh and try again.");
+                        }
+                    }, 30000); // Increased to 30s
 
                     window.LyraMeeting.roomChannel.subscribe((status) => {
                         clearTimeout(subTimeout);
@@ -816,8 +832,13 @@
 
             setupSignaling: () => {
                 const chan = window.LyraMeeting.roomChannel;
-                chan.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
-                    const { sender, target, type, data, senderName } = payload.payload;
+                if (!chan) return;
+                
+                chan.on('broadcast', { event: 'webrtc_signaling' }, (res) => {
+                    const payload = (res && res.payload) ? res.payload : (res || {});
+                    const { sender, target, type, data, senderName } = payload;
+                    
+                    if (!type) return; // Ignore malformed
                     if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myScreenUserId) return;
                     if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myScreenUserId) return;
 
@@ -1124,10 +1145,15 @@
 
             leave: () => {
                 console.log("Shell: Leaving meeting context.");
+                window.LyraMeeting.isActive = false;
+                window.LyraMeeting.stopHeartbeat();
+                
+                const client = window.supabase || supabase;
                 if (window.LyraMeeting.roomChannel) {
                     window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: window.LyraMeeting.myUserId, type: 'peer_left' } });
                     if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: window.LyraMeeting.myScreenUserId, type: 'peer_left' } });
-                    supabase.removeChannel(window.LyraMeeting.roomChannel);
+                    if (client) client.removeChannel(window.LyraMeeting.roomChannel);
+                    window.LyraMeeting.roomChannel = null;
                 }
                 Object.keys(window.LyraMeeting.peers).forEach(k => {
                     window.LyraMeeting.peers[k].close();
@@ -1144,9 +1170,7 @@
                         client.from('lyra_meetings').update({ is_active: false }).eq('room_name', room).then(() => {});
                     }
                 }
-                window.LyraMeeting.stopHeartbeat();
 
-                window.LyraMeeting.isActive = false;
                 window.LyraMeeting.currentRoom = null;
                 window.LyraMeeting.remoteStreams = {};
                 
