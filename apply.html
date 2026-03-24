@@ -356,8 +356,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         <div class="form-group">
           <label for="role" class="form-label">Primary Interest</label>
           <select id="role" class="form-input" required>
-            <option value="" disabled selected>Select an option</option>
+            <option value="coach">Coach</option>
+            <option value="management">Management</option>
             <option value="valorant">Valorant</option>
+            <option value="ow2">Overwatch 2</option>
             <option value="lol">League of Legends</option>
             <option value="cod">Call of Duty</option>
             <option value="rocketleague">Rocket League</option>
@@ -365,9 +367,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             <option value="thefinals">The Finals</option>
             <option value="halo">Halo</option>
             <option value="marvelrivals">Marvel Rivals</option>
-            <option value="coach">Coach</option>
             <option value="content">Content Creator</option>
-            <option value="adminAccess">Management</option>
           </select>
         </div>
 
@@ -474,7 +474,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       const contentFields = document.getElementById('contentFields');
       const coachFields = document.getElementById('coachFields');
 
-      if (val === 'adminAccess') {
+      if (val === 'management') {
         compFields.style.display = 'none';
         document.getElementById('gameRole').required = false;
         document.getElementById('tracker').required = false;
