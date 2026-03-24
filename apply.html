@@ -365,6 +365,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             <option value="thefinals">The Finals</option>
             <option value="halo">Halo</option>
             <option value="marvelrivals">Marvel Rivals</option>
+            <option value="coach">Coach</option>
             <option value="content">Content Creator</option>
             <option value="adminAccess">Management</option>
           </select>
@@ -401,6 +402,26 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           <div class="form-group">
             <label for="managementExperience" class="form-label">Management Experience</label>
             <textarea id="managementExperience" class="form-input" placeholder="What teams have you managed? How far did you take them?" rows="3"></textarea>
+          </div>
+        </div>
+        
+        <div id="coachFields" style="display: none;">
+          <div class="form-group">
+            <label for="coachGame" class="form-label">Coaching Game</label>
+            <select id="coachGame" class="form-input">
+              <option value="" disabled selected>Select a game</option>
+              <option value="Valorant">Valorant</option>
+              <option value="Overwatch 2">Overwatch 2</option>
+              <option value="League of Legends">League of Legends</option>
+              <option value="Apex Legends">Apex Legends</option>
+              <option value="Halo">Halo</option>
+              <option value="The Finals">The Finals</option>
+              <option value="Rocket League">Rocket League</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="coachExperience" class="form-label">Coaching Background</label>
+            <textarea id="coachExperience" class="form-input" placeholder="Detail your coaching philosophy and track record..." rows="3"></textarea>
           </div>
         </div>
 
@@ -451,6 +472,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       const compFields = document.getElementById('competitiveFields');
       const mgmtFields = document.getElementById('managementFields');
       const contentFields = document.getElementById('contentFields');
+      const coachFields = document.getElementById('coachFields');
 
       if (val === 'adminAccess') {
         compFields.style.display = 'none';
@@ -465,6 +487,27 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         contentFields.style.display = 'none';
         document.getElementById('contentPlatform').required = false;
         document.getElementById('contentLink').required = false;
+
+        coachFields.style.display = 'none';
+        document.getElementById('coachGame').required = false;
+        document.getElementById('coachExperience').required = false;
+      } else if (val === 'coach') {
+        compFields.style.display = 'none';
+        document.getElementById('gameRole').required = false;
+        document.getElementById('tracker').required = false;
+        document.getElementById('experience').required = false;
+
+        mgmtFields.style.display = 'none';
+        document.getElementById('managementRole').required = false;
+        document.getElementById('managementExperience').required = false;
+
+        contentFields.style.display = 'none';
+        document.getElementById('contentPlatform').required = false;
+        document.getElementById('contentLink').required = false;
+
+        coachFields.style.display = 'block';
+        document.getElementById('coachGame').required = true;
+        document.getElementById('coachExperience').required = true;
       } else if (val === 'content') {
         compFields.style.display = 'none';
         document.getElementById('gameRole').required = false;
@@ -478,6 +521,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         contentFields.style.display = 'block';
         document.getElementById('contentPlatform').required = true;
         document.getElementById('contentLink').required = true;
+
+        coachFields.style.display = 'none';
+        document.getElementById('coachGame').required = false;
+        document.getElementById('coachExperience').required = false;
       } else {
         compFields.style.display = 'block';
         document.getElementById('gameRole').required = true;
@@ -491,6 +538,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         contentFields.style.display = 'none';
         document.getElementById('contentPlatform').required = false;
         document.getElementById('contentLink').required = false;
+
+        coachFields.style.display = 'none';
+        document.getElementById('coachGame').required = false;
+        document.getElementById('coachExperience').required = false;
       }
     });
 
@@ -505,10 +556,10 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         discord: document.getElementById('discord').value,
         role: roleSelect.options[roleSelect.selectedIndex].text,
         rolevalue: roleSelect.value,
-        gamerole: document.getElementById('gameRole').value || document.getElementById('managementRole').value || document.getElementById('contentPlatform').value || '',
+        gamerole: document.getElementById('gameRole').value || document.getElementById('managementRole').value || document.getElementById('contentPlatform').value || document.getElementById('coachGame').value || '',
         sociallink: document.getElementById('contentLink').value || '',
         tracker: document.getElementById('tracker').value || '',
-        experience: document.getElementById('experience').value || document.getElementById('managementExperience').value || '',
+        experience: document.getElementById('experience').value || document.getElementById('managementExperience').value || document.getElementById('coachExperience').value || '',
         reason: document.getElementById('reason').value
       };
 
@@ -517,6 +568,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
           console.error("Supabase Insert Error:", error);
           return alert("Failed to submit: " + error.message + "\n\n(If it says new row violates row-level security policy, you need to disable RLS for the lyra_applications table in Supabase!)");
         }
+        localStorage.setItem('lyra_alias_pending', app.ign);
         window.location.href = 'pending.html';
       });
     });

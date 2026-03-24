@@ -10,8 +10,18 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // --- Global Chat Notification System ---
 (function () {
   const currentUser = localStorage.getItem('lyra_user');
+  const userRole = localStorage.getItem('lyra_role');
   if (!currentUser) return; // Only notify logged-in admins
-  if (localStorage.getItem('lyra_notifications') === 'disabled') return;
+  
+  // Helper for all admin pages to check for Owner status
+  window.checkLyraOwner = () => {
+    // If in View As mode, return simulated status unless checking for the 'Exit' banner itself
+    const simulatedRole = localStorage.getItem('lyra_view_as');
+    if (simulatedRole) {
+      return simulatedRole === 'Owner';
+    }
+    return (userRole === 'Owner') || (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa');
+  };
 
   // Create Toast Container
   const toastContainer = document.createElement('div');
@@ -85,12 +95,31 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
   }
 
+  function playNotificationSound() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
+    masterGain.gain.value = 0.4;
+    
+    const now = ctx.currentTime;
+    // Chime sound: Two notes ascending
+    [660, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      osc.connect(gain); gain.connect(masterGain);
+      gain.gain.setValueAtTime(0, now + i * 0.08);
+      gain.gain.linearRampToValueAtTime(1, now + i * 0.08 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.2);
+      osc.start(now + i * 0.08); osc.stop(now + i * 0.08 + 0.25);
+    });
+    setTimeout(() => ctx.close().catch(()=>{}), 500);
+  }
+
   function showToast(title, author, text, linkUrl) {
-    try {
-      const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVtvT19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw==");
-      audio.volume = 0.5;
-      audio.play().catch(() => { });
-    } catch (e) { }
+    playNotificationSound();
 
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification(title, { body: `${author}: ${text}`, icon: 'LyraEsportsLogo.png' })
@@ -170,19 +199,78 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     })
     .subscribe();
 
-  // --- Access Guard ---
-  if (currentUser && currentUser.toLowerCase() !== 'admin') {
-    // Check if user is in approved admins using REST
-    supabase.from('lyra_approved_admins').select('ign').then(({ data, error }) => {
-      if (error || !data) return;
-      const approvedAdmins = data.map(d => d.ign.toLowerCase());
-      if (!approvedAdmins.includes(currentUser.toLowerCase())) {
-        localStorage.removeItem('lyra_user');
-        localStorage.removeItem('lyra_admin_status');
-        window.location.href = 'login.html?revoked=true';
+  // --- Access Guard & Role Sync ---
+  const isHardcodedSuper = currentUser && (currentUser.toLowerCase() === 'admin' || currentUser.toLowerCase() === 'versa');
+
+  if (currentUser) {
+    // Priority check for View As status
+    const viewAsRole = localStorage.getItem('lyra_view_as');
+    if (viewAsRole) {
+       // Skip DB sync if we are simulating a role
+       console.log("LYRA: Role Simulation Active -", viewAsRole);
+       ensureViewAsBanner(viewAsRole);
+    } else {
+       supabase.from('lyra_approved_admins').select('ign').eq('ign', currentUser).single().then(({ data, error }) => {
+      if (error || !data) {
+          // If not in admins table, skip logout if they are hardcoded super
+          if (isHardcodedSuper) return;
+
+          // If not in admins table, check roster or logout if in admin area
+          if (window.location.pathname.includes('admin-')) {
+            supabase.from('lyra_roster').select('ign').eq('ign', currentUser).then(({data: rData}) => {
+                if (!rData || rData.length === 0) {
+                    localStorage.removeItem('lyra_user');
+                    localStorage.removeItem('lyra_role');
+                    window.location.href = '../login.html?revoked=true';
+                }
+            });
+          }
+      } else {
+          // Successfully found admin
+          supabase.from('lyra_roster').select('customRole, rawRole').eq('ign', currentUser).single().then(({data: rosterData}) => {
+              // Bypass role sync for hardcoded supers to prevent downgrading to 'Staff'
+              if (isHardcodedSuper) {
+                  if (localStorage.getItem('lyra_role') !== 'Owner') {
+                      localStorage.setItem('lyra_role', 'Owner');
+                      location.reload();
+                  }
+                  return;
+              }
+
+              const dbRole = (rosterData && (rosterData.customRole || rosterData.rawRole)) || 'Staff';
+              if (localStorage.getItem('lyra_role') !== dbRole) {
+                  localStorage.setItem('lyra_role', dbRole);
+                  if (dbRole === 'Owner' && !document.getElementById('master-control-link')) {
+                      location.reload();
+                  }
+              }
+          });
       }
     });
+    }
   }
+
+  function ensureViewAsBanner(roleName) {
+    if (document.getElementById('lyra-view-as-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'lyra-view-as-banner';
+    banner.style = "position:fixed; bottom:0; left:0; width:100%; height:40px; background:var(--red, #E8002D); color:white; z-index:999999; display:flex; align-items:center; justify-content:center; gap:2rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; box-shadow:0 -4px 20px rgba(0,0,0,0.5);";
+    banner.innerHTML = `
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:1.2rem;">👁️</span>
+        <span>VIEWING AS: <span style="background:white; color:var(--red); padding:1px 8px; border-radius:4px; margin-left:5px;">${roleName}</span></span>
+      </div>
+      <button onclick="window.exitViewAs()" style="background:white; color:var(--red); border:none; padding:0.3rem 1rem; cursor:pointer; font-weight:900; border-radius:4px; font-size:0.75rem; letter-spacing:0.05em; transition:all 0.2s;">EXIT SIMULATION</button>
+    `;
+    document.body.appendChild(banner);
+    document.body.style.paddingBottom = '40px';
+  }
+
+  window.exitViewAs = () => {
+    localStorage.removeItem('lyra_view_as');
+    // Restore real role from a hidden backup if we have one, or just reload to let sync fix it
+    location.reload();
+  };
 
   // --- Admin Status Custom Dropdown ---
   function initAdminStatus() {
@@ -468,14 +556,19 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       document.body.style.paddingTop = '50px';
     }
 
+    const shortMsg = data.message && data.message.length > 80 ? data.message.substring(0, 77) + '...' : (data.message || 'A new version is ready!');
+
     bar.innerHTML = `
-      <div style="display:flex; align-items:center; gap:1rem;">
-        <span style="font-size:1.2rem; animation: pulse 2s infinite;">System Update Available</span>
-        <span style="opacity:0.8; font-weight:500;">${data.message || 'A new version is ready!'}</span>
+      <div style="display:flex; align-items:center; gap:1.5rem; overflow:hidden;">
+        <div style="display:flex; align-items:center; gap:0.8rem; background:rgba(255,255,255,0.1); padding:0.4rem 0.8rem; border-radius:4px;">
+            <span style="font-size:1rem; animation: pulse 2s infinite;">🚀</span>
+            <span style="font-size:0.85rem; letter-spacing:0.05em;">SYSTEM UPDATE</span>
+        </div>
+        <span style="opacity:0.9; font-weight:500; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${shortMsg}</span>
       </div>
-      <div style="display:flex; gap:1rem;">
-        <button id="lyra-update-now" style="background:white; color:#E8002D; border:none; padding:0.4rem 1.2rem; cursor:pointer; font-weight:900; border-radius:4px; font-size:0.85rem; transition:transform 0.2s;">DOWNLOAD & UPDATE</button>
-        ${data.dismissible !== false ? '<button id="lyra-dismiss-update" style="background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); padding:0.4rem 0.8rem; cursor:pointer; font-weight:700; border-radius:4px; font-size:0.85rem;">Later</button>' : ''}
+      <div style="display:flex; gap:1rem; flex-shrink:0;">
+        <button id="lyra-update-now" style="background:white; color:#E8002D; border:none; padding:0.5rem 1.2rem; cursor:pointer; font-weight:900; border-radius:4px; font-size:0.8rem; letter-spacing:0.05em; transition:transform 0.2s; white-space:nowrap;">GET LATEST BUILD</button>
+        ${data.dismissible !== false ? '<button id="lyra-dismiss-update" style="background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); padding:0.5rem 0.8rem; cursor:pointer; font-weight:700; border-radius:4px; font-size:0.8rem; white-space:nowrap;">LATER</button>' : ''}
       </div>
     `;
 

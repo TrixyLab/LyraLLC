@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS public.lyra_approved_admins (
     ign TEXT NOT NULL UNIQUE,
     email TEXT,
     discord TEXT,
+    pfp TEXT,
+    banner TEXT,
     password TEXT,
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
@@ -110,6 +112,45 @@ CREATE TABLE IF NOT EXISTS public.lyra_perf_reviews (
     archived BOOLEAN DEFAULT false,
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- 11. daily_reports
+CREATE TABLE IF NOT EXISTS public.lyra_daily_reports (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    author TEXT NOT NULL,
+    role TEXT NOT NULL,
+    title TEXT,
+    content TEXT NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. scheduling (Availability)
+CREATE TABLE IF NOT EXISTS public.lyra_scheduling (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    author TEXT NOT NULL,
+    role TEXT NOT NULL,
+    mon TEXT,
+    tue TEXT,
+    wed TEXT,
+    thu TEXT,
+    fri TEXT,
+    sat TEXT,
+    sun TEXT,
+    notes TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. events (Scrims, Meetings, etc.)
+CREATE TABLE IF NOT EXISTS public.lyra_events (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL, -- 'Scrim', 'Meeting', 'Bootcamp', 'Other'
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ,
+    description TEXT,
+    author TEXT NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.lyra_events DISABLE ROW LEVEL SECURITY;
 
 -- ENABLE REALTIME FOR ALL TABLES
 DROP PUBLICATION IF EXISTS supabase_realtime;
