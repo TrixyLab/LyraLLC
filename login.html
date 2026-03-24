@@ -525,6 +525,16 @@
         notificationModal.style.display = 'flex';
         setTimeout(() => {
           notificationModal.style.opacity = '1';
+        document.querySelector('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const passwordInput = document.getElementById('password').value;
+
+      const proceedLogin = (user, role = 'Staff') => {
+        pendingLoginData = { username: user, role: role };
+        notificationModal.style.display = 'flex';
+        setTimeout(() => {
+          notificationModal.style.opacity = '1';
           notificationModal.children[0].style.transform = 'scale(1)';
         }, 10);
       };
@@ -537,7 +547,10 @@
       }
 
       supabase.from('lyra_approved_admins').select('*').then(({ data, error }) => {
-        if (error) return showError("System Error", "Database synchronization failed. Please check your network connection.");
+        if (error) {
+          console.error('Database error:', error);
+          return showError("System Error", "Database synchronization failed. Please check your network connection.");
+        }
 
         const adminMatch = (data || []).find(admin => 
           admin.ign.toLowerCase() === username.toLowerCase() || (admin.name && admin.name.toLowerCase() === username.toLowerCase())
@@ -547,11 +560,33 @@
           if (adminMatch.password === 'Pending' || !adminMatch.password) {
             showError("Authentication Pending", "This account has not been finalized yet. Please use the 'Finalize Account' link below to set your credentials.");
           } else if (adminMatch.password === passwordInput) {
-            // Fetch role from roster table
-            supabase.from('lyra_roster').select('customRole, rawRole').eq('ign', adminMatch.ign).single().then(({data: rosterData}) => {
-                const userRole = (rosterData && (rosterData.customRole || rosterData.rawRole)) || 'Staff';
+            // ✅ FIX: Improved role fetching with fallback and error handling
+            supabase.from('lyra_roster').select('customRole, rawRole').eq('ign', adminMatch.ign).single()
+              .then(({data: rosterData, error: rosterError}) => {
+                if (rosterError) {
+                  console.warn('Roster lookup failed, using fallback role:', rosterError);
+                }
+                
+                let userRole = 'Staff';
+                if (rosterData) {
+                  userRole = rosterData.customRole || rosterData.rawRole || 'Staff';
+                } else if (adminMatch.role) {
+                  userRole = adminMatch.role; // ✅ Fallback to admin table role
+                }
+                
+                // ✅ Validate role before proceeding
+                if (!userRole || userRole === 'Pending') {
+                  console.warn('Invalid role detected:', userRole);
+                  userRole = 'Staff';
+                }
+                
                 proceedLogin(username, userRole);
-            });
+              })
+              .catch(err => {
+                console.error('Unexpected roster error:', err);
+                // ✅ Graceful fallback
+                proceedLogin(username, adminMatch.role || 'Staff');
+              });
           } else {
             showError("Invalid Credentials", "The password provided does not match our records for this operative. Please try again or reset your password.");
           }
@@ -560,8 +595,3 @@
         }
       });
     });
-  </script>
-  <script src="animations.js"></script>
-</body>
-
-</html>
