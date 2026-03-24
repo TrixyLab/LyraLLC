@@ -836,22 +836,19 @@
                 
                 chan.on('broadcast', { event: 'webrtc_signaling' }, (res) => {
                     const payload = (res && res.payload) ? res.payload : (res || {});
-                    const { sender, target, type, data, senderName } = payload;
+                    const { sender, target, type, data, senderName } = payload || {};
                     
                     if (!type) return; // Ignore malformed
-                    if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myScreenUserId) return;
-                    if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myScreenUserId) return;
+                    if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myUserId + '_screen') return;
+                    if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myUserId + '_screen') return;
 
-                    const myTargetId = (target === window.LyraMeeting.myScreenUserId) ? window.LyraMeeting.myScreenUserId : window.LyraMeeting.myUserId;
+                    const myTargetId = (target === window.LyraMeeting.myUserId + '_screen') ? window.LyraMeeting.myUserId + '_screen' : window.LyraMeeting.myUserId;
 
                     switch (type) {
                         case 'peer_joined':
                             console.log("Shell: New peer discovered", senderName);
-                            // Initiator role
                             window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
-                            if (window.LyraMeeting.isScreenSharing) {
-                                window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myScreenUserId);
-                            }
+                            if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId + '_screen');
                             break;
                         case 'offer':
                             window.LyraMeeting.handleOffer(sender, senderName, data, myTargetId);
@@ -866,7 +863,7 @@
                             window.LyraMeeting.removePeerBySender(sender);
                             break;
                         case 'mute_status':
-                            window.LyraMeeting.trigger('onMuteStatus', { id: sender, isMuted: data.isMuted });
+                            window.LyraMeeting.trigger('onMuteStatus', { id: sender, isMuted: data ? data.isMuted : false });
                             break;
                     }
                 });
@@ -968,8 +965,10 @@
                 return pc;
             },
 
-            handleOffer: async (sender, senderName, offer, targetId) => {
-                const pc = window.LyraMeeting.createPeerConnection(sender, senderName, false, targetId);
+            handleOffer: async (peerId, peerName, offer, targetId) => {
+                if (!offer) return console.warn("Shell: Received null offer from", peerId);
+                console.log("Shell: Received offer from", peerName);
+                const pc = window.LyraMeeting.createPeerConnection(peerId, peerName, false, targetId);
                 try {
                     await pc.setRemoteDescription(new RTCSessionDescription(offer));
                     const answer = await pc.createAnswer();
@@ -977,13 +976,14 @@
                     window.LyraMeeting.roomChannel.send({
                         type: 'broadcast',
                         event: 'webrtc_signaling',
-                        payload: { sender: targetId, target: sender, type: 'answer', data: answer }
+                        payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
                     });
                 } catch (err) { console.error("Shell: Offer handling failed", err); }
             },
 
-            handleAnswer: async (sender, answer, targetId) => {
-                const pc = window.LyraMeeting.peers[`${targetId}:${sender}`];
+            handleAnswer: async (peerId, answer, targetId) => {
+                if (!answer) return console.warn("Shell: Received null answer from", peerId);
+                const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
                 if (pc) {
                     try { await pc.setRemoteDescription(new RTCSessionDescription(answer)); } 
                     catch (err) { console.error("Shell: Answer handling failed", err); }
@@ -991,8 +991,9 @@
             },
 
             handleIceCandidate: async (sender, candidate, targetId) => {
+                if (!candidate) return;
                 const pc = window.LyraMeeting.peers[`${targetId}:${sender}`];
-                if (pc && candidate) {
+                if (pc) {
                     try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); }
                     catch (err) { console.warn("Shell: ICE candidate failed", err); }
                 }

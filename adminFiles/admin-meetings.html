@@ -148,6 +148,32 @@
             min-height: 0; /* Ensures it doesn't push others out of view */
         }
 
+        .video-placeholder {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #0b0b0b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        .video-placeholder .placeholder-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            text-shadow: 0 0 20px rgba(255, 60, 60, 0.3);
+        }
+        /* Hidden when video is active */
+        .video-wrapper.has-video .video-placeholder {
+            display: none;
+        }
+
         /* Participant Strip */
         .meeting-container:has(.featured) .video-grid::after {
             content: '';
@@ -1337,10 +1363,17 @@
                         if (el) el.classList.toggle('speaking', isSpeaking);
                     });
                     shell.roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (res) => {
-                        const payload = res && res.payload ? res.payload : {};
-                        if (payload.type === 'mute_status') {
-                            const micIcon = document.getElementById(`mic-${payload.sender}`);
-                            if (micIcon) micIcon.classList.toggle('muted', payload.data ? payload.data.isMuted : false);
+                    if (!res) return;
+                    const payload = res.payload || res;
+                    const { sender, target, type, data, senderName } = payload || {};
+                    
+                    if (!type) return; // Ignore malformed
+                    if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myUserId + '_screen') return;
+                    // Strict target check
+                    if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myUserId + '_screen') return;
+                        if (type === 'mute_status') {
+                            const micIcon = document.getElementById(`mic-${sender}`);
+                            if (micIcon) micIcon.classList.toggle('muted', data ? data.isMuted : false);
                         }
                     });
                 }
@@ -1422,41 +1455,33 @@
                     </div>
                 `;
 
-                // Avatar Placeholder removed per user request for full camera view
-                
-                w.onclick = () => {
-                    document.querySelectorAll('.video-wrapper').forEach(x => x.classList.remove('featured'));
-                    w.classList.add('featured');
-                };
+                const placeholder = document.createElement('div');
+                placeholder.className = 'video-placeholder';
+                placeholder.innerHTML = `<div class="placeholder-name">${(name || 'Participant')}</div>`;
 
                 w.appendChild(v); 
+                w.appendChild(placeholder);
                 w.appendChild(o); 
                 videoGrid.appendChild(w);
-                
                 log(`Uplink: New viewport for ${name} (${id})`);
+            } else {
+                // If it already exists, update name in placeholder
+                const ph = w.querySelector('.placeholder-name');
+                if (ph) ph.innerText = name || 'Participant';
             }
 
             const v = w.querySelector('video');
-            if (v.srcObject !== stream) {
-                log(`Media Update: Re-binding stream for ${name}`);
-                v.srcObject = stream;
-            }
+            v.srcObject = stream; // Always re-bind to pick up new tracks
 
             // RE-PLAY TO ENSURE AUDIO (Fix for some browser stalls)
             v.play().catch(e => {
                 if (!isLocal) console.warn("Remote playback stall:", e);
             });
 
-            // Track detailed logging
-            if (!stream) {
-                // If no stream (hardware-less join), skip track setup
-                console.warn("Lobby: addVideoWrapper called without stream for", name);
-                v.style.display = 'none'; // Maybe show an avatar?
-                w.classList.add('audio-only');
-                return;
-            }
-            
-            const tracks = stream.getTracks();
+            const tracks = stream ? stream.getTracks() : [];
+            const hasVideo = tracks.some(t => t.kind === 'video' && t.enabled);
+            w.classList.toggle('has-video', hasVideo);
+
             console.log(`[Meeting] Tracks for ${id}:`, tracks.map(t => `${t.kind}:${t.enabled?'on':'off'}:${t.readyState}`));
 
             // Check if it's a screen share
@@ -1467,22 +1492,36 @@
             }
         }
 
-        function updateParticipants() {
-            pList.innerHTML = '';
-            // Add self
-            addParticipantItem('local', 'You (Me)');
-            // Add others
-            Object.values(shell.remoteStreams).forEach(p => {
-                addParticipantItem(p.id, p.name);
-            });
-        }
-
         function addParticipantItem(id, name) {
+            const pList = document.getElementById('participantList');
+            if (!pList) return;
             const item = document.createElement('div');
             item.className = 'participant-item';
             item.setAttribute('data-p-id', id);
-            item.innerHTML = `<div class="avatar">${name.charAt(0)}</div><div style="flex:1; font-weight:500;">${name}</div><div class="status-pill"></div>`;
+            item.innerHTML = `<div class="avatar">${(name || 'P').charAt(0)}</div><div style="flex:1; font-weight:500;">${name || 'Participant'}</div><div class="status-pill"></div>`;
             pList.appendChild(item);
+        }
+
+        function updateParticipants() {
+            const pList = document.getElementById('participantList');
+            if (!pList || !shell) return;
+            pList.innerHTML = '';
+            
+            // Local
+            const identity = shell.getIdentity ? shell.getIdentity() : { ign: 'You' };
+            addParticipantItem('local', identity.ign || 'You');
+
+            // Remotes
+            if (shell.remoteStreams) {
+                Object.values(shell.remoteStreams).forEach(d => {
+                    addParticipantItem(d.id, d.name);
+                });
+            }
+            
+            // Update counter
+            const count = Object.keys(shell.remoteStreams || {}).length + 1;
+            const counter = document.getElementById('participantCount');
+            if (counter) counter.innerText = count;
         }
 
         // Controls
