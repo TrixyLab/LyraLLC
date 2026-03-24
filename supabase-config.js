@@ -531,7 +531,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let callPopup = null;
 
   supabase.channel('global_calls')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + currentUser }, payload => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_calls', filter: 'id=eq.' + currentUser.toLowerCase() }, payload => {
       const callData = payload.new;
 
       // If there's no call or status is not ringing, stop ringing
@@ -558,7 +558,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         activeIncomingRinger = window.lyraJinglePlayer(true);
 
         document.getElementById('acceptCallBtn').onclick = () => {
-          supabase.from('lyra_calls').update({ status: 'accepted' }).eq('id', currentUser).then(() => { });
+          supabase.from('lyra_calls').update({ status: 'accepted' }).eq('id', currentUser.toLowerCase()).then(() => { });
           if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
           callPopup.remove();
           callPopup = null;
@@ -582,7 +582,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         };
 
         document.getElementById('declineCallBtn').onclick = () => {
-          supabase.from('lyra_calls').update({ status: 'declined' }).eq('id', currentUser).then(() => { });
+          supabase.from('lyra_calls').update({ status: 'declined' }).eq('id', currentUser.toLowerCase()).then(() => { });
           if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
           if (callPopup) callPopup.remove();
           callPopup = null;
@@ -592,7 +592,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     .subscribe();
 
   // Initial check for calls (in case page reloads while ringing)
-  supabase.from('lyra_calls').select('*').eq('id', currentUser).then(({ data }) => {
+  supabase.from('lyra_calls').select('*').eq('id', currentUser.toLowerCase()).then(({ data }) => {
     if (data && data.length > 0 && data[0].status === 'ringing') {
       // Ideally we manually trigger the render logic above, but Realtime will pick up new ones.
     }
