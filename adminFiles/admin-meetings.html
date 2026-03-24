@@ -745,15 +745,23 @@
 
       roomChannel.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
         const { sender, target, type, data, senderName } = payload.payload;
-        // The mesh routes payloads to either the native user or the secondary screen-bot user!
+        // Identify which of our local identities the message is for
+        const myTargetId = (target === myScreenUserId) ? myScreenUserId : myUserId;
+        
         if (target && target !== myUserId && target !== myScreenUserId) return;
         if (sender === myUserId || sender === myScreenUserId) return;
 
         if (type === 'peer_joined') {
           console.log("Peer joined:", sender);
-          // Create an offer to the new peer
-          createPeerConnection(sender, senderName, true);
-          // Send current mute status to the new peer
+          // 1. Always create a primary connection to the new peer
+          createPeerConnection(sender, senderName, true, myUserId);
+          
+          // 2. If WE are sharing screen, also initiate a connection from our screen-bot to them
+          if (isScreenSharing) {
+            createPeerConnection(sender, senderName, true, myScreenUserId);
+          }
+
+          // Send current status to the new peer
           const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
           if (audioTrack) {
             roomChannel.send({
@@ -763,19 +771,19 @@
             });
           }
         } else if (type === 'offer') {
-          console.log("Received offer from:", sender);
-          handleOffer(sender, senderName, data);
+          handleOffer(sender, senderName, data, myTargetId);
         } else if (type === 'answer') {
-          console.log("Received answer from:", sender);
-          handleAnswer(sender, data);
+          handleAnswer(sender, data, myTargetId);
         } else if (type === 'ice_candidate') {
-          handleIceCandidate(sender, data);
+          handleIceCandidate(sender, data, myTargetId);
         } else if (type === 'peer_left') {
-          removePeer(sender);
+          // Remove all peer connections associated with this remote sender
+          Object.keys(peers).forEach(key => {
+            if (key.endsWith(':' + sender)) removePeer(key);
+          });
         } else if (type === 'mute_status') {
           const icon = document.getElementById('mute_icon_' + sender);
           if (icon) icon.style.display = data.isMuted ? 'inline' : 'none';
-          showToast(senderName + (data.isMuted ? ' muted their mic' : ' unmuted their mic'));
         } else if (type === 'camera_status') {
           const pfp = document.getElementById('pfp_img_' + sender);
           const vid = document.getElementById('video_' + sender);
@@ -783,9 +791,7 @@
             pfp.style.display = data.videoDisabled ? 'block' : 'none';
             vid.style.display = data.videoDisabled ? 'none' : 'block';
           }
-          showToast(senderName + (data.videoDisabled ? ' disabled their camera' : ' enabled their camera'));
         } else if (type === 'request_status') {
-          // Send our current status to the requester
           if (roomChannel) {
             const audioTrack = localStream ? localStream.getAudioTracks()[0] : null;
             const videoTrack = localStream ? localStream.getVideoTracks()[0] : null;
@@ -839,29 +845,34 @@
     }
 
     function createPeerConnection(peerId, peerName, isInitiator, targetId = myUserId) {
-      if (peers[peerId]) return peers[peerId];
+      const peerKey = `${targetId}:${peerId}`;
+      if (peers[peerKey]) return peers[peerKey];
       const pc = new RTCPeerConnection(configuration);
-      peers[peerId] = pc;
+      peers[peerKey] = pc;
 
       // Inject the correct tracks based on the target identity requesting the connection!
       if (targetId === myScreenUserId && typeof localScreenStream !== 'undefined' && localScreenStream) {
         localScreenStream.getTracks().forEach(track => pc.addTrack(track, localScreenStream));
-      } else if (localStream) {
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      } else if (targetId === myUserId && localStream) {
+        // If we are connecting TO a screen share, we don't necessarily NEED to send our camera
+        // to that specific bot, but for mesh consistency we can.
+        // HOWEVER, to save bandwidth, we skip sending our camera TO other screen-bots.
+        if (!peerId.endsWith('_screen')) {
+           localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        }
       }
 
       // Handle remote tracks
       pc.ontrack = (event) => {
         addVideoStream(peerId, event.streams[0], false, peerName);
-        // Request their current camera/mute status if we just joined
-        if (!isInitiator) {
-           // Short delay to ensure channel is ready
+        // Request their current camera/mute status if we just joined (and it's a primary connection)
+        if (!isInitiator && !peerId.endsWith('_screen')) {
            setTimeout(() => {
              if (roomChannel) {
                roomChannel.send({
                  type: 'broadcast',
                  event: 'webrtc_signaling',
-                 payload: { sender: myUserId, senderName: currentUser, target: peerId, type: 'request_status' }
+                 payload: { sender: targetId, senderName: currentUser, target: peerId, type: 'request_status' }
                });
              }
            }, 1000);
@@ -881,7 +892,7 @@
 
       pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-          removePeer(peerId);
+          removePeer(peerKey);
         }
       };
 
@@ -891,7 +902,13 @@
           roomChannel.send({
             type: 'broadcast',
             event: 'webrtc_signaling',
-            payload: { sender: targetId, target: peerId, type: 'offer', data: offer, senderName: currentUser + (targetId === myScreenUserId ? ' (Screen)' : '') }
+            payload: { 
+              sender: targetId, 
+              target: peerId, 
+              type: 'offer', 
+              data: offer, 
+              senderName: currentUser + (targetId === myScreenUserId ? ' (Screen)' : '') 
+            }
           });
         });
       }
@@ -899,27 +916,29 @@
       return pc;
     }
 
-    async function handleOffer(peerId, peerName, offer) {
-      const pc = createPeerConnection(peerId, peerName, false);
+    async function handleOffer(peerId, peerName, offer, targetId = myUserId) {
+      const pc = createPeerConnection(peerId, peerName, false, targetId);
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       roomChannel.send({
         type: 'broadcast',
         event: 'webrtc_signaling',
-        payload: { sender: myUserId, target: peerId, type: 'answer', data: answer }
+        payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
       });
     }
 
-    async function handleAnswer(peerId, answer) {
-      const pc = peers[peerId];
+    async function handleAnswer(peerId, answer, targetId = myUserId) {
+      const peerKey = `${targetId}:${peerId}`;
+      const pc = peers[peerKey];
       if (pc) {
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
       }
     }
 
-    async function handleIceCandidate(peerId, candidate) {
-      const pc = peers[peerId];
+    async function handleIceCandidate(peerId, candidate, targetId = myUserId) {
+      const peerKey = `${targetId}:${peerId}`;
+      const pc = peers[peerKey];
       if (pc && candidate) {
         try {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -1029,13 +1048,21 @@
       monitorAudioLevel(stream, wrapper, isLocal);
     }
 
-    function removePeer(peerId) {
-      if (peers[peerId]) {
-        peers[peerId].close();
-        delete peers[peerId];
+    function removePeer(peerKey) {
+      if (peers[peerKey]) {
+        peers[peerKey].close();
+        delete peers[peerKey];
       }
-      const wrapper = document.getElementById('video_wrapper_' + peerId);
-      if (wrapper) wrapper.remove();
+      // Extract remote peerId from key (localId:remoteId)
+      const parts = peerKey.split(':');
+      const peerId = parts.length > 1 ? parts[1] : peerKey;
+
+      // Only remove the video wrapper if NO OTHER local identity is connected to this peer
+      const stillConnected = Object.keys(peers).some(key => key.endsWith(':' + peerId));
+      if (!stillConnected) {
+        const wrapper = document.getElementById('video_wrapper_' + peerId);
+        if (wrapper) wrapper.remove();
+      }
     }
 
     let currentOutgoingRinger = null;
