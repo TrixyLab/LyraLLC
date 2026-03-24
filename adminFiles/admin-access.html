@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
     rel="stylesheet">
   <style>
     *,
@@ -378,7 +378,9 @@
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
       <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html" class="active">Admin Access</a></li>
       <li><a href="admin-news.html">News & Content</a></li>
@@ -416,28 +418,24 @@
 
   </main>
 
-  <!-- Firebase Core + Database -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="../firebase-config.js"></script>
+  <!-- Supabase Core -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../supabase-config.js"></script>
 
   <script>
     const appsContainer = document.getElementById('adminRequestsContainer');
     const activeAdminsContainer = document.getElementById('activeAdminsContainer');
 
-    db.ref('lyra_applications').on('value', (snapshot) => {
-      appsContainer.innerHTML = '';
-      const apps = [];
-      snapshot.forEach(child => {
-        apps.push({ id: child.key, ...child.val() });
-      });
+    function fetchApps() {
+      supabase.from('lyra_applications').select('*').order('timestamp', { ascending: false }).then(({ data }) => {
+        if (!data) return;
+        appsContainer.innerHTML = '';
+        data.forEach((app) => {
+          if (app.rolevalue !== 'adminAccess') return;
 
-      apps.reverse().forEach((app) => {
-        if (app.roleValue !== 'adminAccess') return;
-
-        const card = document.createElement('div');
-        card.className = 'app-card';
-        card.innerHTML = `
+          const card = document.createElement('div');
+          card.className = 'app-card';
+          card.innerHTML = `
           <div class="app-info">
             <span class="app-role" style="background:var(--red);color:var(--white);">NEW ADMIN REQUEST</span>
             <h2 class="app-name">${app.name} "${app.ign}"</h2>
@@ -445,7 +443,7 @@
               <span>✉️ ${app.email}</span>
               <span>📱 ${app.discord}</span>
             </div>
-            ${app.gameRole ? `<div style="margin-bottom:0.3rem;font-size:0.9rem;color:var(--gray-200);"><strong>Role:</strong> ${app.gameRole}</div>` : ''}
+            ${app.gamerole ? `<div style="margin-bottom:0.3rem;font-size:0.9rem;color:var(--gray-200);"><strong>Role:</strong> ${app.gamerole}</div>` : ''}
             ${app.experience ? `<div style="margin-bottom:1rem;font-size:0.9rem;color:var(--gray-200);"><strong>Experience:</strong><br/>${app.experience}</div>` : ''}
             <p class="app-reason" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:1rem; margin-top:0.5rem;"><strong>Why LYRA?</strong><br/>"${app.reason}"</p>
           </div>
@@ -454,9 +452,12 @@
             <button class="btn btn-decline" data-id="${app.id}">Deny</button>
           </div>
         `;
-        appsContainer.appendChild(card);
+          appsContainer.appendChild(card);
+        });
       });
-    });
+    }
+    fetchApps();
+    supabase.channel('apps_access').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_applications' }, fetchApps).subscribe();
 
     const activeMembersContainer = document.getElementById('activeMembersContainer');
     let allAdmins = [];
@@ -464,7 +465,7 @@
 
     function renderActiveMembers() {
       activeMembersContainer.innerHTML = '';
-      
+
       // Combine and sort
       const members = [
         ...allAdmins.map(a => ({ ...a, orgType: 'admin' })),
@@ -477,25 +478,25 @@
       members.forEach(m => {
         const card = document.createElement('div');
         card.className = 'app-card';
-        
+
         const isAppAdmin = m.orgType === 'admin';
         const roleBadgeColor = isAppAdmin ? 'var(--red)' : 'rgba(255,255,255,0.1)';
         const roleBadgeText = isAppAdmin ? 'ADMINISTRATOR' : (m.game || 'ROSTER').toUpperCase();
-        
+
         card.innerHTML = `
           <div class="app-info">
             <span class="app-role" style="background:${roleBadgeColor}; color:var(--white); border:1px solid rgba(255,255,255,0.1);">${roleBadgeText}</span>
             <h2 class="app-name">${m.name} "${m.ign || ''}"</h2>
             <div class="app-meta">
-              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customRole || 'Member')}</span>
+              <span>${isAppAdmin ? '✉️ ' + (m.email || 'No Email') : '🎮 ' + (m.customrole || m.rawrole || 'Member')}</span>
               <span>📱 ${m.discord || 'Not Linked'}</span>
             </div>
           </div>
           <div class="app-actions">
-            ${isAppAdmin ? 
-              `<button class="btn btn-decline btn-revoke" data-id="${m.id}">Revoke Access</button>` : 
-              `<a href="admin-roster.html" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Manage</a>`
-            }
+            ${isAppAdmin ?
+            `<button class="btn btn-decline btn-revoke" data-id="${m.id}">Revoke Access</button>` :
+            `<a href="admin-roster.html" class="btn btn-decline" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">Manage</a>`
+          }
           </div>
         `;
         activeMembersContainer.appendChild(card);
@@ -503,25 +504,24 @@
     }
 
     // Admins Sync
-    db.ref('lyra_approved_admins').on('value', snap => {
-      allAdmins = [];
-      snap.forEach(child => {
-        allAdmins.push({ id: child.key, ...child.val() });
+    function fetchAdmins() {
+      supabase.from('lyra_approved_admins').select('*').then(({ data }) => {
+        allAdmins = data || [];
+        renderActiveMembers();
       });
-      renderActiveMembers();
-    });
+    }
+    fetchAdmins();
+    supabase.channel('admins_sync').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_approved_admins' }, fetchAdmins).subscribe();
 
     // Roster Sync
-    db.ref('lyra_roster').on('value', snap => {
-      allRoster = [];
-      const data = snap.val() || {};
-      Object.keys(data).forEach(game => {
-        Object.keys(data[game]).forEach(pid => {
-          allRoster.push({ id: pid, game: game, ...data[game][pid] });
-        });
+    function fetchRoster() {
+      supabase.from('lyra_roster').select('*').then(({ data }) => {
+        allRoster = data || [];
+        renderActiveMembers();
       });
-      renderActiveMembers();
-    });
+    }
+    fetchRoster();
+    supabase.channel('roster_sync').on('postgres_changes', { event: '*', schema: 'public', table: 'lyra_roster' }, fetchRoster).subscribe();
 
     document.addEventListener('click', function (e) {
       if (e.target.classList.contains('btn-accept')) {
@@ -537,13 +537,17 @@
         const name = e.target.getAttribute('data-name');
 
         if (id) {
-          db.ref('lyra_applications/' + id).once('value').then(snap => {
-            const appData = snap.val();
+          supabase.from('lyra_applications').select('*').eq('id', id).single().then(({ data: appData }) => {
             if (appData) {
-              if (appData.roleValue === 'adminAccess') {
-                db.ref('lyra_approved_admins').push(appData);
+              if (appData.rolevalue === 'adminAccess') {
+                supabase.from('lyra_approved_admins').insert([{
+                  name: appData.name,
+                  ign: appData.ign,
+                  email: appData.email,
+                  discord: appData.discord
+                }]).then(() => { });
               }
-              db.ref('lyra_applications/' + id).remove();
+              supabase.from('lyra_applications').delete().eq('id', id).then(() => { });
             }
           });
         }
@@ -557,12 +561,12 @@
       else if (e.target.classList.contains('btn-revoke')) {
         if (confirm("Are you sure you want to revoke this admin's access?")) {
           const id = e.target.getAttribute('data-id');
-          if (id) db.ref('lyra_approved_admins/' + id).remove();
+          if (id) supabase.from('lyra_approved_admins').delete().eq('id', id).then(() => { });
         }
       }
       else if (e.target.classList.contains('btn-decline')) {
         const id = e.target.getAttribute('data-id');
-        if (id) db.ref('lyra_applications/' + id).remove();
+        if (id) supabase.from('lyra_applications').delete().eq('id', id).then(() => { });
       }
     });
     document.getElementById('logoutBtn').addEventListener('click', function (e) {
@@ -576,3 +580,5 @@
 </body>
 
 </html>
+
+
