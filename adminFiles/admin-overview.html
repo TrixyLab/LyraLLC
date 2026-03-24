@@ -521,43 +521,38 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
         if(stats.staff) stats.staff.innerText = currentCounts.p + currentCounts.c + currentCounts.m + currentCounts.ct;
       }
 
-      // Sync Managers (Approved Admins)
-      function fetchManagers() {
-        supabase.from('lyra_approved_admins').select('id', { count: 'exact' }).then(({count, error}) => {
-           if(!error) {
-             currentCounts.m = count || 0;
-             updateUI();
-           }
-        });
-      }
-      fetchManagers();
-      supabase.channel('sync_mgrs').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchManagers).subscribe();
 
-      // Sync Players, Coaches & Content Creators (Roster)
+      // Sync Players, Coaches & Managers (Consolidated Roster Stats)
       function fetchRosterStats() {
         supabase.from('lyra_roster').select('*').then(({data, error}) => {
           if(error) return;
           let playersCount = 0;
           let coachesCount = 0;
+          let managersCount = 0;
           let contentCount = 0;
+          
           if(data) {
             data.forEach(member => {
-              const game = member.game || '';
-              const role = (member.customrole || member.rawrole || '').toLowerCase();
+              const game = (member.game || '').toLowerCase();
+              const role = (member.customRole || member.rawRole || '').toLowerCase();
               
               if (game === 'content') {
                 contentCount++;
-              } else if (game === 'adminAccess' || game === 'management') {
-                // Exclude management from players count since they map to admins
+              } else if (role.includes('management') || role.includes('director') || role.includes('owner') || role.includes('admin')) {
+                managersCount++;
               } else if (role.includes('coach')) {
                 coachesCount++;
+              } else if (role.includes('staff')) {
+                playersCount++;
               } else {
+                // Default fallback
                 playersCount++;
               }
             });
           }
           currentCounts.p = playersCount;
           currentCounts.c = coachesCount;
+          currentCounts.m = managersCount;
           currentCounts.ct = contentCount;
           updateUI();
         });
@@ -768,27 +763,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     // Role-based Navigation Access
     const userRole = localStorage.getItem('lyra_role');
     const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const role = (userRole || '').toLowerCase();
     const isSimulation = localStorage.getItem('lyra_view_as') !== null;
     const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
     const isManagement = isOwnerOrIT || 
-                        userRole === 'Operation Directors' || 
-                        userRole === 'Management' || 
-                        userRole === 'Game management' || 
-                        userRole === 'Director of Media' || 
-                        userRole === 'Lead Recruiter';
+                        role.includes('management') || 
+                        role.includes('operation directors') || 
+                        role.includes('director') || 
+                        role.includes('recruiter');
     
     // Hide Management if not authorized
     if (!isManagement) {
       const mgmtNav = document.getElementById('nav-management');
       if (mgmtNav) mgmtNav.style.display = 'none';
-      
-      // If they are on a management page but not management, redirect
       const page = window.location.pathname.split("/").pop();
       const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(page)) {
-        window.location.href = 'admin-overview.html';
-      }
+      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
     }
 
     if (isOwnerOrIT) {
@@ -796,8 +787,7 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       if (superNav) superNav.style.display = 'block';
     }
 
-    // Staff Restriction: Only Overview, Comms, and Settings
-    if (userRole === 'Staff') {
+    if (role === 'staff') {
       const newsNav = document.getElementById('nav-news');
       const ordersNav = document.getElementById('nav-orders');
       if (newsNav) newsNav.style.display = 'none';

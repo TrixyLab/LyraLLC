@@ -753,32 +753,37 @@
       }
     });
 
-    // Role-based Navigation Access
-    const userRole = localStorage.getItem('lyra_role');
-    const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
-    
-    // Portal Shell Detection & Sidebar Hiding
-    const inShell = window.self !== window.top && window.parent.LyraMeeting;
-    if (inShell) {
-      document.body.classList.add('in-shell');
-      const style = document.createElement('style');
-      style.textContent = '.sidebar { display: none !important; } .main-content { margin-left: 0 !important; width: 100% !important; }';
-      document.head.appendChild(style);
-    }
-
-    const startBtn = document.getElementById('startMeetBtn');
-    const roomInput = document.getElementById('roomName');
-    const setupDiv = document.getElementById('meet-setup');
-    const meetContainer = document.getElementById('meet-container');
-
-    // Ensure input is focusable in Electron
-    if (roomInput) {
-      roomInput.addEventListener('click', () => {
-        roomInput.focus();
-      });
-    }
-
     const currentUser = localStorage.getItem('lyra_user') || 'Admin';
+    const authUser = currentUser.toLowerCase();
+    const userRole = localStorage.getItem('lyra_role') || '';
+    const role = userRole.toLowerCase();
+    const isSimulation = localStorage.getItem('lyra_view_as') !== null;
+    const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
+    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
+    const isManagement = isOwnerOrIT || 
+                        role.includes('management') || 
+                        role.includes('operation directors') || 
+                        role.includes('director') || 
+                        role.includes('recruiter');
+
+    // Role-based Navigation Access
+    if (!isManagement) {
+      const mgmtNav = document.getElementById('nav-management');
+      if (mgmtNav) mgmtNav.style.display = 'none';
+      const page = window.location.pathname.split("/").pop();
+      const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
+      if (mgmtPages.includes(page) && !inShell) window.location.href = 'admin-overview.html';
+    }
+    if (isOwnerOrIT) {
+      const superNav = document.getElementById('nav-super');
+      if (superNav) superNav.style.display = 'block';
+    }
+    if (role === 'staff') {
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      if (newsNav) newsNav.style.display = 'none';
+      if (ordersNav) ordersNav.style.display = 'none';
+    }
 
     function showToast(message) {
       const container = document.getElementById('toast-container');
@@ -854,6 +859,7 @@
       }
     }
 
+    // Handle shell meeting errors with more detail
     async function startMeeting(room) {
       if (!room) return;
       if (preJoinStream) { preJoinStream.getTracks().forEach(t => t.stop()); preJoinStream = null; }
@@ -868,9 +874,12 @@
           setupDiv.style.display = 'none';
           document.getElementById('deviceSetupModal').classList.remove('active');
           addVideoStream(shell.myUserId, stream, true, currentUser);
-        } catch (e) { showToast("Shell failed to start meeting."); }
+        } catch (e) { 
+          console.error("Shell meeting start failed:", e);
+          showToast("Persistent Session: Could not start meeting. " + (e.message || "Please check permissions.")); 
+        }
       } else {
-        // standalone mode
+        // standalone mode fallback
         window.currentRoomName = room;
         try {
           localStream = await navigator.mediaDevices.getUserMedia({
@@ -1721,63 +1730,37 @@
     // SIMULATE SPA NAVIGATION:
     // If the user clicks a sidebar link while in a meeting, open it in a fullscreen iframe 
     // instead of destroying the page and terminating the WebRTC connection!
-    document.querySelectorAll('.sidebar .nav-menu a').forEach(link => {
-      link.addEventListener('click', (e) => {
-        if (window.currentRoomName) {
-          const href = link.getAttribute('href');
-          // Don't iframe ourselves recursively
-          if (href.includes('admin-meetings.html')) return;
-
-          e.preventDefault();
-
-          let dashboardIframe = document.getElementById('dashboard-overlay-iframe');
-          if (!dashboardIframe) {
-            dashboardIframe = document.createElement('iframe');
-            dashboardIframe.id = 'dashboard-overlay-iframe';
-            dashboardIframe.style = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; border:none; background:var(--black);";
-            document.body.appendChild(dashboardIframe);
-
-            const returnBtn = document.createElement('button');
-            returnBtn.id = 'returnToCallBadge';
-            returnBtn.style = "position:fixed; bottom:30px; right:30px; z-index:100000; background:var(--green); color:var(--black); border:none; padding:15px 25px; border-radius:30px; font-family:'Barlow Condensed', sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; box-shadow:0 10px 30px rgba(0,232,93,0.4); display:flex; align-items:center; gap:10px; transition: transform 0.2s;";
-            returnBtn.innerHTML = `<span style="display:inline-block; width:12px; height:12px; background:var(--black); border-radius:50%; animation: pulse 1.5s infinite;"></span> RETURN TO CALL`;
-
-            returnBtn.onmouseover = () => returnBtn.style.transform = 'scale(1.05)';
-            returnBtn.onmouseout = () => returnBtn.style.transform = 'scale(1)';
-
-            document.body.appendChild(returnBtn);
-
-            returnBtn.onclick = () => {
-              dashboardIframe.style.display = 'none';
-              returnBtn.style.display = 'none';
-              // Keep the iframe alive in the background so they can jump back to EXACTLY where they were!
-            };
-
-            // Re-intercept clicks INSIDE the iframe to bring them back if they click "Meetings" natively in the iframe!
-            dashboardIframe.onload = () => {
-              try {
-                const iframeDoc = dashboardIframe.contentDocument || dashboardIframe.contentWindow.document;
-                const iframeMeetingLinks = iframeDoc.querySelectorAll('.sidebar .nav-menu a[href*="admin-meetings.html"]');
-                iframeMeetingLinks.forEach(ml => {
-                  ml.addEventListener('click', (ev) => {
-                    ev.preventDefault();
-                    returnBtn.click(); // Close iframe natively
-                  });
-                });
-              } catch (err) { } // Cross-origin block fallback
-            };
+    // DISABLE if running in persistent shell (as the shell manages navigation safely)
+    if (!inShell) {
+      document.querySelectorAll('.sidebar .nav-menu a').forEach(link => {
+        link.addEventListener('click', (e) => {
+          if (window.currentRoomName) {
+            const href = link.getAttribute('href');
+            if (href.includes('admin-meetings.html')) return;
+            e.preventDefault();
+            let dashboardIframe = document.getElementById('dashboard-overlay-iframe');
+            if (!dashboardIframe) {
+              dashboardIframe = document.createElement('iframe');
+              dashboardIframe.id = 'dashboard-overlay-iframe';
+              dashboardIframe.style = "position:fixed; top:0; left:0; width:100%; height:100%; z-index:99999; border:none; background:var(--black);";
+              document.body.appendChild(dashboardIframe);
+              const returnBtn = document.createElement('button');
+              returnBtn.id = 'returnToCallBadge';
+              returnBtn.style = "position:fixed; bottom:30px; right:30px; z-index:100000; background:var(--green); color:var(--black); border:none; padding:15px 25px; border-radius:30px; font-family:'Barlow Condensed', sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; box-shadow:0 10px 30px rgba(0,232,93,0.4); display:flex; align-items:center; gap:10px; transition: transform 0.2s;";
+              returnBtn.innerHTML = `<span style="display:inline-block; width:12px; height:12px; background:var(--black); border-radius:50%; animation: pulse 1.5s infinite;"></span> RETURN TO CALL`;
+              document.body.appendChild(returnBtn);
+              returnBtn.onclick = () => {
+                dashboardIframe.style.display = 'none';
+                returnBtn.style.display = 'none';
+              };
+            }
+            if (!dashboardIframe.src.includes(href)) dashboardIframe.src = href;
+            dashboardIframe.style.display = 'block';
+            document.getElementById('returnToCallBadge').style.display = 'flex';
           }
-
-          // Only change src if it's different, else just show it to preserve their state!
-          if (!dashboardIframe.src.includes(href)) {
-            dashboardIframe.src = href;
-          }
-
-          dashboardIframe.style.display = 'block';
-          document.getElementById('returnToCallBadge').style.display = 'flex';
-        }
+        });
       });
-    });
+    }
 
     const styleSheet = document.createElement("style");
     styleSheet.innerText = `

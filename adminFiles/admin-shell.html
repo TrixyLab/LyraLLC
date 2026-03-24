@@ -79,11 +79,139 @@
         .nav-dropdown-menu li a { font-size: 0.85rem !important; padding: 0.8rem 1rem 0.8rem 3.2rem !important; }
         .nav-dropdown-menu li a.active { color: var(--red) !important; font-weight: 700; }
 
-        .form-input { 
-            width: 100%; padding: 0.8rem; background: rgba(0,0,0,0.5); 
-            border: 1px solid rgba(255,255,255,0.1); color: var(--white); 
-            font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; 
-            border-radius: 4px; outline: none; cursor: pointer;
+        /* STATUS DROPDOWN */
+        .status-dropdown-wrap {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .status-dropdown-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.72rem; font-weight: 700;
+            color: var(--gray-600); text-transform: uppercase;
+            letter-spacing: 0.12em; display: block; margin-bottom: 0.4rem;
+        }
+        .status-dropdown-btn {
+            width: 100%;
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.65rem 0.9rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            user-select: none;
+        }
+        .status-dropdown-btn:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.18);
+        }
+        .status-dot {
+            width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+        }
+        .status-dot.online { background: #00E85D; }
+        .status-dot.away   { background: #FFC800; }
+        .status-dot.dnd    { background: #E8002D; }
+        .status-btn-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.88rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--white); flex: 1; text-align: left;
+        }
+        .status-chevron {
+            opacity: 0.4;
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+        .status-dropdown-wrap.open .status-chevron { transform: rotate(180deg); opacity: 0.8; }
+        .status-dropdown-menu {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+            background: #141414;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            opacity: 0; visibility: hidden;
+            transform: translateY(-4px);
+            transition: all 0.15s ease;
+            z-index: 999;
+        }
+        .status-dropdown-wrap.open .status-dropdown-menu {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        .status-option {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.65rem 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .status-option:hover { background: rgba(255,255,255,0.06); }
+        .status-option .status-opt-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.88rem; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+        }
+        .status-option .status-opt-sub {
+            font-family: 'Barlow', sans-serif;
+            font-size: 0.7rem; color: var(--gray-600); margin-left: auto;
+        }
+        .status-option[data-status="online"] .status-opt-label { color: #00E85D; }
+        .status-option[data-status="away"]   .status-opt-label { color: #FFC800; }
+        .status-option[data-status="dnd"]    .status-opt-label { color: #E8002D; }
+
+        /* PRESENCE LIST */
+        .presence-section { margin-bottom: 1.5rem; }
+        .presence-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 0.6rem; cursor: pointer;
+        }
+        .presence-label {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.72rem; font-weight: 700;
+            color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.12em;
+        }
+        .presence-count {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.72rem; color: var(--gray-600);
+            background: rgba(255,255,255,0.05);
+            padding: 0.1rem 0.4rem; border-radius: 10px;
+        }
+        .presence-list { display: flex; flex-direction: column; gap: 0.4rem; }
+        .presence-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.4rem 0.5rem; border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .presence-item:hover { background: rgba(255,255,255,0.04); }
+        .presence-item-avatar {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Bebas Neue', sans-serif; font-size: 0.75rem;
+            color: var(--gray-200); flex-shrink: 0; position: relative;
+        }
+        .presence-item-dot {
+            position: absolute; bottom: -1px; right: -1px;
+            width: 8px; height: 8px; border-radius: 50%;
+            border: 2px solid var(--gray-900);
+        }
+        .presence-item-dot.online { background: #00E85D; }
+        .presence-item-dot.away   { background: #FFC800; }
+        .presence-item-dot.dnd    { background: var(--red); }
+        .presence-item-dot.offline{ background: var(--gray-600); }
+        .presence-item-name {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.85rem; font-weight: 600;
+            color: var(--gray-200); letter-spacing: 0.04em;
+            flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .presence-item-status {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.65rem; color: var(--gray-600);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .presence-empty {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.78rem; color: var(--gray-600);
+            text-align: center; padding: 0.75rem 0;
         }
 
         /* CONTENT IFRAME */
@@ -98,6 +226,157 @@
         }
         .logout-btn:hover { color: var(--red); }
     </style>
+    <!-- Supabase Core (Required early for Shell State) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+
+    <script>
+        // CORE SHELL STATE (Available to children immediately)
+        window.currentUser = localStorage.getItem('lyra_user') || 'Admin';
+        window.userRole = localStorage.getItem('lyra_role');
+        
+        window.LyraMeeting = {
+            isActive: false,
+            currentRoom: null,
+            localStream: null,
+            localScreenStream: null,
+            peers: {}, 
+            remoteStreams: {}, 
+            roomChannel: null,
+            myUserId: window.currentUser + '_' + Math.random().toString(36).substr(2, 9),
+            myScreenUserId: '', 
+            isMuted: false,
+            isVideoDisabled: false,
+            isScreenSharing: false,
+            callbacks: {
+                onStreamAdded: null,
+                onStreamRemoved: null,
+                onStatusChanged: null,
+                onMuteStatus: null
+            },
+            registerCallback: (type, fn) => {
+                window.LyraMeeting.callbacks[type] = fn;
+                if (type === 'onStreamAdded' && window.LyraMeeting.isActive) {
+                    Object.values(window.LyraMeeting.remoteStreams).forEach(data => fn(data));
+                }
+            },
+            trigger: (type, data) => {
+                if (window.LyraMeeting.callbacks[type]) window.LyraMeeting.callbacks[type](data);
+            },
+            start: async (room, deviceConfig) => {
+                console.log("Shell: Joining room", room, deviceConfig);
+                window.LyraMeeting.currentRoom = room;
+                window.LyraMeeting.myScreenUserId = window.LyraMeeting.myUserId + '_screen';
+                try {
+                    const vConstraint = (deviceConfig && deviceConfig.camId && deviceConfig.camId !== 'none') ? { deviceId: { exact: deviceConfig.camId } } : true;
+                    const aConstraint = (deviceConfig && deviceConfig.micId && deviceConfig.micId !== 'none') ? { deviceId: { exact: deviceConfig.micId } } : true;
+                    window.LyraMeeting.localStream = await navigator.mediaDevices.getUserMedia({ video: vConstraint, audio: aConstraint });
+                    window.LyraMeeting.isActive = true;
+                    const indicator = document.getElementById('globalCallIndicator');
+                    if (indicator) indicator.style.display = 'flex';
+                    const meetingPresence = supabase.channel('meeting_presence');
+                    meetingPresence.track({ roomName: room, user: window.currentUser }).then(() => { });
+                    window.LyraMeeting.roomChannel = supabase.channel('webrtc_room_' + room);
+                    window.LyraMeeting.setupSignaling();
+                    window.LyraMeeting.roomChannel.subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            window.LyraMeeting.roomChannel.send({
+                                type: 'broadcast',
+                                event: 'webrtc_signaling',
+                                payload: { sender: window.LyraMeeting.myUserId, senderName: window.currentUser, type: 'peer_joined' }
+                            });
+                        }
+                    });
+                    return window.LyraMeeting.localStream;
+                } catch (e) {
+                    console.error("Shell: Media access failed", e);
+                    if (e.name === 'NotAllowedError') alert("Camera/Microphone access was denied.");
+                    throw e;
+                }
+            },
+            setupSignaling: () => {
+                const chan = window.LyraMeeting.roomChannel;
+                chan.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+                    const { sender, target, type, data, senderName } = payload.payload;
+                    const myTargetId = (target === window.LyraMeeting.myScreenUserId) ? window.LyraMeeting.myScreenUserId : window.LyraMeeting.myUserId;
+                    if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myScreenUserId) return;
+                    if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myScreenUserId) return;
+                    if (type === 'peer_joined') {
+                        window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                        if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myScreenUserId);
+                    } else if (type === 'offer') window.LyraMeeting.handleOffer(sender, senderName, data, myTargetId);
+                    else if (type === 'answer') window.LyraMeeting.handleAnswer(sender, data, myTargetId);
+                    else if (type === 'ice_candidate') window.LyraMeeting.handleIceCandidate(sender, data, myTargetId);
+                    else if (type === 'peer_left') {
+                        Object.keys(window.LyraMeeting.peers).forEach(key => { if (key.endsWith(':' + sender)) window.LyraMeeting.removePeer(key); });
+                    } else if (type === 'mute_status') window.LyraMeeting.trigger('onMuteStatus', { id: sender, isMuted: data.isMuted });
+                });
+            },
+            createPeerConnection: (peerId, peerName, isInitiator, targetId) => {
+                const peerKey = `${targetId}:${peerId}`;
+                if (window.LyraMeeting.peers[peerKey]) return window.LyraMeeting.peers[peerKey];
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                window.LyraMeeting.peers[peerKey] = pc;
+                if (targetId === window.LyraMeeting.myScreenUserId && window.LyraMeeting.localScreenStream) {
+                    window.LyraMeeting.localScreenStream.getTracks().forEach(t => pc.addTrack(t, window.LyraMeeting.localScreenStream));
+                } else if (window.LyraMeeting.localStream && !peerId.endsWith('_screen')) {
+                    window.LyraMeeting.localStream.getTracks().forEach(t => pc.addTrack(t, window.LyraMeeting.localStream));
+                }
+                pc.ontrack = (event) => {
+                    const streamData = { id: peerId, stream: event.streams[0], name: peerName };
+                    window.LyraMeeting.remoteStreams[peerId] = streamData;
+                    window.LyraMeeting.trigger('onStreamAdded', streamData);
+                };
+                pc.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: targetId, target: peerId, type: 'ice_candidate', data: event.candidate } });
+                    }
+                };
+                if (isInitiator) {
+                    pc.createOffer().then(offer => {
+                        pc.setLocalDescription(offer);
+                        window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: targetId, target: peerId, type: 'offer', data: offer, senderName: window.currentUser } });
+                    });
+                }
+                return pc;
+            },
+            handleOffer: async (peerId, peerName, offer, targetId) => {
+                const pc = window.LyraMeeting.createPeerConnection(peerId, peerName, false, targetId);
+                await pc.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: targetId, target: peerId, type: 'answer', data: answer } });
+            },
+            handleAnswer: async (peerId, answer, targetId) => {
+                const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
+                if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
+            },
+            handleIceCandidate: async (peerId, candidate, targetId) => {
+                const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
+                if (pc && candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            },
+            removePeer: (key) => {
+                if (window.LyraMeeting.peers[key]) { window.LyraMeeting.peers[key].close(); delete window.LyraMeeting.peers[key]; }
+                const peerId = key.split(':')[1];
+                if (!Object.keys(window.LyraMeeting.peers).some(k => k.endsWith(':' + peerId))) window.LyraMeeting.trigger('onStreamRemoved', peerId);
+            },
+            leave: () => {
+                if (window.LyraMeeting.roomChannel) {
+                    window.LyraMeeting.roomChannel.send({ type: 'broadcast', event: 'webrtc_signaling', payload: { sender: window.LyraMeeting.myUserId, type: 'peer_left' } });
+                    supabase.removeChannel(window.LyraMeeting.roomChannel);
+                }
+                Object.keys(window.LyraMeeting.peers).forEach(k => window.LyraMeeting.removePeer(k));
+                window.LyraMeeting.remoteStreams = {};
+                if (window.LyraMeeting.localStream) window.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
+                if (window.LyraMeeting.localScreenStream) window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
+                window.LyraMeeting.isActive = false;
+                window.LyraMeeting.currentRoom = null;
+                const indicator = document.getElementById('globalCallIndicator');
+                if (indicator) indicator.style.display = 'none';
+                window.LyraMeeting.trigger('onStatusChanged', 'inactive');
+            }
+        };
+    </script>
 </head>
 <body>
 
@@ -113,20 +392,40 @@
             <span class="call-text">Persistent Session Active</span>
         </div>
 
-        <div class="admin-status-wrapper" style="margin-bottom: 2rem;">
-            <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Your Status</label>
-            <select id="adminStatus" class="form-input">
-                <option value="online">🟢 Online</option>
-                <option value="away">🟡 Away</option>
-                <option value="dnd">🔴 Do Not Disturb</option>
-            </select>
+        <!-- STATUS DROPDOWN -->
+        <div class="status-dropdown-wrap" id="statusDropdownWrap">
+            <span class="status-dropdown-label">Your Status</span>
+            <div class="status-dropdown-btn" id="statusDropdownBtn">
+                <span class="status-dot online" id="statusDot"></span>
+                <span class="status-btn-label" id="statusBtnLabel">Online</span>
+                <span class="status-chevron">▼</span>
+            </div>
+            <div class="status-dropdown-menu" id="statusDropdownMenu">
+                <div class="status-option" data-status="online">
+                    <span class="status-dot online"></span>
+                    <span class="status-opt-label">Online</span>
+                    <span class="status-opt-sub">Active &amp; available</span>
+                </div>
+                <div class="status-option" data-status="away">
+                    <span class="status-dot away"></span>
+                    <span class="status-opt-label">Away</span>
+                    <span class="status-opt-sub">Stepped away</span>
+                </div>
+                <div class="status-option" data-status="dnd">
+                    <span class="status-dot dnd"></span>
+                    <span class="status-opt-label">Do Not Disturb</span>
+                    <span class="status-opt-sub">Mute notifications</span>
+                </div>
+            </div>
         </div>
 
-        <div class="admin-presence-list" style="margin-bottom: 2rem;">
-            <label style="font-family:'Barlow Condensed', sans-serif; font-size: 0.8rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem;">Team Presence</label>
-            <select id="presenceList" class="form-input">
-                <option value="" disabled selected>View Team Online</option>
-            </select>
+        <!-- TEAM PRESENCE -->
+        <div class="presence-section">
+            <div class="presence-header">
+                <span class="presence-label">Team Online</span>
+                <span class="presence-count" id="presenceCount">0</span>
+            </div>
+            <div class="presence-list" id="presenceList"></div>
         </div>
 
         <ul class="nav-menu">
@@ -253,7 +552,7 @@
     </aside>
 
     <main class="portal-main">
-        <iframe id="portal-content" src="admin-overview.html"></iframe>
+        <iframe id="portal-content" src="admin-overview.html" allow="camera; microphone; display-capture; autoplay"></iframe>
     </main>
 
     <!-- Supabase Core (for Global Meeting) -->
@@ -263,12 +562,6 @@
     <script>
         const iframe = document.getElementById('portal-content');
         const callIndicator = document.getElementById('globalCallIndicator');
-
-        // Supabase handle for the shell
-        const currentUser = localStorage.getItem('lyra_user') || 'Admin';
-        const userRole = localStorage.getItem('lyra_role');
-        const meetingPresence = supabase.channel('meeting_presence');
-        meetingPresence.subscribe();
 
         // Initial Load from URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -324,47 +617,89 @@
         });
 
         // 3. ADMIN STATUS & PRESENCE LOGIC
-        const adminStatus = document.getElementById('adminStatus');
         const presenceList = document.getElementById('presenceList');
+        const presenceCount = document.getElementById('presenceCount');
 
-        if (adminStatus) {
-            adminStatus.addEventListener('change', async () => {
-                const status = adminStatus.value;
-                await supabase.from('lyra_approved_admins')
-                    .update({ status: status })
-                    .eq('id', currentUser.toLowerCase());
+        // Status Dropdown
+        const statusWrap = document.getElementById('statusDropdownWrap');
+        const statusBtn  = document.getElementById('statusDropdownBtn');
+        const statusDot  = document.getElementById('statusDot');
+        const statusLabel = document.getElementById('statusBtnLabel');
+        const statusLabels = { online: 'Online', away: 'Away', dnd: 'Do Not Disturb' };
+
+        if (statusBtn) {
+            statusBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                statusWrap.classList.toggle('open');
             });
         }
+        document.addEventListener('click', () => { if (statusWrap) statusWrap.classList.remove('open'); });
+
+        document.querySelectorAll('.status-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const status = opt.dataset.status;
+                // Update button display
+                if (statusDot)   { statusDot.className = 'status-dot ' + status; }
+                if (statusLabel) { statusLabel.textContent = statusLabels[status] || status; }
+                if (statusWrap)  { statusWrap.classList.remove('open'); }
+                // Persist to DB
+                supabase.from('lyra_approved_admins')
+                    .update({ status })
+                    .eq('ign', currentUser)
+                    .then(() => fetchPresence());
+            });
+        });
 
         async function fetchPresence() {
-            const { data } = await supabase.from('lyra_approved_admins').select('id, status');
-            if (data && presenceList) {
-                presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
-                data.forEach(admin => {
-                    const opt = document.createElement('option');
-                    let icon = '⚪';
-                    if (admin.status === 'online') icon = '🟢';
-                    else if (admin.status === 'away') icon = '🟡';
-                    else if (admin.status === 'dnd') icon = '🔴';
-                    opt.textContent = `${icon} ${admin.id}`;
-                    presenceList.appendChild(opt);
-                });
+            const { data } = await supabase.from('lyra_approved_admins').select('ign, status');
+            if (!data || !presenceList) return;
+
+            const online = data.filter(a => a.status === 'online' || a.status === 'away' || a.status === 'dnd');
+            if (presenceCount) presenceCount.textContent = online.length;
+
+            presenceList.innerHTML = '';
+            if (data.length === 0) {
+                presenceList.innerHTML = '<div class="presence-empty">No team members found</div>';
+                return;
             }
+
+            // Sort: online first, then away, then dnd, then offline
+            const order = { online: 0, away: 1, dnd: 2, offline: 3 };
+            data.sort((a,b) => (order[a.status] ?? 3) - (order[b.status] ?? 3));
+
+            data.forEach(admin => {
+                const st = admin.status || 'offline';
+                const name = admin.ign || '?';
+                const initial = name.charAt(0).toUpperCase();
+                const statusLabel = st === 'dnd' ? 'DND' : st.charAt(0).toUpperCase() + st.slice(1);
+                const item = document.createElement('div');
+                item.className = 'presence-item';
+                item.innerHTML = `
+                    <div class="presence-item-avatar">
+                        ${initial}
+                        <div class="presence-item-dot ${st}"></div>
+                    </div>
+                    <span class="presence-item-name">${name}</span>
+                    <span class="presence-item-status">${statusLabel}</span>
+                `;
+                presenceList.appendChild(item);
+            });
         }
-        setInterval(fetchPresence, 10000);
+        setInterval(fetchPresence, 15000);
         fetchPresence();
 
         // 4. ROLE-BASED VISIBILITY
         const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+        const role = (userRole || '').toLowerCase();
         const isSimulation = localStorage.getItem('lyra_view_as') !== null;
         const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-        const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+        const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
         const isManagement = isOwnerOrIT || 
-                            userRole === 'Operation Directors' || 
-                            userRole === 'Management' || 
-                            userRole === 'Game management' || 
-                            userRole === 'Director of Media' || 
-                            userRole === 'Lead Recruiter';
+                            role.includes('management') || 
+                            role.includes('operation directors') || 
+                            role.includes('director') || 
+                            role.includes('recruiter');
 
         if (!isManagement) {
             const mgmtNav = document.getElementById('nav-management');
@@ -374,7 +709,7 @@
             const superNav = document.getElementById('nav-super');
             if (superNav) superNav.style.display = 'block';
         }
-        if (userRole === 'Staff') {
+        if (role === 'staff') {
             const newsNav = document.getElementById('nav-news');
             const ordersNav = document.getElementById('nav-orders');
             if (newsNav) newsNav.style.display = 'none';
@@ -401,191 +736,6 @@
             localStorage.clear();
             window.location.href = '../login.html';
         });
-
-        // 7. GLOBAL WEB-RTC CONTROLLER
-        window.LyraMeeting = {
-            isActive: false,
-            currentRoom: null,
-            localStream: null,
-            localScreenStream: null,
-            peers: {}, // { "localId:remoteId": pc }
-            remoteStreams: {}, // { id: { stream, name } }
-            roomChannel: null,
-            myUserId: currentUser + '_' + Math.random().toString(36).substr(2, 9),
-            myScreenUserId: '', // Set when sharing
-            isMuted: false,
-            isVideoDisabled: false,
-            isScreenSharing: false,
-            callbacks: {
-                onStreamAdded: null,
-                onStreamRemoved: null,
-                onStatusChanged: null,
-                onMuteStatus: null
-            },
-
-            registerCallback: (type, fn) => {
-                window.LyraMeeting.callbacks[type] = fn;
-                // Re-sync existing streams for the new page
-                if (type === 'onStreamAdded' && window.LyraMeeting.isActive) {
-                    Object.values(window.LyraMeeting.remoteStreams).forEach(data => fn(data));
-                }
-            },
-
-            trigger: (type, data) => {
-                if (window.LyraMeeting.callbacks[type]) {
-                    window.LyraMeeting.callbacks[type](data);
-                }
-            },
-
-            start: async (room, deviceConfig) => {
-                console.log("Shell: Joining room", room);
-                window.LyraMeeting.currentRoom = room;
-                window.LyraMeeting.myScreenUserId = window.LyraMeeting.myUserId + '_screen';
-                
-                try {
-                    window.LyraMeeting.localStream = await navigator.mediaDevices.getUserMedia({
-                        video: deviceConfig.camId ? { deviceId: { exact: deviceConfig.camId } } : true,
-                        audio: deviceConfig.micId ? { deviceId: { exact: deviceConfig.micId } } : true
-                    });
-                    
-                    window.LyraMeeting.isActive = true;
-                    callIndicator.style.display = 'flex';
-                    
-                    // Track Presence Globally
-                    meetingPresence.track({ roomName: room, user: currentUser }).then(() => { });
-                    
-                    // Signaling
-                    window.LyraMeeting.roomChannel = supabase.channel('webrtc_room_' + room);
-                    window.LyraMeeting.setupSignaling();
-                    window.LyraMeeting.roomChannel.subscribe();
-                    
-                    return window.LyraMeeting.localStream;
-                } catch (e) {
-                    console.error("Shell: Media access failed", e);
-                    throw e;
-                }
-            },
-
-            setupSignaling: () => {
-                const chan = window.LyraMeeting.roomChannel;
-                chan.on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
-                    const { sender, target, type, data, senderName } = payload.payload;
-                    const myTargetId = (target === window.LyraMeeting.myScreenUserId) ? window.LyraMeeting.myScreenUserId : window.LyraMeeting.myUserId;
-                    
-                    if (target && target !== window.LyraMeeting.myUserId && target !== window.LyraMeeting.myScreenUserId) return;
-                    if (sender === window.LyraMeeting.myUserId || sender === window.LyraMeeting.myScreenUserId) return;
-
-                    if (type === 'peer_joined') {
-                        window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
-                        if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myScreenUserId);
-                    } else if (type === 'offer') {
-                        window.LyraMeeting.handleOffer(sender, senderName, data, myTargetId);
-                    } else if (type === 'answer') {
-                        window.LyraMeeting.handleAnswer(sender, data, myTargetId);
-                    } else if (type === 'ice_candidate') {
-                        window.LyraMeeting.handleIceCandidate(sender, data, myTargetId);
-                    } else if (type === 'peer_left') {
-                        Object.keys(window.LyraMeeting.peers).forEach(key => {
-                            if (key.endsWith(':' + sender)) window.LyraMeeting.removePeer(key);
-                        });
-                    } else if (type === 'mute_status') {
-                        window.LyraMeeting.trigger('onMuteStatus', { id: sender, isMuted: data.isMuted });
-                    }
-                });
-            },
-
-            createPeerConnection: (peerId, peerName, isInitiator, targetId) => {
-                const peerKey = `${targetId}:${peerId}`;
-                if (window.LyraMeeting.peers[peerKey]) return window.LyraMeeting.peers[peerKey];
-                
-                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-                window.LyraMeeting.peers[peerKey] = pc;
-
-                if (targetId === window.LyraMeeting.myScreenUserId && window.LyraMeeting.localScreenStream) {
-                    window.LyraMeeting.localScreenStream.getTracks().forEach(t => pc.addTrack(t, window.LyraMeeting.localScreenStream));
-                } else if (window.LyraMeeting.localStream && !peerId.endsWith('_screen')) {
-                    window.LyraMeeting.localStream.getTracks().forEach(t => pc.addTrack(t, window.LyraMeeting.localStream));
-                }
-
-                pc.ontrack = (event) => {
-                    const streamData = { id: peerId, stream: event.streams[0], name: peerName };
-                    window.LyraMeeting.remoteStreams[peerId] = streamData;
-                    window.LyraMeeting.trigger('onStreamAdded', streamData);
-                };
-
-                pc.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        window.LyraMeeting.roomChannel.send({
-                            type: 'broadcast', event: 'webrtc_signaling',
-                            payload: { sender: targetId, target: peerId, type: 'ice_candidate', data: event.candidate }
-                        });
-                    }
-                };
-
-                if (isInitiator) {
-                    pc.createOffer().then(offer => {
-                        pc.setLocalDescription(offer);
-                        window.LyraMeeting.roomChannel.send({
-                            type: 'broadcast', event: 'webrtc_signaling',
-                            payload: { sender: targetId, target: peerId, type: 'offer', data: offer, senderName: currentUser }
-                        });
-                    });
-                }
-                return pc;
-            },
-
-            handleOffer: async (peerId, peerName, offer, targetId) => {
-                const pc = window.LyraMeeting.createPeerConnection(peerId, peerName, false, targetId);
-                await pc.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await pc.createAnswer();
-                await pc.setLocalDescription(answer);
-                window.LyraMeeting.roomChannel.send({
-                    type: 'broadcast', event: 'webrtc_signaling',
-                    payload: { sender: targetId, target: peerId, type: 'answer', data: answer }
-                });
-            },
-
-            handleAnswer: async (peerId, answer, targetId) => {
-                const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
-                if (pc) await pc.setRemoteDescription(new RTCSessionDescription(answer));
-            },
-
-            handleIceCandidate: async (peerId, candidate, targetId) => {
-                const pc = window.LyraMeeting.peers[`${targetId}:${peerId}`];
-                if (pc && candidate) await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            },
-
-            removePeer: (key) => {
-                if (window.LyraMeeting.peers[key]) {
-                    window.LyraMeeting.peers[key].close();
-                    delete window.LyraMeeting.peers[key];
-                }
-                const peerId = key.split(':')[1];
-                if (!Object.keys(window.LyraMeeting.peers).some(k => k.endsWith(':' + peerId))) {
-                    window.LyraMeeting.trigger('onStreamRemoved', peerId);
-                }
-            },
-
-            leave: () => {
-                if (window.LyraMeeting.roomChannel) {
-                    meetingPresence.untrack().then(() => { });
-                    window.LyraMeeting.roomChannel.send({
-                        type: 'broadcast', event: 'webrtc_signaling',
-                        payload: { sender: window.LyraMeeting.myUserId, type: 'peer_left' }
-                    });
-                    supabase.removeChannel(window.LyraMeeting.roomChannel);
-                }
-                Object.keys(window.LyraMeeting.peers).forEach(k => window.LyraMeeting.removePeer(k));
-                window.LyraMeeting.remoteStreams = {};
-                if (window.LyraMeeting.localStream) window.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
-                if (window.LyraMeeting.localScreenStream) window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
-                
-                window.LyraMeeting.isActive = false;
-                window.LyraMeeting.currentRoom = null;
-                callIndicator.style.display = 'none';
-                window.LyraMeeting.trigger('onStatusChanged', 'inactive');
-            }
-        };
     </script>
 </body>
 </html>

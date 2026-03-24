@@ -622,24 +622,23 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     // Role-based Navigation Access
     const userRole = localStorage.getItem('lyra_role');
     const authUser = (localStorage.getItem('lyra_user') || '').toLowerCase();
+    const role = (userRole || '').toLowerCase();
     const isSimulation = localStorage.getItem('lyra_view_as') !== null;
     const isHardcodedSuper = (authUser === 'admin' || authUser === 'versa') && !isSimulation;
-    const isOwnerOrIT = userRole === 'Owner' || userRole === 'IT Director' || isHardcodedSuper;
+    const isOwnerOrIT = role.includes('owner') || role.includes('it director') || isHardcodedSuper;
     const isManagement = isOwnerOrIT || 
-                        userRole === 'Operation Directors' || 
-                        userRole === 'Management' || 
-                        userRole === 'Game management' || 
-                        userRole === 'Director of Media' || 
-                        userRole === 'Lead Recruiter';
+                        role.includes('management') || 
+                        role.includes('operation directors') || 
+                        role.includes('director') || 
+                        role.includes('recruiter');
     
     // Hide Management if not authorized
     if (!isManagement) {
       const mgmtNav = document.getElementById('nav-management');
       if (mgmtNav) mgmtNav.style.display = 'none';
-      
-      const page = window.location.pathname.split("/").pop();
+      const pagePath = window.location.pathname.split("/").pop();
       const mgmtPages = ['admin-dashboard.html', 'admin-roster.html', 'admin-reviews.html', 'admin-updates.html', 'admin-scheduling.html', 'admin-schedule-events.html'];
-      if (mgmtPages.includes(page)) window.location.href = 'admin-overview.html';
+      if (mgmtPages.includes(pagePath)) window.location.href = 'admin-overview.html';
     }
 
     if (isOwnerOrIT) {
@@ -647,11 +646,19 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       if (superNav) superNav.style.display = 'block';
     }
 
+    if (role === 'staff') {
+      const newsNav = document.getElementById('nav-news');
+      const ordersNav = document.getElementById('nav-orders');
+      if (newsNav) newsNav.style.display = 'none';
+      if (ordersNav) ordersNav.style.display = 'none';
+      const restrictedPages = ['admin-news.html', 'admin-orders.html', 'admin-reviews.html', 'admin-roster.html', 'admin-access.html', 'admin-super-panel.html', 'admin-settings.html'];
+      if (restrictedPages.includes(window.location.pathname.split("/").pop())) window.location.href = 'admin-overview.html';
+    }
+
   </script>
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>
 </body>
-</html>
 
 
 
