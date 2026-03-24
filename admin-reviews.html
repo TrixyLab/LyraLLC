@@ -6,7 +6,7 @@
   <title>LYRA - Performance Reviews</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -190,7 +190,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
       <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
       <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html" class="active">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
@@ -254,11 +255,14 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
     let reviews = [];
 
     function saveReview(r) {
-      supabase.from('lyra_perf_reviews').upsert([r]).then(()=>{});
+      supabase.from('lyra_perf_reviews').upsert([r]).then(({error})=>{
+        if (error) console.error("saveReview Error:", error);
+      });
     }
 
     function initReviews() {
       supabase.from('lyra_perf_reviews').select('*').then(({data, error}) => {
+        if (error) console.error("initReviews Error:", error);
         if (!data || data.length === 0) {
           seedReviews.forEach(r => saveReview(r));
           reviews = seedReviews;
@@ -356,21 +360,25 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       if (e.target.classList.contains('archive-btn')) {
         if(confirm("Archive this review?")) {
           const id = parseInt(e.target.getAttribute('data-id'));
-          const r = reviews.find(rev => rev && rev.id === id);
-          if (r) {
-            r.archived = true;
-            saveReview(r);
-          }
+          supabase.from('lyra_perf_reviews').update({ archived: true }).eq('id', id).then(() => {
+            const r = reviews.find(rev => rev && rev.id === id);
+            if (r) {
+              r.archived = true;
+              renderReviews();
+            }
+          });
         }
       }
 
       if (e.target.classList.contains('restore-btn')) {
         const id = parseInt(e.target.getAttribute('data-id'));
-        const r = reviews.find(rev => rev && rev.id === id);
-        if (r) {
-          r.archived = false;
-          saveReview(r);
-        }
+        supabase.from('lyra_perf_reviews').update({ archived: false }).eq('id', id).then(() => {
+          const r = reviews.find(rev => rev && rev.id === id);
+          if (r) {
+            r.archived = false;
+            renderReviews();
+          }
+        });
       }
 
       if (e.target.classList.contains('update-btn')) {
@@ -383,12 +391,24 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             const newScoreRaw = prompt("Update Score (A, B, C, F):", r.score);
             let newScore = newScoreRaw ? newScoreRaw.toUpperCase() : r.score;
             if (['A','B','C','F'].includes(newScore)) {
-              r.score = newScore;
-              r.scoreclass = 'score-' + newScore;
+              newScore = newScore;
+            } else {
+              newScore = r.score;
             }
-            r.notes = newNotes;
-            r.meta = 'LAST REVIEW: JUST NOW';
-            saveReview(r);
+            const newScoreClass = 'score-' + newScore;
+            
+            supabase.from('lyra_perf_reviews').update({ 
+               notes: newNotes, 
+               score: newScore, 
+               scoreclass: newScoreClass, 
+               meta: 'LAST REVIEW: JUST NOW' 
+            }).eq('id', id).then(() => {
+               r.notes = newNotes;
+               r.score = newScore;
+               r.scoreclass = newScoreClass;
+               r.meta = 'LAST REVIEW: JUST NOW';
+               renderReviews();
+            });
           }
         }
       }
@@ -429,6 +449,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   <script src="../responsive.js"></script>
 </body>
 </html>
+
+
+
 
 
 

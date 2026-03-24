@@ -6,7 +6,7 @@
   <title>LYRA - Admin Overview</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -142,9 +142,6 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   </style>
   <link rel="icon" type="image/png" href="../LyraEsportsLogo.png">
   <link rel="stylesheet" href="../animations.css">
-  <!-- Supabase Core -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="../supabase-config.js"></script>
   <link rel="stylesheet" href="../responsive.css">
 </head>
 
@@ -177,7 +174,8 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
       <li><a href="admin-overview.html" class="active">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
       <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
       <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
@@ -347,8 +345,11 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
             data.forEach(member => {
               const game = member.game || '';
               const role = (member.customrole || member.rawrole || '').toLowerCase();
+              
               if (game === 'content') {
                 contentCount++;
+              } else if (game === 'adminAccess' || game === 'management') {
+                // Exclude management from players count since they map to admins
               } else if (role.includes('coach')) {
                 coachesCount++;
               } else {
@@ -370,6 +371,9 @@ p:hover, h1:hover, h2:hover, h3:hover, h4:hover, h5:hover, h6:hover { transform:
   <script src="../responsive.js"></script>
 </body>
 </html>
+
+
+
 
 
 

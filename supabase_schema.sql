@@ -97,6 +97,20 @@ CREATE TABLE IF NOT EXISTS public.lyra_calls (
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 10. perf_reviews
+CREATE TABLE IF NOT EXISTS public.lyra_perf_reviews (
+    id BIGINT PRIMARY KEY,
+    type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT,
+    meta TEXT,
+    score TEXT,
+    scoreclass TEXT,
+    notes TEXT,
+    archived BOOLEAN DEFAULT false,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ENABLE REALTIME FOR ALL TABLES
 DROP PUBLICATION IF EXISTS supabase_realtime;
 CREATE PUBLICATION supabase_realtime FOR ALL TABLES;

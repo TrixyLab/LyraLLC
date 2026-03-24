@@ -8,7 +8,7 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
-    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700;900&family=Barlow:wght@400;500;600&display=block"
     rel="stylesheet">
   <style>
     *,
@@ -411,7 +411,8 @@
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html" class="active">Applications</a></li>
       <li><a href="admin-roster.html">Management</a></li>
-      <li><a href="admin-chat.html">Messages</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html">Direct Messages</a></li>
       <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
@@ -436,7 +437,7 @@
       </div>
       <div class="stats-container">
         <div class="stat-box">
-          <p class="stat-number">3</p>
+          <p class="stat-number" id="pendingCount">3</p>
           <p class="stat-label">Pending</p>
         </div>
         <div class="stat-box">
@@ -468,6 +469,7 @@
     function fetchApps() {
       supabase.from('lyra_applications').select('*').order('timestamp', { ascending: false }).then(({data}) => {
       const appsContainer = document.getElementById('apps-container');
+      const pendingCount = document.getElementById('pendingCount');
       appsContainer.style.opacity = '0';
       appsContainer.style.transform = 'translateY(10px)';
       appsContainer.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
@@ -475,14 +477,17 @@
         setTimeout(() => {
           appsContainer.innerHTML = '';
           if (!data || data.length === 0) {
+            if (pendingCount) pendingCount.innerText = '0';
             appsContainer.innerHTML = '<div class="app-card" style="grid-column: 1 / -1; justify-content: center; background: transparent; border: none; padding-top: 4rem;"><p style="color: var(--gray-600); font-size: 1.1rem; text-align: center;">No pending applications in the database.</p></div>';
             appsContainer.style.opacity = '1';
             appsContainer.style.transform = 'translateY(0)';
             return;
           }
 
+          let pCount = 0;
           data.forEach((app) => {
             if (app.rolevalue === 'adminAccess') return;
+            pCount++;
 
             const card = document.createElement('div');
           card.className = 'app-card animate-slide-in';
@@ -502,12 +507,14 @@
             <p class="app-reason" style="border-top:1px solid rgba(255,255,255,0.05); padding-top:1rem; margin-top:0.5rem;"><strong>Why LYRA?</strong><br/>"${app.reason}"</p>
           </div>
           <div class="app-actions">
-            <button class="btn btn-accept" data-id="${app.id}">Accept</button>
+            <button class="btn btn-accept" data-id="${app.id}" data-email="${app.email}" data-name="${app.name}" data-ign="${app.ign}">Accept</button>
             <button class="btn btn-decline" data-id="${app.id}">Decline</button>
           </div>
         `;
           appsContainer.appendChild(card);
         });
+          
+        if (pendingCount) pendingCount.innerText = pCount;
 
         setTimeout(() => {
           appsContainer.style.opacity = '1';
@@ -626,3 +633,5 @@
   <script src="../animations.js"></script>
   <script src="../responsive.js"></script>
 </body>
+
+

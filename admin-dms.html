@@ -511,8 +511,8 @@
       <li><a href="admin-overview.html">Overview</a></li>
       <li><a href="admin-dashboard.html">Applications</a></li>
       <li><a href="admin-roster.html">Roster Management</a></li>
-      <li><a href="admin-chat.html" class="active">Team Chat</a></li>
-      <li><a href="admin-dms.html">Direct Messages</a></li>
+      <li><a href="admin-chat.html">Team Chat</a></li>
+      <li><a href="admin-dms.html" class="active">Direct Messages</a></li>
       <li><a href="admin-meetings.html">Meetings</a></li>
       <li><a href="admin-reviews.html">Performance Reviews</a></li>
       <li><a href="admin-access.html">Admin Access</a></li>
@@ -528,25 +528,14 @@
     <div class="main-bg"></div>
 
     <div class="chat-container">
-
       <!-- CHANNELS LEFT PANE -->
       <div class="chat-channels">
-        <p class="channel-header">Corporate</p>
-        <div id="defaultChannels">
-          <a href="#" class="channel-link active" data-channel="general"># general</a>
-          <a href="#" class="channel-link" data-channel="announcements"># announcements</a>
-          <a href="#" class="channel-link" data-channel="finance-reports"># finance-reports</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 1.5rem; margin-top: 1rem;">
+          <p class="channel-header" style="margin: 0; padding-left: 0.8rem;">Direct Messages</p>
+          <button id="addDmBtn" style="background:none; border:none; color:var(--red); font-size:1.2rem; cursor:pointer; padding: 0 0.5rem; line-height: 1;" title="Start Direct Message">+</button>
         </div>
-
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; padding-right: 1.5rem; margin-top: 1rem;">
-          <p class="channel-header" style="margin: 0; padding-left: 0.8rem;">Custom Channels</p>
-          <button id="addChannelBtn"
-            style="background:none; border:none; color:var(--red); font-size:1.2rem; cursor:pointer; padding: 0 0.5rem; line-height: 1;"
-            title="Create Channel">+</button>
-        </div>
-        <div id="customChannels">
-          <!-- Dynamically populated from Firebase -->
+        <div id="directMessages">
+          <!-- Dynamically populated -->
         </div>
       </div>
 
@@ -554,12 +543,12 @@
       <div class="chat-window">
         <div class="chat-header">
           <div>
-            <h2 class="chat-title"># general</h2>
-            <p class="chat-desc">Company-wide discussion and casual chatter.</p>
+            <h2 class="chat-title">@ Unknown</h2>
+            <p class="chat-desc">Private Direct Message</p>
           </div>
           <div
-            style="color:var(--gray-600); font-size:0.85rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.1em;">
-            👥 22 MEMBERS
+            style="color:var(--gray-600); font-size:0.85rem; font-family:'Barlow Condensed',sans-serif; letter-spacing:0.1em; display:none;">
+            👥 2 MEMBERS
           </div>
         </div>
 
@@ -705,62 +694,78 @@
     fetchUserProfiles();
     supabase.channel('sync_admins_chat').on('postgres_changes', {event:'*', schema:'public', table:'lyra_approved_admins'}, fetchUserProfiles).subscribe();
 
-    let currentChannel = 'general';
+    let currentChannel = '';
     let messagesRef = null;
     let typingRef = null;
     
-    // Load initial channel on page load
-    switchChannel(currentChannel);
-
-    // Auto-upsert default channels to prevent Foreign Key constraint errors 
-    const defaultChans = ['general', 'announcements', 'finance-reports'];
-    defaultChans.forEach(ch => {
-      supabase.from('chat_channels').upsert([{ id: ch, name: ch, created_by: 'System' }]).then(()=>{});
-    });
+    // Wait for channels to load before switching channel
 
     // --- Channel Management ---
     function fetchCustomChannels() {
       supabase.from('chat_channels').select('*').order('timestamp', { ascending: true }).then(({data}) => {
-        const customChannelsContainer = document.getElementById('customChannels');
-        customChannelsContainer.innerHTML = '';
+          const dmContainer = document.getElementById('directMessages');
+          if (dmContainer) dmContainer.innerHTML = '';
+          
+          const userDMs = data.filter(ch => ch.name.startsWith('dm_') && ch.name.includes(currentUser.toLowerCase()));
+          
+          if(userDMs.length > 0 && !currentChannel) {
+             switchChannel(userDMs[0].name);
+          }
 
-        if (data) {
-          const defaultChansList = ['general', 'announcements', 'finance-reports'];
-          data.filter(ch => !defaultChansList.includes(ch.name)).forEach(ch => {
-            if (!ch.name.startsWith('dm_')) {
-              const a = document.createElement('a');
-              a.href = '#';
-              a.className = 'channel-link';
-              if (currentChannel === ch.name) a.classList.add('active');
-              a.setAttribute('data-channel', ch.name);
+          userDMs.forEach(ch => {
+            const a = document.createElement('a');
+            a.href = '#';
+            a.className = 'channel-link';
+            if (currentChannel === ch.name) a.classList.add('active');
+            a.setAttribute('data-channel', ch.name);
+            
+            const parts = ch.name.split('_');
+            const otherUser = String(parts[1]) === currentUser.toLowerCase() ? parts[2] : parts[1];
 
-              a.innerHTML = `
-                <span style="pointer-events: none; display:flex; justify-content:space-between; align-items:center; width:100%;">
-                  <span style="padding-left: 0.8rem;"># ${ch.name}</span>
-                  <button class="delete-channel-btn" data-id="${ch.name}" style="pointer-events: auto; background:none; border:none; color:var(--gray-600); cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-600)'" title="Delete Channel">
-                    <svg pointer-events="none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  </button>
-                </span>
-              `;
-              customChannelsContainer.appendChild(a);
-            }
+            a.innerHTML = `
+              <span style="pointer-events: none; display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <span style="padding-left: 0.8rem; font-weight: 600;">@ ${otherUser}</span>
+                <button class="delete-channel-btn" data-id="${ch.name}" style="pointer-events: auto; background:none; border:none; color:var(--gray-600); cursor:pointer; padding:0; display:flex; align-items:center; transition:color 0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-600)'" title="End DM">
+                  <svg pointer-events="none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </span>
+            `;
+            if (dmContainer) dmContainer.appendChild(a);
           });
-        }
-      });
+        });
     }
     fetchCustomChannels();
     supabase.channel('sync_custom_channels').on('postgres_changes', {event:'*', schema:'public', table:'chat_channels'}, fetchCustomChannels).subscribe();
 
-    document.getElementById('addChannelBtn').addEventListener('click', () => {
-      showLyraModal("Create Channel", "Enter a name for the new custom team channel:", "prompt", "Create", (name) => {
-        if (name && name.trim().length > 0) {
-          const safeName = name.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
-          supabase.from('chat_channels').insert([{
-            id: safeName,
-            name: safeName,
-            created_by: currentUser
-          }]).then(()=>{});
-          switchChannel(safeName);
+
+
+    document.getElementById('addDmBtn').addEventListener('click', () => {
+      supabase.from('lyra_approved_admins').select('ign, name').then(({data}) => {
+        if (data && data.length > 0) {
+          const adminsArray = data.map(val => ({
+            val: (val.ign || val.name).toLowerCase(),
+            label: '@ ' + (val.ign || val.name).toUpperCase()
+          })).filter(o => o.val !== currentUser.toLowerCase()); // Don't let users DM themselves
+
+          if (adminsArray.length === 0) {
+            alert("No other admins found to message.");
+            return;
+          }
+
+          showLyraModal("Direct Message", "Select an Admin to team chat with:", "select", "Start Chat", (targetUser) => {
+            if (targetUser && targetUser.trim() !== '') {
+               const users = [currentUser.toLowerCase(), targetUser.trim().toLowerCase()].sort();
+               const dmId = `dm_${users[0]}_${users[1]}`;
+               supabase.from('chat_channels').upsert([{
+                 id: dmId,
+                 name: dmId,
+                 created_by: currentUser
+               }]).then(()=>{});
+               switchChannel(dmId);
+            }
+          }, adminsArray);
+        } else {
+          alert('No admins found.');
         }
       });
     });
@@ -770,15 +775,13 @@
       if (deleteBtn) {
         e.preventDefault();
         const chId = deleteBtn.getAttribute('data-id');
-        const displayName = '#' + chId;
+        const displayName = chId.startsWith('dm_') ? (chId.split('_')[1] === currentUser.toLowerCase() ? '@ ' + chId.split('_')[2] : '@ ' + chId.split('_')[1]) : '#' + chId;
         
         showLyraModal("Delete Channel", `Are you sure you want to permanently delete ${displayName}? All messages will be lost.`, "confirm", "Delete", (res) => {
           if (res) {
             supabase.from('chat_channels').delete().eq('name', chId).then(()=>{});
             supabase.from('chat_messages').delete().eq('channel_id', chId).then(()=>{});
-            if (currentChannel === chId) {
-              switchChannel('general');
-            }
+            switchChannel('');
           }
         });
         return;

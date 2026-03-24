@@ -5,7 +5,7 @@ const SUPABASE_URL = "https://gmgsauxnyhodecdocwkz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtZ3NhdXhueWhvZGVjZG9jd2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMTgwODUsImV4cCI6MjA4OTg5NDA4NX0.DBGN8aVUPxQlnUR2v9qAStQ9g-gLys6D0zSbybHdPUw";
 
 // Initialize Supabase Client (assuming CDN is loaded)
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // --- Global Chat Notification System ---
 (function () {
@@ -120,7 +120,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   // --- Admin Presence System using Supabase Realtime ---
   const globalChannel = supabase.channel('lyra_global');
   globalChannel.on('presence', { event: 'sync' }, () => {
-    // We can handle global presence sync here or in individual pages
+    if (typeof window.updatePresenceUI === 'function') window.updatePresenceUI();
   }).subscribe(async (status) => {
     if (status === 'SUBSCRIBED') {
       const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
@@ -184,29 +184,219 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     });
   }
 
+  // --- Admin Status Custom Dropdown ---
+  function initAdminStatus() {
+    const statusSelect = document.getElementById('adminStatus');
+    if (!statusSelect) return;
+    
+    // Hide native select
+    statusSelect.style.display = 'none';
+
+    let container = document.getElementById('lyra-custom-status');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'lyra-custom-status';
+      container.style.position = 'relative';
+      container.style.width = '100%';
+      statusSelect.parentNode.insertBefore(container, statusSelect.nextSibling);
+
+      const btn = document.createElement('button');
+      btn.className = 'presence-btn';
+      btn.innerHTML = `<span id="s-btn-text" style="display:flex;align-items:center;gap:8px;"></span> <span style="font-size:0.8rem; color:var(--gray-600);">▼</span>`;
+      
+      const menu = document.createElement('div');
+      menu.className = 'presence-menu';
+      menu.id = 'lyra-status-menu';
+
+      const options = [
+        { val: 'online', label: 'Online', dot: 'online' },
+        { val: 'away', label: 'Away', dot: 'away' },
+        { val: 'dnd', label: 'Do Not Disturb', dot: 'dnd' }
+      ];
+
+      options.forEach(opt => {
+        menu.innerHTML += `
+          <div class="presence-item status-opt" data-val="${opt.val}" style="cursor:pointer;">
+            <div class="p-dot ${opt.dot}"></div>
+            <div class="p-name" style="text-transform:none;">${opt.label}</div>
+          </div>
+        `;
+      });
+
+      btn.onclick = (e) => {
+        e.preventDefault();
+        menu.classList.toggle('open');
+      };
+
+      container.appendChild(btn);
+      container.appendChild(menu);
+
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) menu.classList.remove('open');
+      });
+
+      menu.addEventListener('click', async (e) => {
+        const item = e.target.closest('.status-opt');
+        if (item) {
+          const val = item.getAttribute('data-val');
+          localStorage.setItem('lyra_admin_status', val);
+          menu.classList.remove('open');
+          updateStatusUI(val);
+
+          supabase.from('lyra_presence').upsert({ id: currentUser, status: val }).then(()=>{});
+          try {
+            await globalChannel.track({ user: currentUser, status: val });
+          } catch(err) { }
+        }
+      });
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'lyra_admin_status') {
+        const val = e.newValue;
+        if (val) {
+          updateStatusUI(val);
+          globalChannel.track({ user: currentUser, status: val }).catch(console.error);
+        }
+      }
+    });
+
+    function updateStatusUI(val) {
+      const btnText = document.getElementById('s-btn-text');
+      if (btnText) {
+        if (val === 'online') btnText.innerHTML = `<div class="p-dot online"></div> <span style="font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">Online</span>`;
+        else if (val === 'away') btnText.innerHTML = `<div class="p-dot away"></div> <span style="font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">Away</span>`;
+        else if (val === 'dnd') btnText.innerHTML = `<div class="p-dot dnd"></div> <span style="font-family:'Barlow Condensed',sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">Do Not Disturb</span>`;
+      }
+    }
+
+    const savedStatus = localStorage.getItem('lyra_admin_status') || 'online';
+    updateStatusUI(savedStatus);
+  }
+  
+  // Need to ensure the style block exists before rendering the status dropdown
+  // so we call this later inside a DOMContentLoaded event or we just inject CSS manually once:
+  if (!document.getElementById('lyra-presence-style')) {
+    const style = document.createElement('style');
+    style.id = 'lyra-presence-style';
+    style.innerHTML = `
+      .presence-btn { width: 100%; padding: 0.8rem 1rem; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; outline: none; }
+      .presence-btn:hover { border-color: var(--red); background: rgba(232,0,45,0.1); }
+      .presence-menu { position: absolute; top: calc(100% + 5px); left: 0; width: 100%; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; max-height: 300px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+      .presence-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+      .presence-item { padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor: default; }
+      .presence-item:last-child { border-bottom: none; }
+      .presence-item:hover { background: rgba(255,255,255,0.05); }
+      .p-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+      .p-dot.online { background: #00E85D; color: #00E85D; }
+      .p-dot.away { background: #FFD700; color: #FFD700; }
+      .p-dot.dnd { background: #E8002D; color: #E8002D; }
+      .p-dot.offline { background: #555555; box-shadow: none; }
+      .p-name { font-weight: 600; font-size: 0.9rem; flex: 1; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Barlow Condensed', sans-serif; }
+      .p-status-lbl { font-size: 0.75rem; color: var(--gray-600); font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdminStatus);
+  } else {
+    initAdminStatus();
+  }
+
   // --- Active Users List Population (if element exists) ---
+  // --- Active Users List Population (if element exists) ---
+  let adminNamesCache = new Set();
+  
   function initPresenceSystem() {
     const presenceList = document.getElementById('presenceList');
     if (!presenceList) return;
 
-    supabase.from('lyra_approved_admins').select('ign').then(({ data }) => {
-      if (!data) return;
-      const adminNames = new Set(data.map(d => d.ign.toLowerCase()));
+    supabase.from('lyra_approved_admins').select('ign, name').then(({ data }) => {
+      if (data) {
+        adminNamesCache = new Set(data.map(d => (d.ign || d.name).toLowerCase()));
+      }
 
-      supabase.from('lyra_presence').select('*').then(({ data: presenceData }) => {
-        if (!presenceData) return;
+      // HIDE THE ORIGINAL SELECT ELEMENT
+      presenceList.style.display = 'none';
 
-        presenceList.innerHTML = '<option value="" disabled selected>View Team Online</option>';
+      // INJECT PREMIUM UI CONTAINER
+      let container = document.getElementById('lyra-custom-presence');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'lyra-custom-presence';
+        container.style.position = 'relative';
+        container.style.width = '100%';
+        presenceList.parentNode.insertBefore(container, presenceList.nextSibling);
+
+        if (!document.getElementById('lyra-presence-style')) {
+           const style = document.createElement('style');
+           style.id = 'lyra-presence-style';
+           style.innerHTML = `
+             .presence-btn { width: 100%; padding: 0.8rem 1rem; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); color: var(--white); font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; outline: none; }
+             .presence-btn:hover { border-color: var(--red); background: rgba(232,0,45,0.1); }
+             .presence-menu { position: absolute; top: calc(100% + 5px); left: 0; width: 100%; background: rgba(20,20,20,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; max-height: 300px; opacity: 0; pointer-events: none; transform: translateY(-10px); transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+             .presence-menu.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+             .presence-item { padding: 0.8rem 1rem; display: flex; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor: default; }
+             .presence-item:last-child { border-bottom: none; }
+             .presence-item:hover { background: rgba(255,255,255,0.05); }
+             .p-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+             .p-dot.online { background: #00E85D; color: #00E85D; }
+             .p-dot.away { background: #FFD700; color: #FFD700; }
+             .p-dot.dnd { background: #E8002D; color: #E8002D; }
+             .p-dot.offline { background: #555555; box-shadow: none; }
+             .p-name { font-weight: 600; font-size: 0.9rem; flex: 1; text-transform: uppercase; letter-spacing: 0.05em; font-family: 'Barlow Condensed', sans-serif; }
+             .p-status-lbl { font-size: 0.75rem; color: var(--gray-600); font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; }
+           `;
+           document.head.appendChild(style);
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'presence-btn';
+        btn.innerHTML = `<span id="p-btn-text">View Team Online</span> <span style="font-size:0.8rem; color:var(--gray-600);">▼</span>`;
+        
+        const menu = document.createElement('div');
+        menu.className = 'presence-menu';
+        menu.id = 'lyra-presence-menu';
+
+        btn.onclick = (e) => {
+          e.preventDefault();
+          menu.classList.toggle('open');
+        };
+
+        document.addEventListener('click', (e) => {
+          if (!container.contains(e.target)) {
+            menu.classList.remove('open');
+          }
+        });
+
+        container.appendChild(btn);
+        container.appendChild(menu);
+      }
+
+      window.updatePresenceUI = () => {
+        const state = globalChannel.presenceState();
         let onlineCount = 0;
         const displayMap = new Map();
 
-        adminNames.forEach(name => displayMap.set(name, { status: 'offline', originalName: name }));
+        adminNamesCache.forEach(name => displayMap.set(name, { status: 'offline', originalName: name }));
 
-        presenceData.forEach(p => {
-          const normKey = p.id.toLowerCase();
-          if (adminNames.has(normKey) || p.id === 'Admin') {
-            displayMap.set(normKey, { status: p.status, originalName: p.id });
-          }
+        Object.keys(state).forEach(key => {
+          state[key].forEach(p => {
+            if (p.user) {
+              const normKey = p.user.toLowerCase();
+              if (adminNamesCache.has(normKey) || p.user === 'Admin') {
+                const currentStat = displayMap.get(normKey)?.status;
+                if (currentStat !== 'dnd' && currentStat !== 'away') {
+                  displayMap.set(normKey, { status: p.status, originalName: p.user });
+                }
+              }
+            }
+          });
+        });
+
+        displayMap.forEach((data, key) => {
+          if (data.status !== 'offline') onlineCount++;
         });
 
         const sortedEntries = Array.from(displayMap.entries()).sort((a, b) => {
@@ -214,19 +404,31 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
           return (statusOrder[a[1].status] || 3) - (statusOrder[b[1].status] || 3);
         });
 
-        sortedEntries.forEach(([name, data]) => {
-          const displayName = data.originalName;
-          let icon = '🔴'; let label = 'Offline';
-          if (data.status === 'online') { icon = '🟢'; label = 'Online'; onlineCount++; }
-          else if (data.status === 'away') { icon = '🟡'; label = 'Away'; onlineCount++; }
-          else if (data.status === 'dnd') { icon = '🔴'; label = 'DND'; onlineCount++; }
-          const option = document.createElement('option');
-          option.value = displayName;
-          option.innerHTML = `${icon} ${displayName} (${label})`;
-          presenceList.appendChild(option);
-        });
-        presenceList.options[0].text = `View Team (${onlineCount} Active)`;
-      });
+        const btnText = document.getElementById('p-btn-text');
+        if (btnText) btnText.innerHTML = `View Team <span style="color:var(--red); font-weight:700; margin-left:5px;">(${onlineCount} Online)</span>`;
+        
+        const menu = document.getElementById('lyra-presence-menu');
+        if (menu) {
+          menu.innerHTML = '';
+          sortedEntries.forEach(([name, data]) => {
+            const displayName = data.originalName;
+            let dotClass = 'offline'; let label = 'Offline';
+            if (data.status === 'online') { dotClass = 'online'; label = 'Online'; }
+            else if (data.status === 'away') { dotClass = 'away'; label = 'Away'; }
+            else if (data.status === 'dnd') { dotClass = 'dnd'; label = 'DND'; }
+            
+            menu.innerHTML += `
+              <div class="presence-item">
+                <div class="p-dot ${dotClass}"></div>
+                <div class="p-name">${displayName}</div>
+                <div class="p-status-lbl">${label}</div>
+              </div>
+            `;
+          });
+        }
+      };
+
+      if (typeof window.updatePresenceUI === 'function') window.updatePresenceUI();
     });
   }
   initPresenceSystem();
