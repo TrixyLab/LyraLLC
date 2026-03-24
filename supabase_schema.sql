@@ -85,8 +85,10 @@ CREATE TABLE IF NOT EXISTS public.lyra_system_broadcast (
 -- 8. meetings
 CREATE TABLE IF NOT EXISTS public.lyra_meetings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    roomName TEXT NOT NULL,
-    host TEXT NOT NULL,
+    room_name TEXT UNIQUE NOT NULL,
+    creator_ign TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    last_activity TIMESTAMPTZ DEFAULT NOW(),
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 

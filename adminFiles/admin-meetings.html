@@ -154,6 +154,13 @@
             transform: scaleX(-1);
         }
 
+        .video-wrapper.speaking {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(0, 232, 93, 0.4);
+            border-width: 3px;
+            z-index: 10;
+        }
+
         .video-overlay {
             position: absolute;
             inset: 0;
@@ -245,19 +252,115 @@
             color: var(--red);
         }
 
-        /* CONTROLS */
-        .control-bar {
-            height: 80px;
-            background: var(--panel-bg);
-            backdrop-filter: var(--glass-blur);
-            border-top: 1px solid var(--glass-border);
+        /* NEW DROPDOWN MENU */
+        .meeting-controls-dropdown {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .meeting-title-tag {
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--accent);
+            padding: 8px 18px;
+            border-radius: 4px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .dropdown-trigger {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1.5rem;
-            position: relative;
-            z-index: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .dropdown-trigger:hover {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .dropdown-menu-content {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
             display: none;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 200px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            margin-top: 5px;
+        }
+
+        .dropdown-menu-content.open {
+            display: flex;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--accent);
+        }
+
+        .menu-item.danger {
+            color: var(--red);
+        }
+
+        .menu-item.danger i {
+            color: var(--red);
+        }
+
+        .menu-item.danger:hover {
+            background: rgba(232,0,45,0.1);
+        }
+
+        /* HIDE OLD CONTROL BAR IN MEETING */
+        .control-bar {
+            display: none !important;
+        }
+
+        .main-stage {
+            padding: 20px;
         }
 
         .btn {
@@ -457,6 +560,43 @@
     </div>
 
     <div class="meeting-container">
+        <!-- TOP RIGHT MENU SYSTEM -->
+        <div id="meetingMenu" class="meeting-controls-dropdown" style="display: none;">
+            <div id="displayRoom" class="meeting-title-tag">SECURE SESSION</div>
+            
+            <div id="menuTrigger" class="dropdown-trigger">
+                <i class="fas fa-bars"></i>
+            </div>
+            
+            <div id="dropdownMenu" class="dropdown-menu-content">
+                <div class="menu-item" id="menuToggleMic">
+                    <i class="fas fa-microphone"></i>
+                    <span>Toggle Microphone</span>
+                </div>
+                <div class="menu-item" id="menuToggleCam">
+                    <i class="fas fa-video"></i>
+                    <span>Toggle Camera</span>
+                </div>
+                <div class="menu-item" id="menuToggleScreen">
+                    <i class="fas fa-desktop"></i>
+                    <span>Share Screen</span>
+                </div>
+                <div class="menu-item" id="menuInvite">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Invite Admins</span>
+                </div>
+                <div class="menu-item" id="menuToggleSidebar">
+                    <i class="fas fa-users"></i>
+                    <span>Participants List</span>
+                </div>
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 5px 0;"></div>
+                <div class="menu-item danger" onclick="location.reload()">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Leave Meeting</span>
+                </div>
+            </div>
+        </div>
+
         <main class="main-stage">
             <div id="videoGrid" class="video-grid"></div>
         </main>
@@ -724,7 +864,7 @@
 
                 // IMMEDIATE UI TRANSITION
                 lobby.style.display = 'none';
-                document.getElementById('controlBar').style.display = 'flex';
+                document.getElementById('meetingMenu').style.display = 'flex'; // SHOW NEW MENU
                 document.getElementById('displayRoom').innerText = room;
 
                 // Auto-open sidebar on start
@@ -746,6 +886,7 @@
 
                 // Add Local Video
                 addVideoWrapper('local', s, 'You', true);
+                initSpeakerDetection(s, 'local'); // Start local volume detection
 
                 // Set callbacks
                 shell.registerCallback('onStreamAdded', d => {
@@ -762,12 +903,79 @@
                     if (pItem) pItem.style.background = d.isMuted ? 'var(--red)' : 'var(--accent)';
                 });
 
+                // Listen for speaking updates from others
+                if (shell.roomChannel) {
+                    shell.roomChannel.on('broadcast', { event: 'speaking_update' }, ({ payload }) => {
+                        const { id, isSpeaking } = payload;
+                        const el = document.getElementById(`vw-${id}`);
+                        if (el) el.classList.toggle('speaking', isSpeaking);
+                    });
+                }
+
                 updateParticipants();
             } catch (e) {
                 joinBtn.innerText = "RETRY UPLINK"; joinBtn.disabled = false;
                 alert("Connection failed. Check permissions.");
             }
         };
+
+        // DROPDOWN MENU LOGIC
+        const menuTrigger = document.getElementById('menuTrigger');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        menuTrigger.onclick = (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('open');
+        };
+
+        window.onclick = () => dropdownMenu.classList.remove('open');
+
+        // Link Menu Items to existing logic
+        document.getElementById('menuToggleMic').onclick = () => document.getElementById('toggleMic').click();
+        document.getElementById('menuToggleCam').onclick = () => document.getElementById('toggleCam').click();
+        document.getElementById('menuToggleScreen').onclick = () => document.getElementById('toggleScreen').click();
+        document.getElementById('menuToggleSidebar').onclick = () => document.getElementById('toggleSidebar').click();
+        document.getElementById('menuInvite').onclick = () => document.getElementById('inviteBtn').click();
+
+        // SPEAKER DETECTION LOGIC
+        let audioCtx, analyser, dataArray;
+        function initSpeakerDetection(stream, id) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                let isSpeaking = false;
+                setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                    const average = sum / bufferLength;
+
+                    const currentlySpeaking = average > 30; // Threshold
+                    if (currentlySpeaking !== isSpeaking) {
+                        isSpeaking = currentlySpeaking;
+                        // Toggle local UI
+                        const el = document.getElementById(`vw-${id}`);
+                        if (el) el.classList.toggle('speaking', isSpeaking);
+                        
+                        // Broadcast to others
+                        if (shell && shell.roomChannel) {
+                            shell.roomChannel.send({
+                                type: 'broadcast',
+                                event: 'speaking_update',
+                                payload: { id: shell.myUserId, isSpeaking }
+                            });
+                        }
+                    }
+                }, 150);
+            } catch (e) { console.warn("Speaker Detection Error:", e); }
+        }
 
         function addVideoWrapper(id, stream, name, isLocal = false) {
             if (document.getElementById(`vw-${id}`)) return;
