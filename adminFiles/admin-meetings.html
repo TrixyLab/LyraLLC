@@ -3,56 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Meetings</title>
+    <link rel="stylesheet" href="styles.css">
+    <title>Meetings</title>
 </head>
 <body>
-    <h1>Admin Meetings</h1>
-    <div>
-        <h2>Hardware Input Settings</h2>
-        <select id="deviceSelect">
-            <option value="">Select a device...</option>
-            <!-- Device options will be populated here -->
-        </select>
+    <div class="sidebar">
+        <h2>Meetings</h2>
+        <ul>
+            <li><a href="#">Scheduled Meetings</a></li>
+            <li><a href="#">Archived Meetings</a></li>
+        </ul>
     </div>
-
-    <script>
-        function enumerateDevices() {
-            navigator.mediaDevices.enumerateDevices()
-                .then(devices => {
-                    const deviceSelect = document.getElementById('deviceSelect');
-                    deviceSelect.innerHTML = '<option value="">Select a device...</option>'; // Placeholder option
-
-                    devices.forEach(device => {
-                        let label = device.label || 'Unnamed Device'; // Fallback description
-                        if (device.kind === 'videoinput') {
-                            label += ' (Camera)';
-                        } else if (device.kind === 'audioinput') {
-                            label += ' (Microphone)';
-                        }
-                        const option = document.createElement('option');
-                        option.value = device.deviceId;
-                        option.textContent = label;
-                        deviceSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    if (error.name === 'NotAllowedError') {
-                        console.error('Permission denied for accessing media devices.');
-                        alert('Permissions to access media devices have been denied. Please enable permissions in your browser settings.');
-                    } else if (error.name === 'NotFoundError') {
-                        console.error('No media devices found.');
-                        alert('No media devices found. Make sure they are connected.');
-                    } else {
-                        console.error('Error accessing media devices: ', error);
-                        alert('An unknown error occurred while accessing media devices.');
-                    }
-                });
-        }
-
-        // Load preferences from localStorage
-        document.addEventListener('DOMContentLoaded', function() {
-            enumerateDevices();
-        });
-    </script>
+    <div class="main-content">
+        <h1>Meeting Interface</h1>
+        <div class="meeting-list">
+            <div class="meeting-item">
+                <h3>Meeting 1</h3>
+                <p>Date: 2026-03-25</p>
+                <p>Status: Scheduled</p>
+            </div>
+            <div class="meeting-item">
+                <h3>Meeting 2</h3>
+                <p>Date: 2026-03-26</p>
+                <p>Status: Scheduled</p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
