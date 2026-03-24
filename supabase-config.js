@@ -498,7 +498,36 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
   // --- Admin Calling System ---
-  let ringInterval = null;
+  window.lyraJinglePlayer = function(isIncoming) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return { pause: () => {} };
+    const ctx = new AudioContext();
+    const masterGain = ctx.createGain();
+    masterGain.connect(ctx.destination);
+    masterGain.gain.value = 0.5;
+    const notes = isIncoming ? [587.33, 739.99, 880.00, 1174.66] : [587.33, 739.99]; 
+    const speed = isIncoming ? 0.1 : 0.15;
+    let loopInterval;
+    function playCycle() {
+      if (ctx.state === 'closed') return;
+      const now = ctx.currentTime;
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        osc.connect(gain); gain.connect(masterGain);
+        gain.gain.setValueAtTime(0, now + i * speed);
+        gain.gain.linearRampToValueAtTime(1, now + i * speed + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + i * speed + 0.3);
+        osc.start(now + i * speed); osc.stop(now + i * speed + 0.4);
+      });
+    }
+    playCycle();
+    loopInterval = setInterval(playCycle, isIncoming ? 3000 : 2000);
+    return { pause: () => { clearInterval(loopInterval); ctx.close().catch(()=>{}); } };
+  };
+
+  let activeIncomingRinger = null;
   let callPopup = null;
 
   supabase.channel('global_calls')
@@ -507,7 +536,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // If there's no call or status is not ringing, stop ringing
       if (!callData || callData.status !== 'ringing') {
-        if (ringInterval) { clearInterval(ringInterval); ringInterval = null; }
+        if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
         if (callPopup) { callPopup.remove(); callPopup = null; }
         return;
       }
@@ -518,7 +547,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         callPopup.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--gray-900, #0D0D0D); border:2px solid var(--red, #E8002D); box-shadow:0 0 30px rgba(232,0,45,0.6); padding:20px 30px; border-radius:8px; z-index:999999; display:flex; flex-direction:column; align-items:center; gap:15px; color:white; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em; animation: pulse 1s infinite;";
         callPopup.innerHTML = `
           <div style="font-size:1.5rem; font-weight:700;">Incoming Call</div>
-          <div style="font-size:1.1rem; color:var(--gray-200);">${callData.from_user} is inviting you to a meeting</div>
+          <div style="font-size:1.1rem; color:var(--gray-200);">${callData.from_user} is inviting you to join: <strong style="color:var(--white);">${callData.roomName}</strong></div>
           <div style="display:flex; gap:15px; margin-top:10px;">
             <button id="acceptCallBtn" style="background:#00E85D; color:black; border:none; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Accept</button>
             <button id="declineCallBtn" style="background:transparent; color:#E8002D; border:1px solid #E8002D; padding:10px 20px; font-weight:700; cursor:pointer; border-radius:4px; font-family:'Barlow Condensed', sans-serif; text-transform:uppercase; letter-spacing:0.1em;">Decline</button>
@@ -526,14 +555,11 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         `;
         document.body.appendChild(callPopup);
 
-        const ringer = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVtvT19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw==");
-        ringer.volume = 0.8;
-        ringer.play().catch(() => { });
-        ringInterval = setInterval(() => ringer.play().catch(() => { }), 2000);
+        activeIncomingRinger = window.lyraJinglePlayer(true);
 
         document.getElementById('acceptCallBtn').onclick = () => {
           supabase.from('lyra_calls').update({ status: 'accepted' }).eq('id', currentUser).then(() => { });
-          if (ringInterval) clearInterval(ringInterval);
+          if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
           callPopup.remove();
           callPopup = null;
 
@@ -552,7 +578,7 @@ window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.getElementById('declineCallBtn').onclick = () => {
           supabase.from('lyra_calls').update({ status: 'declined' }).eq('id', currentUser).then(() => { });
-          if (ringInterval) clearInterval(ringInterval);
+          if (activeIncomingRinger) { activeIncomingRinger.pause(); activeIncomingRinger = null; }
           if (callPopup) callPopup.remove();
           callPopup = null;
         };
