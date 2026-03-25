@@ -788,9 +788,18 @@
 
                     // Supabase Channel Setup
                     const channelName = 'room:' + (room || 'MAIN').replace(/[^a-zA-Z0-9]/g, '_');
-                    console.log("Shell: Subscribing to channel", channelName);
-                    
-                    // Safe Channel Cleanup
+                    const isSameRoom = window.LyraMeeting.roomChannel && window.LyraMeeting.roomChannel.topic.endsWith(channelName);
+                if (!isSameRoom) {
+                    console.log("Shell: Room change or session start. Clearing stale state.");
+                    Object.keys(window.LyraMeeting.peers).forEach(k => {
+                        window.LyraMeeting.peers[k].close();
+                        delete window.LyraMeeting.peers[k];
+                    });
+                    window.LyraMeeting.remoteStreams = {};
+                    window.LyraMeeting.audioElements = {};
+                    window.LyraMeeting.gainNodes = {};
+                }
+        // Safe Channel Cleanup
                     try {
                         const channels = client.getChannels ? client.getChannels() : [];
                         const existing = channels.find(c => c.topic === `realtime:${channelName}`);
@@ -809,14 +818,16 @@
 
                     window.LyraMeeting.roomChannel.subscribe((status) => {
                         clearTimeout(subTimeout);
-                        if (status === 'SUBSCRIBED') {
-                            console.log("Shell: Signaling channel subscribed.");
-                            window.LyraMeeting.roomChannel.send({
-                                type: 'broadcast',
-                                event: 'webrtc_signaling',
-                                payload: { sender: window.LyraMeeting.myUserId, senderName: window.currentUser, type: 'peer_joined' }
-                            });
-                        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                            if (status === 'SUBSCRIBED') {
+                                console.log("Shell: Signaling ACTIVE on", channelName);
+                                // Broadcast JUMP-IN
+                                chan.send({
+                                    type: 'broadcast',
+                                    event: 'webrtc_signaling',
+                                    payload: { sender: window.LyraMeeting.myUserId, type: 'presence_ping', senderName: window.currentUser || 'Operative' }
+                                });
+                            }
+ else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
                             console.error("Shell: Signaling failed with status", status);
                             alert("Signaling Error: Could not join the meeting room (" + status + ").");
                         }
@@ -845,10 +856,48 @@
                     const myTargetId = (target === window.LyraMeeting.myUserId + '_screen') ? window.LyraMeeting.myUserId + '_screen' : window.LyraMeeting.myUserId;
 
                     switch (type) {
+                        case 'presence_ping':
+                            console.log("Shell: Ping received from", senderName);
+                            // Respond with PONG (so they know we are here)
+                            chan.send({
+                                type: 'broadcast',
+                                event: 'webrtc_signaling',
+                                payload: { 
+                                    sender: window.LyraMeeting.myUserId, 
+                                    target: sender,
+                                    type: 'presence_pong', 
+                                    senderName: window.currentUser || 'Operative',
+                                    data: { isScreenSharing: !!window.LyraMeeting.isScreenSharing }
+                                }
+                            });
+                            // Fall through to peer_joined for connection setup
                         case 'peer_joined':
-                            console.log("Shell: New peer discovered", senderName);
+                            console.log("Shell: New stream discovered", senderName, sender);
+                            // Cleanup any existing ghost streams for this name (if not a screen)
+                            if (!sender.includes('_screen')) {
+                                Object.keys(window.LyraMeeting.remoteStreams).forEach(oldId => {
+                                    if (window.LyraMeeting.remoteStreams[oldId].name === senderName && oldId !== sender) {
+                                        window.LyraMeeting.removePeerBySender(oldId);
+                                    }
+                                });
+                            }
+                            // Connection
                             window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
-                            if (window.LyraMeeting.isScreenSharing) window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId + '_screen');
+                            break;
+                            
+                        case 'presence_pong':
+                            console.log("Shell: Pong received from", senderName);
+                            // Register in UI list early
+                            if (!window.LyraMeeting.remoteStreams[sender]) {
+                                window.LyraMeeting.remoteStreams[sender] = { id: sender, name: senderName, stream: null };
+                                window.LyraMeeting.trigger('onStreamAdded', window.LyraMeeting.remoteStreams[sender]);
+                            }
+                            // Start connection
+                            window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                            // If they have a screen, connect to that too
+                            if (data && data.isScreenSharing) {
+                                window.LyraMeeting.createPeerConnection(sender + '_screen', senderName + ' (Screen)', true, window.LyraMeeting.myUserId);
+                            }
                             break;
                         case 'offer':
                             window.LyraMeeting.handleOffer(sender, senderName, data, myTargetId);
@@ -1086,11 +1135,12 @@
                         };
                         
                         // Notify others we are sharing
-                        const id = window.LyraMeeting.getIdentity();
+                        // Notify others we are sharing
+                        const identity = window.LyraMeeting.getIdentity();
                         window.LyraMeeting.roomChannel.send({
                             type: 'broadcast',
                             event: 'webrtc_signaling',
-                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: (id.ign || 'Admin') + ' (Screen)', type: 'peer_joined' }
+                            payload: { sender: window.LyraMeeting.myScreenUserId, senderName: (identity.ign || 'Admin') + ' (Screen)', type: 'peer_joined' }
                         });
                     } catch (err) { console.error("Shell: Screen share failed", err); return false; }
                 }
