@@ -21,8 +21,8 @@
             --accent: #00E85D;
             --glass: rgba(255, 255, 255, 0.03);
             --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-blur: blur(20px);
-            --panel-bg: rgba(10, 10, 10, 0.8);
+            --glass-blur: blur(25px);
+            --panel-bg: rgba(10, 10, 10, 0.85);
         }
 
         * {
@@ -38,7 +38,9 @@
             height: 100vh;
             overflow: hidden;
             display: flex;
-            background: radial-gradient(circle at 50% 120%, rgba(232, 0, 45, 0.1), transparent 70%), #050505;
+            background: radial-gradient(circle at 10% 10%, rgba(232, 0, 45, 0.05), transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(0, 232, 93, 0.03), transparent 40%),
+                #050505;
         }
 
         /* LOBBY / INITIALIZATION */
@@ -47,34 +49,58 @@
             inset: 0;
             z-index: 2000;
             background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(40px);
+            backdrop-filter: blur(45px);
             display: flex;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(1.02);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .lobby-card {
             background: var(--panel-bg);
             border: 1px solid var(--glass-border);
-            width: 90%;
-            max-width: 900px;
+            width: 95%;
+            max-width: 1000px;
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
-            border-radius: 4px;
+            grid-template-columns: 1.1fr 1fr;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.9);
+            border-radius: 12px;
             overflow: hidden;
         }
 
         .lobby-left {
-            padding: 3rem;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .lobby-right {
-            padding: 3rem;
+            padding: 3.5rem;
+            background: rgba(255, 255, 255, 0.01);
+            border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
             justify-content: center;
+        }
+
+        .lobby-right {
+            padding: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+            max-height: 90vh;
+            scrollbar-width: none;
+        }
+
+        .lobby-right::-webkit-scrollbar {
+            display: none;
         }
 
         .preview-box {
@@ -85,6 +111,59 @@
             overflow: hidden;
             border: 1px solid var(--glass-border);
             position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview-box::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(transparent 50%, rgba(232, 0, 45, 0.05) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scanner-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--red);
+            box-shadow: 0 0 15px var(--red);
+            z-index: 3;
+            animation: scan 4s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes scan {
+            from {
+                top: 0%;
+            }
+
+            to {
+                top: 100%;
+            }
+        }
+
+        .hud-overlay {
+            position: absolute;
+            inset: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 4;
+            font-family: 'Barlow Condensed';
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         #previewVideo {
@@ -116,9 +195,10 @@
             flex: 1;
             display: grid;
             gap: 20px;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 30px;
+            align-content: center;
         }
 
         /* PRESENTATION MODE (Flex-based for reliability) */
@@ -135,10 +215,11 @@
             border-radius: 12px;
             overflow: hidden;
             background: #000;
-            border: 2px solid var(--glass-border);
+            border: 1px solid var(--glass-border);
             aspect-ratio: 16/9;
             transition: all 0.4s ease;
             width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .video-wrapper.featured {
@@ -349,21 +430,21 @@
 
         .meeting-footer {
             position: fixed;
-            bottom: 30px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%) translateY(120%);
             opacity: 0;
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(25px);
+            background: rgba(10, 10, 10, 0.75);
+            backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border);
             border-radius: 100px;
-            padding: 12px 30px;
+            padding: 14px 35px;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 25px;
             z-index: 1000;
-            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 1);
         }
 
         .meeting-footer-trigger:hover+.meeting-footer,
@@ -373,14 +454,16 @@
         }
 
         .meeting-title-tag {
-            color: var(--accent);
-            font-family: 'Bebas Neue', sans-serif;
+            color: var(--red);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
             font-size: 1.1rem;
-            letter-spacing: 1px;
-            margin-right: 15px;
+            letter-spacing: 1.5px;
+            margin-right: 20px;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding-right: 15px;
+            padding-right: 20px;
             white-space: nowrap;
+            text-transform: uppercase;
         }
 
         /* Tooltip Container */
@@ -422,45 +505,47 @@
         }
 
         .btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(255, 255, 255, 0.05);
-            color: #ccc;
-            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ddd;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
         }
 
         .btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--red);
             color: #fff;
-            transform: scale(1.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(232, 0, 45, 0.3);
+            border-color: transparent;
         }
 
         .btn.active {
             background: var(--red);
-            border-color: var(--red);
             color: #fff;
+            box-shadow: 0 0 20px rgba(232, 0, 45, 0.4);
         }
 
         .btn.leave {
-            background: var(--red);
-            border: none;
-            color: #fff;
-            width: 54px;
-            height: 54px;
-            border-radius: 50%;
+            background: rgba(232, 0, 45, 0.2);
+            border: 1px solid var(--red);
+            color: var(--red);
+            width: 60px;
+            height: 60px;
             margin-left: 10px;
-            box-shadow: 0 4px 15px rgba(232, 0, 45, 0.3);
         }
 
         .btn.leave:hover {
-            background: #ff1a4a;
-            transform: scale(1.1) rotate(135deg);
+            background: var(--red);
+            color: #fff;
+            transform: translateY(-5px) rotate(135deg);
         }
 
         svg {
@@ -782,63 +867,90 @@
 </head>
 
 <body>
-
     <div id="lobby">
         <div class="lobby-card">
             <div class="lobby-left">
-                <span class="label-sm">System Check</span>
-                <h2 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Ready to Join?</h2>
-                <p style="color: #666; font-size: 0.9rem; margin-bottom: 2rem;">Ensure your encryption keys and hardware
-                    are verified.</p>
-                <div class="preview-box"><video id="previewVideo" autoplay playsinline muted></video></div>
+                <p class="label-sm" style="color: var(--red); letter-spacing: 0.2em; margin-bottom: 0.5rem;">Terminal
+                    Awaiting Authorization</p>
+                <h2
+                    style="font-family: 'Bebas Neue'; font-size: 3.5rem; line-height: 1; margin-bottom: 1rem; letter-spacing: 1px;">
+                    Ready to Join?</h2>
+                <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;">Encryption protocols
+                    initialized. Your secure node is ready for peer authorization.</p>
+
+                <div class="preview-box">
+                    <div class="scanner-line"></div>
+                    <div class="hud-overlay">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>NODE_STATUS: ACTIVE</span>
+                            <span>FREQ: 5.8GHZ</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>HW_VERIFIED</span>
+                            <span>ID: LYRA-SEC-4</span>
+                        </div>
+                    </div>
+                    <video id="previewVideo" autoplay playsinline muted></video>
+                </div>
             </div>
             <div class="lobby-right">
                 <div class="form-group">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="label-sm">Meeting Name / Room ID</span>
-                        <div style="display:flex; gap:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                        <span class="label-sm" style="margin-bottom:0;">Session Identity</span>
+                        <div style="display:flex; gap:12px;">
                             <span id="clearRoom" title="Clear Name"
-                                style="cursor:pointer; font-size:10px; color:#555; font-weight:bold;">CLEAR</span>
+                                style="cursor:pointer; font-size:10px; color:#444; font-weight:700; letter-spacing:1px;">RESET</span>
                             <span id="randomizeRoom" title="Generate Name"
-                                style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold;"><i
+                                style="cursor:pointer; font-size:10px; color:var(--red); font-weight:700; letter-spacing:1px;"><i
                                     class="fas fa-magic"></i> AUTO</span>
                         </div>
                     </div>
                     <input type="text" id="roomName" class="form-input" placeholder="e.g. MISSION-OMEGA"
-                        value="MAIN-OPS" style="margin-bottom:0.5rem; border-color:var(--accent);">
-                    <p style="font-size:10px; color:#555; margin-bottom:1rem;">Type any name to create a new dedicated
-                        room.</p>
+                        value="MAIN-OPS"
+                        style="margin-bottom:0.5rem; border-color: rgba(255,255,255,0.1); font-weight: 600; font-size: 1.1rem; padding: 1rem;">
+                    <p
+                        style="font-size:10px; color:#444; margin-bottom:2rem; text-transform: uppercase; letter-spacing: 1px;">
+                        Join or create a tactical operations room.</p>
                 </div>
-                <div class="form-group">
-                    <span class="label-sm">Camera Input</span>
-                    <select id="camSelect" class="form-select"></select>
-                </div>
-                <div class="form-group">
-                    <span class="label-sm">Audio Input</span>
-                    <select id="micSelect" class="form-select"></select>
-                </div>
-                <button id="joinBtn" class="primary-btn">CREATE MEETING</button>
 
-                <div id="liveSessions" style="margin-top: 2rem;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
-                        <span class="label-sm" style="margin-bottom:0;">Active Sessions</span>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 2rem;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <span class="label-sm">Visual Feed</span>
+                        <select id="camSelect" class="form-select"
+                            style="margin-bottom:0; cursor:pointer; font-size: 0.8rem;"></select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <span class="label-sm">Audio Lead</span>
+                        <select id="micSelect" class="form-select"
+                            style="margin-bottom:0; cursor:pointer; font-size: 0.8rem;"></select>
+                    </div>
+                </div>
+
+                <button id="joinBtn" class="primary-btn"
+                    style="border-radius: 4px; height: 60px; font-size: 1.3rem;">INITIALIZE LINK</button>
+
+                <div id="liveSessions" style="margin-top: 3rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                        <span class="label-sm" style="margin-bottom:0;">Active Operation Nodes</span>
                         <span id="refreshLobby" title="Refresh List"
-                            style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold;"><i
-                                class="fas fa-sync-alt"></i> REFRESH</span>
+                            style="cursor:pointer; font-size:10px; color:var(--accent); font-weight:bold; letter-spacing:1px;"><i
+                                class="fas fa-sync-alt"></i> SYNC</span>
                     </div>
                     <div id="sessionList"
-                        style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px; margin-bottom: 1.5rem;">
-                        <div style="padding: 20px; text-align: center; color: #444; font-size: 11px;">Scanning for
-                            active links...</div>
+                        style="max-height: 200px; overflow-y: auto; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 10px; margin-bottom: 2rem;">
+                        <div
+                            style="padding: 25px; text-align: center; color: #444; font-family: 'Barlow Condensed'; font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase;">
+                            Scanning active frequencies...</div>
                     </div>
                 </div>
 
                 <div class="schedule-section">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-                        <span class="label-sm" style="margin-bottom:0;">Upcoming Schedule</span>
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
+                        <span class="label-sm" style="margin-bottom:0;">Operations Schedule</span>
                         <button id="toggleScheduleForm" class="label-sm"
-                            style="background:none; border:none; border: 1px solid var(--accent); color: var(--accent); padding: 2px 8px; cursor:pointer; border-radius:3px;">+
-                            SCHEDULE</button>
+                            style="background:rgba(232, 0, 45, 0.1); border: 1px solid var(--red); color: var(--red); padding: 4px 10px; cursor:pointer; border-radius:4px;">+
+                            LOG EVENT</button>
                     </div>
 
                     <div id="scheduleForm">
