@@ -560,8 +560,49 @@
         }
         .guest-btn:hover { background: #ff1a43; }
 
+        /* MOBILE RESPONSIVENESS */
+        .mobile-header {
+            display: none;
+            background: var(--gray-900);
+            padding: 1rem 1.5rem;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 101;
+            width: 100%;
+        }
+        .mobile-header .brand-logo { margin-bottom: 0; font-size: 1.5rem; }
+        .mobile-header .hamburger { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar {
+                position: fixed;
+                left: -320px;
+                top: 0;
+                bottom: 0;
+                transition: left 0.3s ease;
+                z-index: 100;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            }
+            .sidebar.open { left: 0; }
+            .mobile-header { display: flex; }
+            .portal-main { height: calc(100vh - 70px); }
+            .sidebar-overlay.open { display: block; }
+        }
+
         /* GUEST MODE OVERRIDES */
         body.is-guest .sidebar,
+        body.is-guest .mobile-header,
         body.is-guest .header { display: none !important; }
         body.is-guest .main-content { margin-left: 0 !important; width: 100vw !important; height: 100vh !important; }
         body.is-guest iframe { border: none !important; }
@@ -821,7 +862,7 @@
                             if (status === 'SUBSCRIBED') {
                                 console.log("Shell: Signaling ACTIVE on", channelName);
                                 // Broadcast JUMP-IN
-                                chan.send({
+                                window.LyraMeeting.roomChannel.send({
                                     type: 'broadcast',
                                     event: 'webrtc_signaling',
                                     payload: { sender: window.LyraMeeting.myUserId, type: 'presence_ping', senderName: window.currentUser || 'Operative' }
@@ -1161,7 +1202,7 @@
                 console.log("Shell: Fetching meetings since", activityLimit);
                 const { data, error } = await client.from('lyra_meetings')
                     .select('*')
-                    .or('is_active.eq.true,is_active.eq.t') // Handle both boolean formats
+                    .eq('is_active', true)
                     .gt('last_activity', activityLimit)
                     .order('last_activity', { ascending: false });
                 
@@ -1307,7 +1348,16 @@
         </div>
     </div>
 
-    <aside class="sidebar">
+    <div class="mobile-header" id="mobileHeader">
+        <a href="../index.html" class="brand-logo">
+            <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
+            <div><span>L</span>YRA</div>
+        </a>
+        <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
         <a href="../index.html" class="brand-logo">
             <img src="../LyraEsportsLogo.png" alt="Lyra Logo">
             <div><span>L</span>YRA</div>
@@ -1793,7 +1843,6 @@
             window.location.href = '../login.html';
         });
 
-        // 7. GLOBAL BRANDING
         async function fetchGlobalBranding() {
             try {
                 const { data } = await supabase.from('lyra_branding').select('*').eq('id', 'global').single();
@@ -1803,6 +1852,32 @@
             } catch (e) { console.warn("Shell: Branding fetch failed.", e); }
         }
         fetchGlobalBranding();
+
+        // 8. MOBILE MENU TOGGLE
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        
+        if (hamburgerBtn && sidebar && sidebarOverlay) {
+            hamburgerBtn.addEventListener('click', () => {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+            });
+            sidebarOverlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+            });
+            
+            // Auto close on navigation
+            document.querySelectorAll('.sidebar a:not(.nav-dropdown-trigger)').forEach(a => {
+                a.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('open');
+                        sidebarOverlay.classList.remove('open');
+                    }
+                });
+            });
+        }
     </script>
 </body>
 

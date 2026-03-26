@@ -1554,7 +1554,7 @@
         }
 
         function addParticipantItem(id, name) {
-            const pList = document.getElementById('participantList');
+            const pList = document.getElementById('pList');
             if (!pList) return;
             const item = document.createElement('div');
             item.className = 'participant-item';
@@ -1564,7 +1564,7 @@
         }
 
         function updateParticipants() {
-            const pList = document.getElementById('participantList');
+            const pList = document.getElementById('pList');
             if (!pList || !shell) return;
             pList.innerHTML = '';
 
