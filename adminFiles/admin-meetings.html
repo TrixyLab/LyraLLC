@@ -1373,14 +1373,15 @@
 
             try {
                 log("Requesting shell initialization...");
-                const s = await shell.start(room, { camId: camSelect.value, micId: micSelect.value });
+                const s = await shell.start(room.toUpperCase(), { camId: camSelect.value, micId: micSelect.value });
                 log("Shell ready, joining viewport.");
 
                 // IMMEDIATE UI TRANSITION
+                const upperRoom = room.toUpperCase();
                 lobby.style.display = 'none';
                 document.getElementById('meetingMenu').style.display = 'flex';
-                document.getElementById('displayRoom').innerText = room;
-                shell.upsertMeeting(room);
+                document.getElementById('displayRoom').innerText = upperRoom;
+                shell.upsertMeeting(upperRoom);
 
                 // Add Local Video
                 const identity = shell.getIdentity();

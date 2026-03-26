@@ -828,7 +828,8 @@
                     if (barRoomName) barRoomName.innerText = 'IN MEETING: ' + room;
 
                     // Supabase Channel Setup
-                    const channelName = 'room:' + (room || 'MAIN').replace(/[^a-zA-Z0-9]/g, '_');
+                    room = (room || 'MAIN').toUpperCase();
+                    const channelName = 'room:' + room.replace(/[^a-zA-Z0-9]/g, '_');
                     const isSameRoom = window.LyraMeeting.roomChannel && window.LyraMeeting.roomChannel.topic.endsWith(channelName);
                 if (!isSameRoom) {
                     console.log("Shell: Room change or session start. Clearing stale state.");
@@ -868,10 +869,10 @@
                                     payload: { sender: window.LyraMeeting.myUserId, type: 'presence_ping', senderName: window.currentUser || 'Operative' }
                                 });
                             }
- else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                            console.error("Shell: Signaling failed with status", status);
-                            alert("Signaling Error: Could not join the meeting room (" + status + ").");
-                        }
+                            else if (status === 'CHANNEL_ERROR' || (status === 'CLOSED' && window.LyraMeeting.isActive)) {
+                                console.error("Shell: Signaling failed with status", status);
+                                alert("Signaling Error: Could not join the meeting room (" + status + ").");
+                            }
                     });
                     
                     return window.LyraMeeting.localStream;
@@ -898,7 +899,8 @@
 
                     switch (type) {
                         case 'presence_ping':
-                            console.log("Shell: Ping received from", senderName);
+                        case 'peer_joined':
+                            console.log("Shell: Discovery received", type, senderName);
                             // Respond with PONG (so they know we are here)
                             chan.send({
                                 type: 'broadcast',
@@ -911,19 +913,20 @@
                                     data: { isScreenSharing: !!window.LyraMeeting.isScreenSharing }
                                 }
                             });
-                            // Fall through to peer_joined for connection setup
-                        case 'peer_joined':
-                            console.log("Shell: New stream discovered", senderName, sender);
+
                             // Cleanup any existing ghost streams for this name (if not a screen)
-                            if (!sender.includes('_screen')) {
+                            if (type === 'peer_joined' && !sender.includes('_screen')) {
                                 Object.keys(window.LyraMeeting.remoteStreams).forEach(oldId => {
                                     if (window.LyraMeeting.remoteStreams[oldId].name === senderName && oldId !== sender) {
                                         window.LyraMeeting.removePeerBySender(oldId);
                                     }
                                 });
                             }
-                            // Connection
-                            window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                            // Connection - Only initiate if our ID is higher to avoid glare
+                            if (window.LyraMeeting.myUserId > sender) {
+                                console.log("Shell: Initiating connection to", sender);
+                                window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                            }
                             break;
                             
                         case 'presence_pong':
@@ -933,10 +936,13 @@
                                 window.LyraMeeting.remoteStreams[sender] = { id: sender, name: senderName, stream: null };
                                 window.LyraMeeting.trigger('onStreamAdded', window.LyraMeeting.remoteStreams[sender]);
                             }
-                            // Start connection
-                            window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                            // Start connection - Only initiate if our ID is higher to avoid glare
+                            if (window.LyraMeeting.myUserId > sender) {
+                                console.log("Shell: Initiating connection to", sender);
+                                window.LyraMeeting.createPeerConnection(sender, senderName, true, window.LyraMeeting.myUserId);
+                            }
                             // If they have a screen, connect to that too
-                            if (data && data.isScreenSharing) {
+                            if (data && data.isScreenSharing && window.LyraMeeting.myUserId > (sender + '_screen')) {
                                 window.LyraMeeting.createPeerConnection(sender + '_screen', senderName + ' (Screen)', true, window.LyraMeeting.myUserId);
                             }
                             break;
@@ -1260,15 +1266,6 @@
                 if (window.LyraMeeting.localStream) window.LyraMeeting.localStream.getTracks().forEach(t => t.stop());
                 if (window.LyraMeeting.localScreenStream) window.LyraMeeting.localScreenStream.getTracks().forEach(t => t.stop());
                 
-                // Cleanup session in DB
-                if (window.LyraMeeting.currentRoom) {
-                    const room = window.LyraMeeting.currentRoom;
-                    const client = window.supabase || supabase;
-                    if (client) {
-                        client.from('lyra_meetings').update({ is_active: false }).eq('room_name', room).then(() => {});
-                    }
-                }
-
                 window.LyraMeeting.currentRoom = null;
                 window.LyraMeeting.remoteStreams = {};
                 
